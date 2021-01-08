@@ -2,7 +2,7 @@
 
 NeewerLite is an un-official Neewer LED light control app which is open source under MIT license.
 
-[Neewer](https://neewer.com/) produces some very popupler hight CRI LED lights for photography industry. They provides android and ios app to control those lights through Bluetooth. However, they did not provides any means to control lights from a PC or Mac.
+[Neewer](https://neewer.com/) produces some very popupler high-CRI LED lights for photography industry. They provides android and ios app to control those lights through Bluetooth. However, they don't provides any means to control lights from a PC or Mac.
 
 This project is meant to provide such app so you could control bluetooth-enabled Neewer LED light from you Mac.
 
@@ -10,7 +10,7 @@ This project is meant to provide such app so you could control bluetooth-enabled
 
 # Usage
 
-Open the app and let it scan all Neewer lights through Bluetooth. Once it finds lites. Then you could use command to switch On/Off lights.
+Open the app and let it scans all Neewer lights through Bluetooth. Once it finds lights. Then you could use command to switch On/Off lights.
 
 Use this command to turn on all lights:
 
@@ -28,6 +28,8 @@ Once you have these 2 bash scripts ready. You could easly add the light control 
 Here is a video I made to demo the scene: 
 
 https://youtu.be/pbNi6HZTDEc
+
+![](https://j.gifs.com/3Qz2Ox.gif)
 
 
 # TO DO LIST
