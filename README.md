@@ -6,6 +6,8 @@ NeewerLite is an un-official Neewer LED light control app which is open source u
 
 This project is meant to provide such app so you could control bluetooth-enabled Neewer LED light from you Mac.
 
+![](screenshot.jpg)
+
 # Usage
 
 Open the app and let it scan all Neewer lights through Bluetooth. Once it finds lites. Then you could use command to switch On/Off lights.
