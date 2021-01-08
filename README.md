@@ -23,6 +23,13 @@ Use this command to turn off all lights:
 open neewerlite://turnOffLight
 ```
 
+Once you have these 2 bash scripts ready. You could easly add the light control in your Elgato Stream Deck. 
+
+Here is a video I made to demo the scense: 
+
+https://youtu.be/pbNi6HZTDEc
+
+
 # TO DO LIST
 
 If you find a way to implement these features, feel free to create a pull request.
