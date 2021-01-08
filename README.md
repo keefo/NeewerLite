@@ -25,7 +25,7 @@ open neewerlite://turnOffLight
 
 Once you have these 2 bash scripts ready. You could easly add the light control in your Elgato Stream Deck. 
 
-Here is a video I made to demo the scense: 
+Here is a video I made to demo the scene: 
 
 https://youtu.be/pbNi6HZTDEc
 
