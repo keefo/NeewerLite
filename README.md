@@ -6,13 +6,12 @@ NeewerLite is an un-official Neewer LED light control app which is open source u
 
 This project is meant to provide such app so you could control bluetooth-enabled Neewer LED light from you Mac.
 
-You could integrate the light control in your Elgato Stream Deck through this app. 
+You could integrate the light control in your [Elgato Stream Deck](https://www.elgato.com/en/gaming/stream-deck) through this app. 
 
 Here is a video I made to demo the scene: 
 
-https://youtu.be/pbNi6HZTDEc
-
 ![](https://j.gifs.com/3Qz2Ox.gif)
+https://youtu.be/pbNi6HZTDEc
 
 # Usage
 
