@@ -25,7 +25,7 @@ open neewerlite://turnOffLight
 
 # TO DO LIST
 
-If you find a way to achive these features, feel free to create a pull request.
+If you find a way to implement these features, feel free to create a pull request.
 
 1. Add brightness control
 2. Add RGB color control
