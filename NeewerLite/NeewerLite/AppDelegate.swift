@@ -23,12 +23,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationDidFinishLaunching(_ aNotification: Notification) {
         // Insert code here to initialize your application
-        NSApp.setActivationPolicy(.regular)
+        NSApp.setActivationPolicy(.accessory)
 
         if let button = statusItem.button {
             button.image = NSImage(named: "statusItemOffIcon")
-            button.target = self
-            button.action = #selector(toggleWindow)
         }
 
         self.window.minSize = NSMakeSize(580, 400)
@@ -43,14 +41,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         return true
     }
 
-    @objc func toggleWindow(_ sender: Any) {
-        if self.window.isVisible {
-            self.window.orderOut(self)
-        } else {
-            self.window.makeKeyAndOrderFront(self)
-        }
+    @objc func showWindow(_ sender: Any) {
+        self.window.makeKeyAndOrderFront(self)
+        NSApplication.shared.activate(ignoringOtherApps: true)
     }
-
 
     @objc func handleURLEvent(_ event: NSAppleEventDescriptor?, withReplyEvent: NSAppleEventDescriptor?) {
         if let url = event?.paramDescriptor(forKeyword: keyDirectObject)?.stringValue {
@@ -87,6 +81,28 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             viewObjects.append(vo)
         }
         statusItem.button?.title = "\(viewObjects.count)"
+
+        let menu = NSMenu(title: "statusBarMenu")
+        let itemShow =  NSMenuItem(title: "Show Window", action: #selector(self.showWindow(_:)), keyEquivalent: "")
+        itemShow.target = self
+        menu.addItem(itemShow)
+
+        menu.addItem(NSMenuItem.separator())
+
+        for vo in viewObjects {
+            let item =  NSMenuItem(title: vo.deviceName, action: #selector(self.showWindow(_:)), keyEquivalent: "")
+            itemShow.target = self
+            menu.addItem(item)
+        }
+
+        menu.addItem(NSMenuItem.separator())
+
+        let itemQuit =  NSMenuItem(title: "Quit", action: #selector(NSApplication.shared.terminate), keyEquivalent: "")
+        itemQuit.target = NSApp
+        menu.addItem(itemQuit)
+
+        self.statusItem.menu = menu
+
         collectionView.reloadData()
     }
 }
