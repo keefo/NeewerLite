@@ -30,6 +30,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
 
         self.window.minSize = NSMakeSize(580, 400)
+        updateUI()
+
         cbCentralManager = CBCentralManager(delegate: self, queue: nil)
 
         NSAppleEventManager.shared().setEventHandler(self, andSelector: #selector(handleURLEvent(_:withReplyEvent:)), forEventClass: AEEventClass(kInternetEventClass), andEventID: AEEventID(kAEGetURL))
@@ -52,16 +54,16 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 let cmd = url[range.upperBound...]
                 if cmd == "turnOnLight" {
                     for vo in viewObjects {
-                        if !vo.device.isOn {
-                            vo.device.powerOn()
+                        if !vo.device.isOn.value {
+                            vo.device.sendPowerOnRequest()
                         }
                     }
                     statusItem.button?.image = NSImage(named: "statusItemOnIcon")
                 }
                 else if cmd == "turnOffLight" {
                     for vo in viewObjects {
-                        if vo.device.isOn {
-                            vo.device.powerOff()
+                        if vo.device.isOn.value {
+                            vo.device.sendPowerOffRequest()
                         }
                     }
                     statusItem.button?.image = NSImage(named: "statusItemOffIcon")
@@ -71,7 +73,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationWillTerminate(_ aNotification: Notification) {
-        // Insert code here to tear down your application
+        // Store all Lights values
+        for device in devices {
+            device.value.saveToUserDefault()
+        }
     }
 
     public func updateUI() {
@@ -160,8 +165,6 @@ extension AppDelegate : NSCollectionViewDelegateFlowLayout {
     }
 }
 
-
-
 extension AppDelegate :  CBCentralManagerDelegate {
 
     func centralManagerDidUpdateState(_ central: CBCentralManager) {
@@ -204,6 +207,7 @@ extension AppDelegate :  CBCentralManagerDelegate {
         if devices[peripheral.identifier] != nil || tempDevices[peripheral.identifier] != nil {
             return
         }
+        
 
         peripheral.delegate = self
         tempDevices[peripheral.identifier] = peripheral
@@ -246,9 +250,7 @@ extension AppDelegate :  CBPeripheralDelegate {
                 return
             }
 
-            let light: NeewerLight = NeewerLight(peripheral)
-            light.deviceCtlCharacteristic = characteristic1
-            light.gattCharacteristic = characteristic2
+            let light: NeewerLight = NeewerLight(peripheral, characteristic1, characteristic2)
             devices[peripheral.identifier] = light
             light.startLightOnNotify()
 
