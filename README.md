@@ -14,6 +14,7 @@ Here is a video I made to demo the scene:
 
 https://youtu.be/pbNi6HZTDEc
 
+![screenshot.jpg](screenshot.jpg "Snapshot")
 
 # Usage
 

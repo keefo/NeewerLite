@@ -16,16 +16,17 @@ class DeviceViewObject
     }
 
     public lazy var deviceName: String = {
-        return "\(device.peripheral.name ?? "Unknow Name")"
+        let name = device.deviceName
+        return name
     }()
 
     public lazy var deviceIdentifier: String = {
-        return "\(device.peripheral.identifier)"
+        return "\(device.identifier)"
     }()
 
     public lazy var deviceImage: NSImage = {
         var img = NSImage(named: "defaultLightImage")
-        if deviceName.contains("RGB660 PRO") {
+        if device.rawName.contains("RGB660 PRO") {
             img = NSImage(named: "light-rgb660-pro")
         }
         if img == nil {

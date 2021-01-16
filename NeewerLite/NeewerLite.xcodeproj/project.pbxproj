@@ -18,6 +18,9 @@
 		A731DD8125A5922A00302E25 /* CollectionViewItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = A731DD8025A5922A00302E25 /* CollectionViewItem.swift */; };
 		A731DD8F25A592CC00302E25 /* CollectionViewItem.xib in Resources */ = {isa = PBXBuildFile; fileRef = A731DD8E25A592CC00302E25 /* CollectionViewItem.xib */; };
 		A731DD9D25A5A01300302E25 /* DeviceViewObject.swift in Sources */ = {isa = PBXBuildFile; fileRef = A731DD9C25A5A01300302E25 /* DeviceViewObject.swift */; };
+		A749F6FA25B3AE7E0066EB06 /* DataExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = A749F6F925B3AE7E0066EB06 /* DataExtensions.swift */; };
+		A749F70225B3AE9A0066EB06 /* Observable.swift in Sources */ = {isa = PBXBuildFile; fileRef = A749F70125B3AE9A0066EB06 /* Observable.swift */; };
+		A749F70725B3AEB60066EB06 /* CBCharacteristicExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = A749F70625B3AEB60066EB06 /* CBCharacteristicExtensions.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -56,6 +59,9 @@
 		A731DD8025A5922A00302E25 /* CollectionViewItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CollectionViewItem.swift; sourceTree = "<group>"; };
 		A731DD8E25A592CC00302E25 /* CollectionViewItem.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = CollectionViewItem.xib; sourceTree = "<group>"; };
 		A731DD9C25A5A01300302E25 /* DeviceViewObject.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceViewObject.swift; sourceTree = "<group>"; };
+		A749F6F925B3AE7E0066EB06 /* DataExtensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataExtensions.swift; sourceTree = "<group>"; };
+		A749F70125B3AE9A0066EB06 /* Observable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Observable.swift; sourceTree = "<group>"; };
+		A749F70625B3AEB60066EB06 /* CBCharacteristicExtensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CBCharacteristicExtensions.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -155,6 +161,9 @@
 			isa = PBXGroup;
 			children = (
 				A731DD6325A586A200302E25 /* CBUUIDExtensions.swift */,
+				A749F6F925B3AE7E0066EB06 /* DataExtensions.swift */,
+				A749F70125B3AE9A0066EB06 /* Observable.swift */,
+				A749F70625B3AEB60066EB06 /* CBCharacteristicExtensions.swift */,
 				A731DD6B25A5891E00302E25 /* Logger.swift */,
 			);
 			path = Common;
@@ -309,10 +318,13 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A749F70225B3AE9A0066EB06 /* Observable.swift in Sources */,
 				A731DD3425A57D0B00302E25 /* AppDelegate.swift in Sources */,
 				A731DD9D25A5A01300302E25 /* DeviceViewObject.swift in Sources */,
+				A749F70725B3AEB60066EB06 /* CBCharacteristicExtensions.swift in Sources */,
 				A731DD6C25A5891E00302E25 /* Logger.swift in Sources */,
 				A731DD6425A586A200302E25 /* CBUUIDExtensions.swift in Sources */,
+				A749F6FA25B3AE7E0066EB06 /* DataExtensions.swift in Sources */,
 				A731DD8125A5922A00302E25 /* CollectionViewItem.swift in Sources */,
 				A731DD7425A5896B00302E25 /* NeewerLight.swift in Sources */,
 			);
