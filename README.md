@@ -1,6 +1,6 @@
 # NeewerLite
 
-NeewerLite is an un-official Neewer LED light control app that is open source under MIT license.
+NeewerLite is an un-official Neewer LED light control app for macOS.
 
 [Neewer](https://neewer.com/) produces some very popupler high-CRI LED lights for photography industry. They provides android and ios app to control those lights through Bluetooth. However, they don't provides any means to control lights from a PC or Mac.
 
