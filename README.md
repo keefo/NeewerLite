@@ -38,6 +38,11 @@ Use this command to turn off all lights:
 open neewerlite://turnOffLight
 ```
 
+Use this command to toggle all lights:
+```bash
+open neewerlite://toggleLight
+```
+
 # TO DO LIST
 
 If you find a way to implement these features, feel free to create a pull request.

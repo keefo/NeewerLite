@@ -68,6 +68,17 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                     }
                     statusItem.button?.image = NSImage(named: "statusItemOffIcon")
                 }
+                else if cmd == "toggleLight" {
+                    for vo in viewObjects {
+                        if vo.device.isOn.value {
+                            vo.device.sendPowerOffRequest()
+                        }
+                        else {
+                            vo.device.sendPowerOnRequest()
+                        }
+                    }
+                    statusItem.button?.image = NSImage(named: "statusItemOffIcon")
+                }
             }
         }
     }
