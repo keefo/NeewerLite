@@ -16,6 +16,12 @@ https://youtu.be/pbNi6HZTDEc
 
 ![screenshot.jpg](screenshot.jpg "Snapshot")
 
+# Features
+
+- Power On/Off control
+- Brightness control
+- Correlated color temperature control
+
 # Usage
 
 Open the app and let it scans all Neewer lights through Bluetooth. Once it finds lights. Then you could use command to switch On/Off lights.
@@ -35,7 +41,6 @@ open neewerlite://turnOffLight
 
 If you find a way to implement these features, feel free to create a pull request.
 
-- [x] Add brightness control
 - [ ] Add RGB color control
 - [ ] Add scene switch control
 
