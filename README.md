@@ -1,4 +1,12 @@
-# NeewerLite
+<p align="center">
+<a  href="https://github.com/keefo/NeewerLite">
+    <img src="Design/icon_128x128@2x.png" alt="Logo" width="150" height="150">
+</a>
+</p>
+
+<h1 align="center">Project NeewerLite</h1>
+
+# About The Project
 
 NeewerLite is an un-official Neewer LED light control app for macOS.
 
@@ -10,7 +18,7 @@ You could integrate the light control in your [Elgato Stream Deck](https://www.e
 
 Here is a video I made to demo the scene: 
 
-<a href=“https://youtu.be/pbNi6HZTDEc”><img src=“https://j.gifs.com/3Qz2Ox.gif” /></a>
+<a href="https://youtu.be/pbNi6HZTDEc"><img src="https://j.gifs.com/3Qz2Ox.gif" /></a>
 
 <img src="screenshot.jpg" width="300px" />
 
