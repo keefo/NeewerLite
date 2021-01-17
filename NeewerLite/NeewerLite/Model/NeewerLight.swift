@@ -14,6 +14,11 @@ protocol ObservableNeewerLightProtocol {
     var channel: Observable<UInt8> { get set }
 }
 
+enum NeewerLightMode: UInt8 {
+    case CCTMode = 1
+    case RGBMode
+}
+
 class NeewerLight: NSObject, ObservableNeewerLightProtocol {
 
     private var peripheral: CBPeripheral
@@ -23,10 +28,15 @@ class NeewerLight: NSObject, ObservableNeewerLightProtocol {
     var isOn: Observable<Bool> = Observable(false)
     var channel: Observable<UInt8> = Observable(1)
 
+    private var writeWorkItem: DispatchWorkItem?
+
     var deviceName: String = "Unknow"
+    var lightMode: NeewerLightMode  = .CCTMode
     var channelValue: Int = 1  // 1
     var cctValue: Int = 0x53  // 5300K
-    var brrValue: Int = 50    // 50% brightness
+    var brrValue: Int = 50    // 0~100
+    var hueValue: Int = 0     // 0~360
+    var satruationValue: Int = 0 // 0~100
 
     public lazy var identifier: String = {
         return "\(peripheral.identifier)"
@@ -58,9 +68,12 @@ class NeewerLight: NSObject, ObservableNeewerLightProtocol {
     func saveToUserDefault() {
         var vals: [String: String] = [:]
         vals["on"] = isOn.value ? "1" : "0"
+        vals["mod"] = "\(lightMode.rawValue)"
         vals["cct"] = "\(cctValue)"
         vals["brr"] = "\(brrValue)"
         vals["chn"] = "\(channelValue)"
+        vals["hue"] = "\(hueValue)"
+        vals["sat"] = "\(satruationValue)"
         vals["nme"] = deviceName
         UserDefaults.standard.set(vals, forKey: "\(self.peripheral.identifier)")
     }
@@ -69,6 +82,14 @@ class NeewerLight: NSObject, ObservableNeewerLightProtocol {
         let vals = UserDefaults.standard.object(forKey: "\(self.peripheral.identifier)") as? [String: String] ?? [String: String]()
         if let val = vals["on"] {
             isOn.value = val == "1" ? true : false
+        }
+        if let val = vals["mod"] {
+            Logger.debug("load mod \(val)")
+            if UInt8(val) == NeewerLightMode.CCTMode.rawValue {
+                lightMode = .CCTMode
+            } else {
+                lightMode = .RGBMode
+            }
         }
         if let val = vals["cct"] {
             Logger.debug("load cct \(val)")
@@ -82,6 +103,14 @@ class NeewerLight: NSObject, ObservableNeewerLightProtocol {
             channelValue = Int(val) ?? 1
             Logger.debug("load channelValue \(channelValue)")
             self.channel.value = UInt8(channelValue)
+        }
+        if let val = vals["hue"] {
+            hueValue = Int(val) ?? 1
+            Logger.debug("load hueValue \(hueValue)")
+        }
+        if let val = vals["sat"] {
+            satruationValue = Int(val) ?? 1
+            Logger.debug("load satruationValue \(satruationValue)")
         }
         if let val = vals["nme"] {
             deviceName = val
@@ -188,7 +217,7 @@ class NeewerLight: NSObject, ObservableNeewerLightProtocol {
         return bArr1
     }
 
-    private func getCCTLightValue(brightness brr: Double, correlatedColorTemperature cct: Double ) -> Data {
+    private func getCCTLightValue(brightness brr: CGFloat, correlatedColorTemperature cct: CGFloat ) -> Data {
 
         assert(cct>=32.0 && cct<=56.0)
         assert(brr>=0 && brr<=100.0)
@@ -221,21 +250,112 @@ class NeewerLight: NSObject, ObservableNeewerLightProtocol {
         return data as Data
     }
 
+    public func setBRRLightValues(_ brr: CGFloat)
+    {
+        if let characteristic = deviceCtlCharacteristic {
+            if lightMode == .CCTMode {
+                let cmd = getCCTLightValue(brightness: brr, correlatedColorTemperature: CGFloat(cctValue))
+                write(data: cmd as Data, to: characteristic)
+            } else {
+                let cmd = getRGBLightValue(brightness: brr, hue: CGFloat(hueValue), satruation: CGFloat(satruationValue))
+                write(data: cmd as Data, to: characteristic)
+            }
+        }
+    }
+
     // Set correlated color temperature and bulb brightness in CCT Mode
-    func setCCTLightValues(_ cct: Double, _ brr: Double)
+    public func setCCTLightValues(_ cct: CGFloat, _ brr: CGFloat)
     {
         if let characteristic = deviceCtlCharacteristic {
             let cmd = getCCTLightValue(brightness: brr, correlatedColorTemperature: cct)
             write(data: cmd as Data, to: characteristic)
+            lightMode = .CCTMode
+        }
+    }
+
+
+    private func getRGBLightValue(brightness brr: CGFloat, hue h: CGFloat, satruation sat: CGFloat ) -> Data {
+        assert(brr>=0 && brr<=100.0)
+
+        // brr range from 0x00 - 0x64
+        var newBrrValue: Int = Int(brr)
+        if newBrrValue < 0 {
+            newBrrValue = 0
+        }
+        if newBrrValue > 100 {
+            newBrrValue = 100
+        }
+
+        var newSatValue: Int = Int(sat * 100.0)
+        if newSatValue < 0 {
+            newSatValue = 0
+        }
+        if newSatValue > 100 {
+            newSatValue = 100
+        }
+
+        var newHueValue = Int(h * 360.0)
+        if newHueValue < 0 {
+            newHueValue = 0
+        }
+        if newHueValue > 360 {
+            newHueValue = 360
+        }
+
+        // Red  7886 0400 0064 643F
+        // Blue 7886 04E7 0064 64B0
+        // Yell 7886 043E 0064 64B0
+        // Gree 7886 0476 0064 643F
+        // Red  7886 0468 0164 643F
+        //Logger.debug("hue \(newHueValue) sat \(newSatValue)")
+
+        let byteCount = 4
+        var bArr: [Int] = [Int](repeating: 0, count: byteCount + 4)
+
+        bArr[0] = cmd_prefix_tag;
+        bArr[1] = cmd_set_rgb_light_tag
+        bArr[2] = byteCount
+        // 4 eletements
+        bArr[3] = Int(newHueValue & 0xFF)
+        bArr[4] = Int((newHueValue & 0xFF00) >> 8) // callcuated from rgb
+        bArr[5] = newSatValue // satruation 0x00 ~ 0x64
+        bArr[6] = newBrrValue // brightness
+
+        brrValue = newBrrValue
+        hueValue = newHueValue
+        satruationValue = newSatValue
+
+        let bArr1: [UInt8] = appendCheckSum(bArr)
+
+        let data = NSData(bytes: bArr1, length: bArr1.count)
+        return data as Data
+    }
+
+
+    // Set RBG light in HSV Mode
+    public func setRGBLightValues(_ hue: CGFloat, _ sat: CGFloat)
+    {
+        if let characteristic = deviceCtlCharacteristic {
+            let cmd = getRGBLightValue(brightness: CGFloat(brrValue), hue: hue, satruation: sat)
+            write(data: cmd as Data, to: characteristic)
+            lightMode = .RGBMode
         }
     }
 
     private func write(data value: Data, to characteristic: CBCharacteristic)
     {
         if value.count > 1 {
-            Logger.debug("write data: \(value.hexEncodedString())")
-            peripheral.writeValue(value, for: characteristic, type: .withResponse)
-        }
+            writeWorkItem?.cancel()
+
+            let currentWorkItem = DispatchWorkItem {
+                Logger.debug("write data: \(value.hexEncodedString())")
+                self.peripheral.writeValue(value, for: characteristic, type: .withResponse)
+            }
+
+            writeWorkItem = currentWorkItem
+            // Writing too fast to the device could lead to BLE jam, slow down the request with 15ms delay.
+            DispatchQueue.main.asyncAfter(deadline: .now() + (15.0 / 1000.0), execute: currentWorkItem)
+         }
     }
 }
 
@@ -264,6 +384,8 @@ extension NeewerLight :  CBPeripheralDelegate {
 
     func peripheral(_ peripheral: CBPeripheral, didWriteValueFor characteristic: CBCharacteristic, error: Error?)
     {
+        Logger.debug("didWriteValueFor characteristic")
+        //self.writeGroup.leave()
         if let err = error {
             Logger.error("didWriteValueFor err: \(err)")
         }
