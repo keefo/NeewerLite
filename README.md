@@ -22,8 +22,9 @@ https://youtu.be/pbNi6HZTDEc
 - Brightness control
 - Correlated color temperature control
 - RGB color control
+- Schema support
 
-# Usage
+## Schema Usage
 
 Open the app and let it scans all Neewer lights through Bluetooth. Once it finds lights. Then you could use command to switch On/Off lights.
 
@@ -42,6 +43,9 @@ Use this command to toggle all lights:
 ```bash
 open neewerlite://toggleLight
 ```
+## Voice Control Interaction
+You could integrate these commands into Voice Control. Open “System Preferences” -> “Accessibility” -> “Voice Control” -> “Commands”, Click the “+” button to create a new command, give a name to your new command such as “Meow” and choose “Any Application” then choose perform “Open URL”.  Type in “neewerlite://toggleLight” for example. 
+Now, when you say “Meow” voice control will switch on/off your LED lights.
 
 # TO DO LIST
 
