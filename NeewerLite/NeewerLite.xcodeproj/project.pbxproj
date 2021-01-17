@@ -21,6 +21,9 @@
 		A749F6FA25B3AE7E0066EB06 /* DataExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = A749F6F925B3AE7E0066EB06 /* DataExtensions.swift */; };
 		A749F70225B3AE9A0066EB06 /* Observable.swift in Sources */ = {isa = PBXBuildFile; fileRef = A749F70125B3AE9A0066EB06 /* Observable.swift */; };
 		A749F70725B3AEB60066EB06 /* CBCharacteristicExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = A749F70625B3AEB60066EB06 /* CBCharacteristicExtensions.swift */; };
+		A749F71525B3DE9B0066EB06 /* ColorWheel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A749F71425B3DE9B0066EB06 /* ColorWheel.swift */; };
+		A749F71A25B3DF4F0066EB06 /* NSBezierPathExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = A749F71925B3DF4F0066EB06 /* NSBezierPathExtensions.swift */; };
+		A749F72225B3DFB30066EB06 /* ColorUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = A749F72125B3DFB30066EB06 /* ColorUtils.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -62,6 +65,9 @@
 		A749F6F925B3AE7E0066EB06 /* DataExtensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataExtensions.swift; sourceTree = "<group>"; };
 		A749F70125B3AE9A0066EB06 /* Observable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Observable.swift; sourceTree = "<group>"; };
 		A749F70625B3AEB60066EB06 /* CBCharacteristicExtensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CBCharacteristicExtensions.swift; sourceTree = "<group>"; };
+		A749F71425B3DE9B0066EB06 /* ColorWheel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorWheel.swift; sourceTree = "<group>"; };
+		A749F71925B3DF4F0066EB06 /* NSBezierPathExtensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NSBezierPathExtensions.swift; sourceTree = "<group>"; };
+		A749F72125B3DFB30066EB06 /* ColorUtils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorUtils.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -164,6 +170,9 @@
 				A749F6F925B3AE7E0066EB06 /* DataExtensions.swift */,
 				A749F70125B3AE9A0066EB06 /* Observable.swift */,
 				A749F70625B3AEB60066EB06 /* CBCharacteristicExtensions.swift */,
+				A749F71925B3DF4F0066EB06 /* NSBezierPathExtensions.swift */,
+				A749F72125B3DFB30066EB06 /* ColorUtils.swift */,
+				A749F71425B3DE9B0066EB06 /* ColorWheel.swift */,
 				A731DD6B25A5891E00302E25 /* Logger.swift */,
 			);
 			path = Common;
@@ -321,12 +330,15 @@
 				A749F70225B3AE9A0066EB06 /* Observable.swift in Sources */,
 				A731DD3425A57D0B00302E25 /* AppDelegate.swift in Sources */,
 				A731DD9D25A5A01300302E25 /* DeviceViewObject.swift in Sources */,
+				A749F72225B3DFB30066EB06 /* ColorUtils.swift in Sources */,
 				A749F70725B3AEB60066EB06 /* CBCharacteristicExtensions.swift in Sources */,
 				A731DD6C25A5891E00302E25 /* Logger.swift in Sources */,
 				A731DD6425A586A200302E25 /* CBUUIDExtensions.swift in Sources */,
 				A749F6FA25B3AE7E0066EB06 /* DataExtensions.swift in Sources */,
+				A749F71A25B3DF4F0066EB06 /* NSBezierPathExtensions.swift in Sources */,
 				A731DD8125A5922A00302E25 /* CollectionViewItem.swift in Sources */,
 				A731DD7425A5896B00302E25 /* NeewerLight.swift in Sources */,
+				A749F71525B3DE9B0066EB06 /* ColorWheel.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -81,7 +81,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     public func updateUI() {
         viewObjects.removeAll()
-        for device in devices {
+
+        let sortedDevices = devices.sorted(by: { $0.0.uuidString < $1.0.uuidString })
+        for device in sortedDevices {
             let vo = DeviceViewObject(device.value)
             viewObjects.append(vo)
         }

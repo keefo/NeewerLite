@@ -7,7 +7,7 @@
 
 import Cocoa
 
-class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate {
+class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, ColorWheelDelegate {
 
     @IBOutlet weak var nameField: NSTextField!
     @IBOutlet weak var switchButton: NSSwitch!
@@ -23,6 +23,7 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate {
     @IBOutlet weak var cctSlide: NSSlider!
     @IBOutlet weak var brrValueField: NSTextField!
     @IBOutlet weak var cctValueField: NSTextField!
+    @IBOutlet weak var colorWheel: ColorWheel!
 
     var nameEditor: NSTextField?
 
@@ -75,6 +76,8 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate {
         view.layer?.borderColor = NSColor.lightGray.withAlphaComponent(0.6).cgColor
         view.layer?.borderWidth = 1.0
         view.layer?.cornerRadius = 10.0
+
+        self.colorWheel.delegate = self
 
         self.brrSlide.minValue = 0.0
         self.brrSlide.maxValue = 100.0 // do not exceed 100.0 here, LED only takes 100.0
@@ -152,10 +155,15 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate {
 
     @IBAction func slideAction(_ sender: NSSlider)
     {
-        if sender == self.brrSlide || sender == self.cctSlide {
+        if sender == self.brrSlide {
             if let dev = self.device {
-                dev.setCCTLightValues(self.cctSlide.doubleValue, self.brrSlide.doubleValue)
+                dev.setBRRLightValues(CGFloat(self.brrSlide.doubleValue))
                 self.brrValueField.stringValue = "\(dev.brrValue)"
+            }
+        }
+        else if sender == self.cctSlide {
+            if let dev = self.device {
+                dev.setCCTLightValues(CGFloat(self.cctSlide.doubleValue), CGFloat(self.brrSlide.doubleValue))
                 self.cctValueField.stringValue = "\(dev.cctValue)00K"
             }
         }
@@ -182,6 +190,11 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate {
             self.cctValueField.stringValue = "\(dev.cctValue)00K"
             self.brrSlide.doubleValue = Double(dev.brrValue)
             self.cctSlide.doubleValue = Double(dev.cctValue)
+
+            Logger.debug("hue: \(dev.hueValue) sat: \(dev.satruationValue)")
+            // colorWheel does not need to consider brightness. Alway pass in 1.0
+            self.colorWheel.setViewColor(NSColor(calibratedHue: CGFloat(dev.hueValue) / 360.0, saturation: CGFloat(dev.satruationValue) / 100.0, brightness: 1.0, alpha: 1.0))
+            
         } else {
             self.brrValueField.stringValue = ""
             self.cctValueField.stringValue = ""
@@ -194,6 +207,12 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate {
         self.nameField.stringValue = vo.deviceName
         self.nameField.toolTip = "\(vo.device.rawName)\n\(vo.deviceIdentifier)"
         updateDeviceStatus()
+    }
+
+    func hueAndSaturationSelected(_ hue: CGFloat, saturation: CGFloat) {
+        if let dev = self.device {
+            dev.setRGBLightValues(hue, saturation)
+        }
     }
 }
 

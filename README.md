@@ -21,6 +21,7 @@ https://youtu.be/pbNi6HZTDEc
 - Power On/Off control
 - Brightness control
 - Correlated color temperature control
+- RGB color control
 
 # Usage
 
@@ -41,7 +42,6 @@ open neewerlite://turnOffLight
 
 If you find a way to implement these features, feel free to create a pull request.
 
-- [ ] Add RGB color control
 - [ ] Add scene switch control
 
 # License
