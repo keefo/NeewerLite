@@ -18,9 +18,12 @@ You could integrate the light control in your [Elgato Stream Deck](https://www.e
 
 Here is a video I made to demo the scene: 
 
-<a href="https://youtu.be/pbNi6HZTDEc"><img src="https://j.gifs.com/3Qz2Ox.gif" /></a>
-
-<img src="screenshot.jpg" width="300px" />
+<p align="center">
+<a align="left" href="https://youtu.be/pbNi6HZTDEc">
+	<img src="https://j.gifs.com/3Qz2Ox.gif" />
+</a>
+<img align="right" src="screenshot.jpg" width="300px" />
+</p>
 
 # Features
 
