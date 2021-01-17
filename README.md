@@ -44,14 +44,19 @@ Use this command to toggle all lights:
 open neewerlite://toggleLight
 ```
 ## Voice Control Interaction
-You could integrate these commands into Voice Control. Open “System Preferences” -> “Accessibility” -> “Voice Control” -> “Commands”, Click the “+” button to create a new command, give a name to your new command such as “Meow” and choose “Any Application” then choose perform “Open URL”.  Type in “neewerlite://toggleLight” for example. 
+You could integrate these commands into Voice Control. 
+
+Open “System Preferences” -> “Accessibility” -> “Voice Control” -> “Commands”, Click the “+” button to create a new command, give a name to your new command such as “Meow” and choose “Any Application” then choose perform “Open URL”.  Type in “neewerlite://toggleLight” for example. 
+
 Now, when you say “Meow” voice control will switch on/off your LED lights.
 
 # TO DO LIST
 
 If you find a way to implement these features, feel free to create a pull request.
 
-- [ ] Add scene switch control
+- [ ] Add scene support
+- [ ] Lights sync with music
+- [ ] Add pictures for other Neewer LED lights
 
 # License
 
