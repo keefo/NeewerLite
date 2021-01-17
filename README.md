@@ -4,7 +4,7 @@
 </a>
 </p>
 
-<h1 align="center">Project NeewerLite</h1>
+<h1 align="center">NeewerLite</h1>
 
 # About The Project
 
