@@ -2,7 +2,7 @@
 
 NeewerLite is an un-official Neewer LED light control app for macOS.
 
-[Neewer](https://neewer.com/) produces some very popupler high-CRI LED lights for photography industry. They provides android and ios app to control those lights through Bluetooth. However, they don't provides any means to control lights from a PC or Mac.
+[Neewer](https://neewer.com/) produces some very popupler high-CRI LED lights for photography industry. They provides android and iOS app to control those lights through Bluetooth. However, they don't provides any means to control lights from a PC or Mac.
 
 This project is meant to provide such app so you could control bluetooth-enabled Neewer LED light from you Mac.
 
@@ -10,9 +10,7 @@ You could integrate the light control in your [Elgato Stream Deck](https://www.e
 
 Here is a video I made to demo the scene: 
 
-![](https://j.gifs.com/3Qz2Ox.gif)
-
-https://youtu.be/pbNi6HZTDEc
+<a href=“https://youtu.be/pbNi6HZTDEc”><img src=“https://j.gifs.com/3Qz2Ox.gif” /></a>
 
 <img src="screenshot.jpg" width="300px" />
 
@@ -44,6 +42,7 @@ Use this command to toggle all lights:
 open neewerlite://toggleLight
 ```
 ## Voice Control Interaction
+
 You could integrate these commands into Voice Control. 
 
 Open “System Preferences” -> “Accessibility” -> “Voice Control” -> “Commands”, Click the “+” button to create a new command, give a name to your new command such as “Meow” and choose “Any Application” then choose perform “Open URL”.  Type in “neewerlite://toggleLight” for example. 
