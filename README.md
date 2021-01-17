@@ -35,9 +35,9 @@ open neewerlite://turnOffLight
 
 If you find a way to implement these features, feel free to create a pull request.
 
-1. Add brightness control
-2. Add RGB color control
-3. Add scene switch control
+- [x] Add brightness control
+- [ ] Add RGB color control
+- [ ] Add scene switch control
 
 # License
 
