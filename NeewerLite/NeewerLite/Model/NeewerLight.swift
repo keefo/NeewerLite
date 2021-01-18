@@ -63,9 +63,11 @@ class NeewerLight: NSObject, ObservableNeewerLightProtocol {
         super.init()
         self.peripheral.delegate = self
         readFromUserDefault()
+        Logger.debug("config: \(getConfig())")
     }
 
-    func saveToUserDefault() {
+    private func getConfig() -> [String: String]
+    {
         var vals: [String: String] = [:]
         vals["on"] = isOn.value ? "1" : "0"
         vals["mod"] = "\(lightMode.rawValue)"
@@ -75,6 +77,11 @@ class NeewerLight: NSObject, ObservableNeewerLightProtocol {
         vals["hue"] = "\(hueValue)"
         vals["sat"] = "\(satruationValue)"
         vals["nme"] = deviceName
+        return vals
+    }
+
+    func saveToUserDefault() {
+        let vals = getConfig()
         UserDefaults.standard.set(vals, forKey: "\(self.peripheral.identifier)")
     }
 
@@ -257,7 +264,7 @@ class NeewerLight: NSObject, ObservableNeewerLightProtocol {
                 let cmd = getCCTLightValue(brightness: brr, correlatedColorTemperature: CGFloat(cctValue))
                 write(data: cmd as Data, to: characteristic)
             } else {
-                let cmd = getRGBLightValue(brightness: brr, hue: CGFloat(hueValue), satruation: CGFloat(satruationValue))
+                let cmd = getRGBLightValue(brightness: brr, hue: CGFloat(hueValue) / 360.0, satruation: CGFloat(satruationValue) / 100.0)
                 write(data: cmd as Data, to: characteristic)
             }
         }
@@ -276,6 +283,8 @@ class NeewerLight: NSObject, ObservableNeewerLightProtocol {
 
     private func getRGBLightValue(brightness brr: CGFloat, hue h: CGFloat, satruation sat: CGFloat ) -> Data {
         assert(brr>=0 && brr<=100.0)
+        //assert(h>=0 && h<=1.0)
+        //assert(sat>=0 && sat<=1.0)
 
         // brr range from 0x00 - 0x64
         var newBrrValue: Int = Int(brr)
