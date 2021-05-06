@@ -6,7 +6,7 @@
 
 <h1 align="center">NeewerLite</h1>
 
-[![Build Status](https://travis-ci.org/keefo/NeewerLite.svg)](https://travis-ci.org/github/keefo/NeewerLite)
+[![Build Status](https://travis-ci.com/keefo/NeewerLite.svg?branch=main)](https://travis-ci.com/github/keefo/NeewerLite)
 
 # About The Project
 
