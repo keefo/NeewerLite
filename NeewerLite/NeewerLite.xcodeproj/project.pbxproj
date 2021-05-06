@@ -220,7 +220,6 @@
 					};
 					A731DD3F25A57D0B00302E25 = {
 						CreatedOnToolsVersion = 12.3;
-						TestTargetID = A731DD2F25A57D0B00302E25;
 					};
 				};
 			};
@@ -472,7 +471,6 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
-				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				INFOPLIST_FILE = NeewerLiteTests/Info.plist;
@@ -485,7 +483,6 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.beyondcow.neewerlite.NeewerLiteTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/NeewerLite.app/Contents/MacOS/NeewerLite";
 			};
 			name = Debug;
 		};
@@ -493,7 +490,6 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
-				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				INFOPLIST_FILE = NeewerLiteTests/Info.plist;
@@ -506,7 +502,6 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.beyondcow.neewerlite.NeewerLiteTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/NeewerLite.app/Contents/MacOS/NeewerLite";
 			};
 			name = Release;
 		};
