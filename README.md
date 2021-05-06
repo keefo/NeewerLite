@@ -12,7 +12,7 @@
 
 NeewerLite is an un-official Neewer LED light control app for macOS.
 
-[Neewer](https://neewer.com/) produces some very popupler high-CRI LED lights for photography industry. They provides android and iOS app to control those lights through Bluetooth. However, they don't provides any means to control lights from a PC or Mac.
+[Neewer](https://neewer.com/) produces some very popupler high-CRI LED lights for photography industry. They provides android and [iOS app](https://apps.apple.com/us/app/neewer/id1455948340) to control those lights through Bluetooth. However, they don't provides any means to control lights from a PC or Mac.
 
 This project is meant to provide such app so you could control bluetooth-enabled Neewer LED light from you Mac.
 
