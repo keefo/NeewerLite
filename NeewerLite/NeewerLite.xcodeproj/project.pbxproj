@@ -11,7 +11,6 @@
 		A731DD3625A57D0B00302E25 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A731DD3525A57D0B00302E25 /* Assets.xcassets */; };
 		A731DD3925A57D0B00302E25 /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = A731DD3725A57D0B00302E25 /* MainMenu.xib */; };
 		A731DD4525A57D0B00302E25 /* NeewerLiteTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A731DD4425A57D0B00302E25 /* NeewerLiteTests.swift */; };
-		A731DD5025A57D0B00302E25 /* NeewerLiteUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A731DD4F25A57D0B00302E25 /* NeewerLiteUITests.swift */; };
 		A731DD6425A586A200302E25 /* CBUUIDExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = A731DD6325A586A200302E25 /* CBUUIDExtensions.swift */; };
 		A731DD6C25A5891E00302E25 /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = A731DD6B25A5891E00302E25 /* Logger.swift */; };
 		A731DD7425A5896B00302E25 /* NeewerLight.swift in Sources */ = {isa = PBXBuildFile; fileRef = A731DD7325A5896B00302E25 /* NeewerLight.swift */; };
@@ -34,13 +33,6 @@
 			remoteGlobalIDString = A731DD2F25A57D0B00302E25;
 			remoteInfo = NeewerLite;
 		};
-		A731DD4C25A57D0B00302E25 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = A731DD2825A57D0B00302E25 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = A731DD2F25A57D0B00302E25;
-			remoteInfo = NeewerLite;
-		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
@@ -53,9 +45,6 @@
 		A731DD4025A57D0B00302E25 /* NeewerLiteTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = NeewerLiteTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		A731DD4425A57D0B00302E25 /* NeewerLiteTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NeewerLiteTests.swift; sourceTree = "<group>"; };
 		A731DD4625A57D0B00302E25 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		A731DD4B25A57D0B00302E25 /* NeewerLiteUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = NeewerLiteUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		A731DD4F25A57D0B00302E25 /* NeewerLiteUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NeewerLiteUITests.swift; sourceTree = "<group>"; };
-		A731DD5125A57D0B00302E25 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		A731DD6325A586A200302E25 /* CBUUIDExtensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CBUUIDExtensions.swift; sourceTree = "<group>"; };
 		A731DD6B25A5891E00302E25 /* Logger.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Logger.swift; sourceTree = "<group>"; };
 		A731DD7325A5896B00302E25 /* NeewerLight.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NeewerLight.swift; sourceTree = "<group>"; };
@@ -85,13 +74,6 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		A731DD4825A57D0B00302E25 /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -100,7 +82,6 @@
 			children = (
 				A731DD3225A57D0B00302E25 /* NeewerLite */,
 				A731DD4325A57D0B00302E25 /* NeewerLiteTests */,
-				A731DD4E25A57D0B00302E25 /* NeewerLiteUITests */,
 				A731DD3125A57D0B00302E25 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -110,7 +91,6 @@
 			children = (
 				A731DD3025A57D0B00302E25 /* NeewerLite.app */,
 				A731DD4025A57D0B00302E25 /* NeewerLiteTests.xctest */,
-				A731DD4B25A57D0B00302E25 /* NeewerLiteUITests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -136,15 +116,6 @@
 				A731DD4625A57D0B00302E25 /* Info.plist */,
 			);
 			path = NeewerLiteTests;
-			sourceTree = "<group>";
-		};
-		A731DD4E25A57D0B00302E25 /* NeewerLiteUITests */ = {
-			isa = PBXGroup;
-			children = (
-				A731DD4F25A57D0B00302E25 /* NeewerLiteUITests.swift */,
-				A731DD5125A57D0B00302E25 /* Info.plist */,
-			);
-			path = NeewerLiteUITests;
 			sourceTree = "<group>";
 		};
 		A731DD7F25A5921F00302E25 /* Views */ = {
@@ -235,24 +206,6 @@
 			productReference = A731DD4025A57D0B00302E25 /* NeewerLiteTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
-		A731DD4A25A57D0B00302E25 /* NeewerLiteUITests */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = A731DD5A25A57D0B00302E25 /* Build configuration list for PBXNativeTarget "NeewerLiteUITests" */;
-			buildPhases = (
-				A731DD4725A57D0B00302E25 /* Sources */,
-				A731DD4825A57D0B00302E25 /* Frameworks */,
-				A731DD4925A57D0B00302E25 /* Resources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-				A731DD4D25A57D0B00302E25 /* PBXTargetDependency */,
-			);
-			name = NeewerLiteUITests;
-			productName = NeewerLiteUITests;
-			productReference = A731DD4B25A57D0B00302E25 /* NeewerLiteUITests.xctest */;
-			productType = "com.apple.product-type.bundle.ui-testing";
-		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -266,10 +219,6 @@
 						CreatedOnToolsVersion = 12.3;
 					};
 					A731DD3F25A57D0B00302E25 = {
-						CreatedOnToolsVersion = 12.3;
-						TestTargetID = A731DD2F25A57D0B00302E25;
-					};
-					A731DD4A25A57D0B00302E25 = {
 						CreatedOnToolsVersion = 12.3;
 						TestTargetID = A731DD2F25A57D0B00302E25;
 					};
@@ -290,7 +239,6 @@
 			targets = (
 				A731DD2F25A57D0B00302E25 /* NeewerLite */,
 				A731DD3F25A57D0B00302E25 /* NeewerLiteTests */,
-				A731DD4A25A57D0B00302E25 /* NeewerLiteUITests */,
 			);
 		};
 /* End PBXProject section */
@@ -307,13 +255,6 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		A731DD3E25A57D0B00302E25 /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		A731DD4925A57D0B00302E25 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -350,14 +291,6 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		A731DD4725A57D0B00302E25 /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				A731DD5025A57D0B00302E25 /* NeewerLiteUITests.swift in Sources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -365,11 +298,6 @@
 			isa = PBXTargetDependency;
 			target = A731DD2F25A57D0B00302E25 /* NeewerLite */;
 			targetProxy = A731DD4125A57D0B00302E25 /* PBXContainerItemProxy */;
-		};
-		A731DD4D25A57D0B00302E25 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = A731DD2F25A57D0B00302E25 /* NeewerLite */;
-			targetProxy = A731DD4C25A57D0B00302E25 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -582,44 +510,6 @@
 			};
 			name = Release;
 		};
-		A731DD5B25A57D0B00302E25 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
-				CODE_SIGN_STYLE = Automatic;
-				COMBINE_HIDPI_IMAGES = YES;
-				INFOPLIST_FILE = NeewerLiteUITests/Info.plist;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/../Frameworks",
-					"@loader_path/../Frameworks",
-				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.beyondcow.neewerlite.NeewerLiteUITests;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_VERSION = 5.0;
-				TEST_TARGET_NAME = NeewerLite;
-			};
-			name = Debug;
-		};
-		A731DD5C25A57D0B00302E25 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
-				CODE_SIGN_STYLE = Automatic;
-				COMBINE_HIDPI_IMAGES = YES;
-				INFOPLIST_FILE = NeewerLiteUITests/Info.plist;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/../Frameworks",
-					"@loader_path/../Frameworks",
-				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.beyondcow.neewerlite.NeewerLiteUITests;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_VERSION = 5.0;
-				TEST_TARGET_NAME = NeewerLite;
-			};
-			name = Release;
-		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -646,15 +536,6 @@
 			buildConfigurations = (
 				A731DD5825A57D0B00302E25 /* Debug */,
 				A731DD5925A57D0B00302E25 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
-		A731DD5A25A57D0B00302E25 /* Build configuration list for PBXNativeTarget "NeewerLiteUITests" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				A731DD5B25A57D0B00302E25 /* Debug */,
-				A731DD5C25A57D0B00302E25 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
