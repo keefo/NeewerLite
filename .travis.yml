@@ -2,5 +2,3 @@ language: swift
 os_image: xcode11.2
 script: 
     xcodebuild clean build test -project NeewerLite/NeewerLite.xcodeproj -scheme NeewerLite -sdk macosx -destination arch=x86_64 -configuration Debug ONLY_ACTIVE_ARCH=NO
-
-
