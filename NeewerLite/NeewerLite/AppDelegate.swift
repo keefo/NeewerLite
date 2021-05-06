@@ -21,6 +21,15 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     var devices: [UUID: NeewerLight] = [:]
     var viewObjects: [DeviceViewObject] = []
 
+    @IBAction func scanAction(_ sender: Any) {
+        cbCentralManager?.stopScan()
+        devices.removeAll()
+        viewObjects.removeAll()
+        statusItem.button?.image = NSImage(named: "statusItemOffIcon")
+        updateUI()
+        cbCentralManager = CBCentralManager(delegate: self, queue: nil)
+    }
+    
     func applicationDidFinishLaunching(_ aNotification: Notification) {
         // Insert code here to initialize your application
         NSApp.setActivationPolicy(.accessory)
@@ -79,6 +88,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                     }
                     statusItem.button?.image = NSImage(named: "statusItemOffIcon")
                 }
+                else if cmd == "scanLight" {
+                    scanAction(cmd)
+               }
             }
         }
     }

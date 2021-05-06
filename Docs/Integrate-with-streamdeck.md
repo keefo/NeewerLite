@@ -1,12 +1,4 @@
-<p align="center">
-<a  href="https://github.com/keefo/NeewerLite">
-    <img src="Design/icon_128x128@2x.png" alt="Logo" width="150" height="150">
-</a>
-</p>
-
-<h1 align="center">NeewerLite</h1>
-
-[![Build Status](https://travis-ci.org/keefo/NeewerLite.svg)](https://travis-ci.org/github/keefo/NeewerLite)
+# Integrate NeewerLite with StreamDeck
 
 # About The Project
 
