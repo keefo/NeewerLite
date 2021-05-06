@@ -38,16 +38,6 @@
                ReferencedContainer = "container:NeewerLite.xcodeproj">
             </BuildableReference>
          </TestableReference>
-         <TestableReference
-            skipped = "NO">
-            <BuildableReference
-               BuildableIdentifier = "primary"
-               BlueprintIdentifier = "A731DD4A25A57D0B00302E25"
-               BuildableName = "NeewerLiteUITests.xctest"
-               BlueprintName = "NeewerLiteUITests"
-               ReferencedContainer = "container:NeewerLite.xcodeproj">
-            </BuildableReference>
-         </TestableReference>
       </Testables>
    </TestAction>
    <LaunchAction
