@@ -508,7 +508,6 @@
 				CODE_SIGN_ENTITLEMENTS = NeewerLite/NeewerLite.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				DEVELOPMENT_TEAM = MJA89JYF67;
 				ENABLE_HARDENED_RUNTIME = YES;
 				INFOPLIST_FILE = NeewerLite/Resources/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -529,7 +528,6 @@
 				CODE_SIGN_ENTITLEMENTS = NeewerLite/NeewerLite.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				DEVELOPMENT_TEAM = MJA89JYF67;
 				ENABLE_HARDENED_RUNTIME = YES;
 				INFOPLIST_FILE = NeewerLite/Resources/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -549,7 +547,6 @@
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				DEVELOPMENT_TEAM = MJA89JYF67;
 				INFOPLIST_FILE = NeewerLiteTests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -571,7 +568,6 @@
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				DEVELOPMENT_TEAM = MJA89JYF67;
 				INFOPLIST_FILE = NeewerLiteTests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -592,7 +588,6 @@
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				DEVELOPMENT_TEAM = MJA89JYF67;
 				INFOPLIST_FILE = NeewerLiteUITests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -612,7 +607,6 @@
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				DEVELOPMENT_TEAM = MJA89JYF67;
 				INFOPLIST_FILE = NeewerLiteUITests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
