@@ -722,7 +722,27 @@
                     </scrollView>
                 </subviews>
             </view>
+            <toolbar key="toolbar" implicitIdentifier="5959AED2-2454-4407-A336-4875DEB9F0F4" autosavesConfiguration="NO" displayMode="iconAndLabel" sizeMode="regular" id="XK3-jY-vr2">
+                <allowedToolbarItems>
+                    <toolbarItem implicitItemIdentifier="NSToolbarSpaceItem" id="RTx-zE-Ili"/>
+                    <toolbarItem implicitItemIdentifier="NSToolbarFlexibleSpaceItem" id="0dz-tH-pf8"/>
+                    <toolbarItem implicitItemIdentifier="1911A6CE-AB6F-49F7-A325-020FD1127BBE" label="Scan" paletteLabel="Scan" tag="-1" image="NSBluetoothTemplate" id="9qe-kN-jyV">
+                        <size key="minSize" width="31.5" height="29"/>
+                        <size key="maxSize" width="31.5" height="29"/>
+                        <connections>
+                            <action selector="scanAction:" target="Voe-Tx-rLC" id="VtW-s7-w6H"/>
+                        </connections>
+                    </toolbarItem>
+                </allowedToolbarItems>
+                <defaultToolbarItems>
+                    <toolbarItem reference="0dz-tH-pf8"/>
+                    <toolbarItem reference="9qe-kN-jyV"/>
+                </defaultToolbarItems>
+            </toolbar>
             <point key="canvasLocation" x="-535.5" y="-121.5"/>
         </window>
     </objects>
+    <resources>
+        <image name="NSBluetoothTemplate" width="13" height="16"/>
+    </resources>
 </document>
