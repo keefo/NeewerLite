@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 50;
+	objectVersion = 52;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -23,6 +23,8 @@
 		A749F71525B3DE9B0066EB06 /* ColorWheel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A749F71425B3DE9B0066EB06 /* ColorWheel.swift */; };
 		A749F71A25B3DF4F0066EB06 /* NSBezierPathExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = A749F71925B3DF4F0066EB06 /* NSBezierPathExtensions.swift */; };
 		A749F72225B3DFB30066EB06 /* ColorUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = A749F72125B3DFB30066EB06 /* ColorUtils.swift */; };
+		A76E1F21266496FC00E5788B /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = A76E1F20266496FC00E5788B /* Sparkle */; };
+		A76E1F2326649F2A00E5788B /* Credits.rtf in Resources */ = {isa = PBXBuildFile; fileRef = A76E1F2226649F2A00E5788B /* Credits.rtf */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -57,6 +59,7 @@
 		A749F71425B3DE9B0066EB06 /* ColorWheel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorWheel.swift; sourceTree = "<group>"; };
 		A749F71925B3DF4F0066EB06 /* NSBezierPathExtensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NSBezierPathExtensions.swift; sourceTree = "<group>"; };
 		A749F72125B3DFB30066EB06 /* ColorUtils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorUtils.swift; sourceTree = "<group>"; };
+		A76E1F2226649F2A00E5788B /* Credits.rtf */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.rtf; path = Credits.rtf; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -64,6 +67,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A76E1F21266496FC00E5788B /* Sparkle in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -163,6 +167,7 @@
 				A731DD3525A57D0B00302E25 /* Assets.xcassets */,
 				A731DD8E25A592CC00302E25 /* CollectionViewItem.xib */,
 				A731DD3725A57D0B00302E25 /* MainMenu.xib */,
+				A76E1F2226649F2A00E5788B /* Credits.rtf */,
 				A731DD3A25A57D0B00302E25 /* Info.plist */,
 			);
 			path = Resources;
@@ -184,6 +189,9 @@
 			dependencies = (
 			);
 			name = NeewerLite;
+			packageProductDependencies = (
+				A76E1F20266496FC00E5788B /* Sparkle */,
+			);
 			productName = NeewerLite;
 			productReference = A731DD3025A57D0B00302E25 /* NeewerLite.app */;
 			productType = "com.apple.product-type.application";
@@ -232,6 +240,9 @@
 				Base,
 			);
 			mainGroup = A731DD2725A57D0B00302E25;
+			packageReferences = (
+				A76E1F1F266496FC00E5788B /* XCRemoteSwiftPackageReference "Sparkle" */,
+			);
 			productRefGroup = A731DD3125A57D0B00302E25 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -250,6 +261,7 @@
 				A731DD3625A57D0B00302E25 /* Assets.xcassets in Resources */,
 				A731DD3925A57D0B00302E25 /* MainMenu.xib in Resources */,
 				A731DD8F25A592CC00302E25 /* CollectionViewItem.xib in Resources */,
+				A76E1F2326649F2A00E5788B /* Credits.rtf in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -536,6 +548,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		A76E1F1F266496FC00E5788B /* XCRemoteSwiftPackageReference "Sparkle" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/sparkle-project/Sparkle";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.26.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		A76E1F20266496FC00E5788B /* Sparkle */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A76E1F1F266496FC00E5788B /* XCRemoteSwiftPackageReference "Sparkle" */;
+			productName = Sparkle;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = A731DD2825A57D0B00302E25 /* Project object */;
 }
