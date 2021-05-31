@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="17701" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES" customObjectInstantitationMethod="direct">
+<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="18122" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES" customObjectInstantitationMethod="direct">
     <dependencies>
-        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="17701"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="18122"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <objects>
@@ -14,6 +14,7 @@
         <customObject id="-3" userLabel="Application" customClass="NSObject"/>
         <customObject id="Voe-Tx-rLC" customClass="AppDelegate" customModule="NeewerLite" customModuleProvider="target">
             <connections>
+                <outlet property="appMenu" destination="e9d-Eg-Uqj" id="zRm-mb-lnZ"/>
                 <outlet property="collectionView" destination="QRn-Qa-fcm" id="W1P-pv-jgi"/>
                 <outlet property="window" destination="QvC-M9-y7g" id="gIp-Ho-8D9"/>
             </connections>
@@ -688,7 +689,7 @@
             <rect key="screenRect" x="0.0" y="0.0" width="2560" height="1415"/>
             <view key="contentView" id="EiT-Mj-1SZ">
                 <rect key="frame" x="0.0" y="0.0" width="857" height="477"/>
-                <autoresizingMask key="autoresizingMask"/>
+                <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                 <subviews>
                     <scrollView wantsLayer="YES" fixedFrame="YES" autohidesScrollers="YES" horizontalLineScroll="10" horizontalPageScroll="10" verticalLineScroll="10" verticalPageScroll="10" usesPredominantAxisScrolling="NO" translatesAutoresizingMaskIntoConstraints="NO" id="SPf-4G-nTF">
                         <rect key="frame" x="20" y="20" width="817" height="443"/>
@@ -739,8 +740,41 @@
                     <toolbarItem reference="9qe-kN-jyV"/>
                 </defaultToolbarItems>
             </toolbar>
-            <point key="canvasLocation" x="-535.5" y="-121.5"/>
+            <point key="canvasLocation" x="-402" y="-313"/>
         </window>
+        <menu id="e9d-Eg-Uqj" userLabel="App Menu">
+            <items>
+                <menuItem title="Show Window" id="pvu-xM-u7Y">
+                    <modifierMask key="keyEquivalentModifierMask"/>
+                    <connections>
+                        <action selector="showWindow:" target="Voe-Tx-rLC" id="ypk-5I-GzB"/>
+                    </connections>
+                </menuItem>
+                <menuItem isSeparatorItem="YES" id="x0M-G5-6PX"/>
+                <menuItem isSeparatorItem="YES" id="SaG-lb-fZ2"/>
+                <menuItem title="Check for Updates..." id="kiF-i5-sou">
+                    <modifierMask key="keyEquivalentModifierMask"/>
+                    <connections>
+                        <action selector="checkForUpdates:" target="WJC-nf-vfx" id="Cgt-ZU-lnw"/>
+                    </connections>
+                </menuItem>
+                <menuItem title="About" id="6gT-sj-tBh">
+                    <modifierMask key="keyEquivalentModifierMask"/>
+                    <connections>
+                        <action selector="aboutAction:" target="Voe-Tx-rLC" id="WBE-ey-u8B"/>
+                    </connections>
+                </menuItem>
+                <menuItem isSeparatorItem="YES" id="eO8-am-ouw"/>
+                <menuItem title="Quit" id="e3m-7c-S0m">
+                    <modifierMask key="keyEquivalentModifierMask"/>
+                    <connections>
+                        <action selector="terminate:" target="-1" id="rX4-l8-O64"/>
+                    </connections>
+                </menuItem>
+            </items>
+            <point key="canvasLocation" x="-421" y="-518"/>
+        </menu>
+        <customObject id="WJC-nf-vfx" customClass="SUUpdater"/>
     </objects>
     <resources>
         <image name="NSBluetoothTemplate" width="13" height="16"/>

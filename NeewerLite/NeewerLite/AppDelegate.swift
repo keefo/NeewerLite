@@ -13,6 +13,7 @@ import IOBluetooth
 class AppDelegate: NSObject, NSApplicationDelegate {
 
     @IBOutlet var window: NSWindow!
+    @IBOutlet var appMenu: NSMenu!
     @IBOutlet weak var collectionView: NSCollectionView!
     private var statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
 
@@ -21,15 +22,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     var devices: [UUID: NeewerLight] = [:]
     var viewObjects: [DeviceViewObject] = []
 
-    @IBAction func scanAction(_ sender: Any) {
-        cbCentralManager?.stopScan()
-        devices.removeAll()
-        viewObjects.removeAll()
-        statusItem.button?.image = NSImage(named: "statusItemOffIcon")
-        updateUI()
-        cbCentralManager = CBCentralManager(delegate: self, queue: nil)
-    }
-    
     func applicationDidFinishLaunching(_ aNotification: Notification) {
         // Insert code here to initialize your application
         NSApp.setActivationPolicy(.accessory)
@@ -52,9 +44,25 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         return true
     }
 
-    @objc func showWindow(_ sender: Any) {
+    @IBAction func scanAction(_ sender: Any) {
+        cbCentralManager?.stopScan()
+        devices.removeAll()
+        viewObjects.removeAll()
+        statusItem.button?.image = NSImage(named: "statusItemOffIcon")
+        updateUI()
+        cbCentralManager = CBCentralManager(delegate: self, queue: nil)
+    }
+
+    @IBAction func aboutAction(_ sender: Any) {
+        showWindow(sender)
+        NSApp.orderFrontStandardAboutPanel(options: [
+            NSApplication.AboutPanelOptionKey(rawValue: "Copyright"): "Copyright © 2021 Keefo"
+        ])
+    }
+
+    @IBAction func showWindow(_ sender: Any) {
         self.window.makeKeyAndOrderFront(self)
-        NSApplication.shared.activate(ignoringOtherApps: true)
+        NSApp.activate(ignoringOtherApps: true)
     }
 
     @objc func handleURLEvent(_ event: NSAppleEventDescriptor?, withReplyEvent: NSAppleEventDescriptor?) {
@@ -112,26 +120,21 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
         statusItem.button?.title = "\(viewObjects.count)"
 
-        let menu = NSMenu(title: "statusBarMenu")
-        let itemShow =  NSMenuItem(title: "Show Window", action: #selector(self.showWindow(_:)), keyEquivalent: "")
-        itemShow.target = self
-        menu.addItem(itemShow)
-
-        menu.addItem(NSMenuItem.separator())
+        for item in appMenu.items {
+            if item.tag == 8 {
+                appMenu.removeItem(item)
+            }
+        }
 
         for vo in viewObjects {
             let item =  NSMenuItem(title: vo.deviceName, action: #selector(self.showWindow(_:)), keyEquivalent: "")
-            itemShow.target = self
-            menu.addItem(item)
+            item.target = self
+            item.image = NSImage(systemSymbolName: "lightbulb", accessibilityDescription: "Light")
+            item.tag = 8
+            appMenu.insertItem(item, at: 2)
         }
 
-        menu.addItem(NSMenuItem.separator())
-
-        let itemQuit =  NSMenuItem(title: "Quit", action: #selector(NSApplication.shared.terminate), keyEquivalent: "")
-        itemQuit.target = NSApp
-        menu.addItem(itemQuit)
-
-        self.statusItem.menu = menu
+        self.statusItem.menu = appMenu
 
         collectionView.reloadData()
     }
