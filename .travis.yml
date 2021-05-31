@@ -1,4 +1,4 @@
 language: swift
 os_image: xcode12.5
 script: 
-    cd NeewerLite; xcodebuild clean build test -project NeewerLite.xcodeproj -scheme NeewerLite -destination 'platform=macosx' -configuration Debug ONLY_ACTIVE_ARCH=NO
+    xcodebuild clean build test -project NeewerLite/NeewerLite.xcodeproj -scheme NeewerLite -destination 'platform=macosx' -configuration Debug ONLY_ACTIVE_ARCH=NO
