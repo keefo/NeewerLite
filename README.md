@@ -62,13 +62,18 @@ Open “System Preferences” -> “Accessibility” -> “Voice Control” -> �
 
 Now, when you say “Meow” voice control will switch on/off your LED lights.
 
+# Tested Lights
+
+* Neewer 660 RGB Led Light.
+
 # TO DO LIST
 
 If you find a way to implement these features, feel free to create a pull request.
 
+- [ ] Test other Neewer LED lights
 - [ ] Add scene support
 - [ ] Lights sync with music
-- [ ] Add pictures for other Neewer LED lights
+- [ ] Add support for other Neewer LED lights
 
 # License
 
