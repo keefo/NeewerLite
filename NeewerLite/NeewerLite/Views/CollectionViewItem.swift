@@ -7,23 +7,54 @@
 
 import Cocoa
 
-class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, ColorWheelDelegate {
+class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, ColorWheelDelegate, NSTabViewDelegate {
 
+    @IBOutlet weak var lightModeTabView: NSTabView!
     @IBOutlet weak var nameField: NSTextField!
     @IBOutlet weak var switchButton: NSSwitch!
-    @IBOutlet weak var ch1Button: NSButton!
-    @IBOutlet weak var ch2Button: NSButton!
-    @IBOutlet weak var ch3Button: NSButton!
-    @IBOutlet weak var ch4Button: NSButton!
-    @IBOutlet weak var ch5Button: NSButton!
-    @IBOutlet weak var ch6Button: NSButton!
-    @IBOutlet weak var ch7Button: NSButton!
-    @IBOutlet weak var ch8Button: NSButton!
     @IBOutlet weak var brrSlide: NSSlider!
     @IBOutlet weak var cctSlide: NSSlider!
     @IBOutlet weak var brrValueField: NSTextField!
     @IBOutlet weak var cctValueField: NSTextField!
     @IBOutlet weak var colorWheel: ColorWheel!
+
+    @IBOutlet weak var sceneTabView: NSTabView!
+    @IBOutlet weak var sceneModeButton1: NSButton!
+    @IBOutlet weak var sceneModeButton2: NSButton!
+    @IBOutlet weak var sceneModeButton3: NSButton!
+    @IBOutlet weak var scenebrrSlide: NSSlider!
+    @IBOutlet weak var scenebrrValueField: NSTextField!
+
+    @IBOutlet weak var scene1Button: NSButton!
+    @IBOutlet weak var scene2Button: NSButton!
+    @IBOutlet weak var scene3Button: NSButton!
+    @IBOutlet weak var scene4Button: NSButton!
+    @IBOutlet weak var scene5Button: NSButton!
+    @IBOutlet weak var scene6Button: NSButton!
+    @IBOutlet weak var scene7Button: NSButton!
+    @IBOutlet weak var scene8Button: NSButton!
+    @IBOutlet weak var scene9Button: NSButton!
+
+    private var currentSceneIndex: UInt8 = 0
+
+    var currentScene: UInt8 {
+        set {
+            if newValue >= 1 && newValue <= 9 {
+                currentSceneIndex = newValue
+                updateScene()
+            }
+        }
+        get {
+            if currentSceneIndex == 0 {
+                if let dev = self.device {
+                    currentSceneIndex = dev.channel.value
+                } else {
+                    currentSceneIndex = 1
+                }
+            }
+            return currentSceneIndex
+        }
+    }
 
     var nameEditor: NSTextField?
 
@@ -59,10 +90,6 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, ColorWheelD
                 var frame = imageView?.frame
                 frame?.size.width = nw
                 imageView?.frame = frame!
-                var textFrame = nameField.frame
-                textFrame.origin.x = NSMaxX(frame!) + 17
-                textFrame.size.width = 480 - 65 - nw
-                nameField.frame = textFrame
             } else {
                 imageView?.image = nil
             }
@@ -89,19 +116,16 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, ColorWheelD
         self.cctSlide.allowsTickMarkValuesOnly = true
         self.cctSlide.numberOfTickMarks = 24
 
+        self.scenebrrSlide.minValue = 0.0
+        self.scenebrrSlide.maxValue = 100.0 // do not exceed 100.0 here, LED only takes 100.0
+        self.scenebrrSlide.allowsTickMarkValuesOnly = true
+        self.scenebrrSlide.numberOfTickMarks = 100
+
+        resetSceneButtons()
+
         self.brrValueField.stringValue = ""
         self.cctValueField.stringValue = ""
-    }
-
-    @IBAction func toggleAction(_ sender: Any)
-    {
-        if let dev = self.device {
-            if dev.isOn.value {
-                dev.sendPowerOffRequest()
-            } else {
-                dev.sendPowerOnRequest()
-            }
-        }
+        self.scenebrrValueField.stringValue = ""
     }
 
     @IBAction func moreAction(_ sender: NSButton)
@@ -146,19 +170,13 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, ColorWheelD
         self.nameField.isHidden = true
     }
 
-    @IBAction func channelAction(_ sender: Any)
-    {
-        if let dev = self.device {
-            dev.sendReadRequest()
-        }
-    }
-
     @IBAction func slideAction(_ sender: NSSlider)
     {
         if sender == self.brrSlide {
             if let dev = self.device {
                 dev.setBRRLightValues(CGFloat(self.brrSlide.doubleValue))
                 self.brrValueField.stringValue = "\(dev.brrValue)"
+                self.scenebrrSlide.doubleValue = Double(dev.brrValue)
             }
         }
         else if sender == self.cctSlide {
@@ -166,6 +184,85 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, ColorWheelD
                 dev.setCCTLightValues(CGFloat(self.cctSlide.doubleValue), CGFloat(self.brrSlide.doubleValue))
                 self.cctValueField.stringValue = "\(dev.cctValue)00K"
             }
+        }
+        else if sender == self.scenebrrSlide
+        {
+            if let dev = self.device {
+                updateScene()
+                self.brrSlide.doubleValue = Double(dev.brrValue)
+            }
+        }
+    }
+
+    @IBAction func toggleAction(_ sender: Any)
+    {
+        if let dev = self.device {
+            if dev.isOn.value {
+                dev.sendPowerOffRequest()
+            } else {
+                dev.sendPowerOnRequest()
+            }
+        }
+    }
+
+    @IBAction func changeModeAction(_ sender: NSButton)
+    {
+        sceneModeButton1.state = .off
+        sceneModeButton2.state = .off
+        sceneModeButton3.state = .off
+        sender.state = .on
+        switch sender.tag {
+            case 0:
+                sceneTabView.selectTabViewItem(at: 0)
+            case 1:
+                sceneTabView.selectTabViewItem(at: 1)
+            case 2:
+                sceneTabView.selectTabViewItem(at: 2)
+            default:
+                sceneTabView.selectTabViewItem(at: 0)
+        }
+        updateScene()
+    }
+
+    func resetSceneButtons()
+    {
+        scene1Button.state = .off
+        scene2Button.state = .off
+        scene3Button.state = .off
+        scene4Button.state = .off
+        scene5Button.state = .off
+        scene6Button.state = .off
+        scene7Button.state = .off
+        scene8Button.state = .off
+        scene9Button.state = .off
+
+        scene1Button.alphaValue = 0.4
+        scene2Button.alphaValue = 0.4
+        scene3Button.alphaValue = 0.4
+        scene4Button.alphaValue = 0.4
+        scene5Button.alphaValue = 0.4
+        scene6Button.alphaValue = 0.4
+        scene7Button.alphaValue = 0.4
+        scene8Button.alphaValue = 0.4
+        scene9Button.alphaValue = 0.4
+    }
+
+    @IBAction func channelAction(_ sender: NSButton)
+    {
+        resetSceneButtons()
+        sender.state = .on
+        sender.alphaValue = 1
+        self.currentScene = UInt8(sender.tag)
+    }
+
+    func updateScene()
+    {
+        if lightModeTabView.selectedTabViewItem != lightModeTabView.tabViewItem(at: 1) {
+            return
+        }
+        if let dev = self.device {
+            dev.setScene(self.currentScene, brightness: CGFloat(self.scenebrrSlide.doubleValue))
+            self.scenebrrValueField.stringValue = "\(dev.brrValue)"
         }
     }
 
@@ -176,28 +273,75 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, ColorWheelD
             } else {
                 self.switchButton.state = .off
             }
-            
-            ch1Button.state = dev.channel.value == 1 ? .on : .off
-            ch2Button.state = dev.channel.value == 2 ? .on : .off
-            ch3Button.state = dev.channel.value == 3 ? .on : .off
-            ch4Button.state = dev.channel.value == 4 ? .on : .off
-            ch5Button.state = dev.channel.value == 5 ? .on : .off
-            ch6Button.state = dev.channel.value == 6 ? .on : .off
-            ch7Button.state = dev.channel.value == 7 ? .on : .off
-            ch8Button.state = dev.channel.value == 8 ? .on : .off
 
             self.brrValueField.stringValue = "\(dev.brrValue)"
             self.cctValueField.stringValue = "\(dev.cctValue)00K"
             self.brrSlide.doubleValue = Double(dev.brrValue)
             self.cctSlide.doubleValue = Double(dev.cctValue)
+            self.scenebrrSlide.doubleValue = Double(dev.brrValue)
 
-            Logger.debug("hue: \(dev.hueValue) sat: \(dev.satruationValue)")
             // colorWheel does not need to consider brightness. Alway pass in 1.0
             self.colorWheel.setViewColor(NSColor(calibratedHue: CGFloat(dev.hueValue) / 360.0, saturation: CGFloat(dev.satruationValue) / 100.0, brightness: 1.0, alpha: 1.0))
-            
+
+            if dev.isSceneOn.value {
+                self.lightModeTabView.selectTabViewItem(at: 1)
+            } else {
+                self.lightModeTabView.selectTabViewItem(at: 0)
+            }
+
+            resetSceneButtons()
+
+            if dev.channel.value >= 1 && dev.channel.value <= 3 {
+                self.sceneModeButton1.state = .on
+                self.sceneTabView.selectTabViewItem(at: 0)
+            }
+            else if dev.channel.value >= 4 && dev.channel.value <= 6 {
+                self.sceneModeButton2.state = .on
+                self.sceneTabView.selectTabViewItem(at: 1)
+            }
+            else if dev.channel.value >= 7 && dev.channel.value <= 9 {
+                self.sceneModeButton3.state = .on
+                self.sceneTabView.selectTabViewItem(at: 2)
+            }
+
+            switch dev.channel.value {
+                case 1:
+                    scene1Button.state = .on
+                    scene1Button.alphaValue = 1
+                case 2:
+                    scene2Button.state = .on
+                    scene2Button.alphaValue = 1
+                case 3:
+                    scene3Button.state = .on
+                    scene3Button.alphaValue = 1
+                case 4:
+                    scene4Button.state = .on
+                    scene5Button.alphaValue = 1
+                case 5:
+                    scene5Button.state = .on
+                    scene5Button.alphaValue = 1
+                case 6:
+                    scene6Button.state = .on
+                    scene6Button.alphaValue = 1
+                case 7:
+                    scene7Button.state = .on
+                    scene7Button.alphaValue = 1
+                case 8:
+                    scene8Button.state = .on
+                    scene8Button.alphaValue = 1
+                case 9:
+                    scene9Button.state = .on
+                    scene9Button.alphaValue = 1
+                default:
+                    scene1Button.state = .off
+                    scene1Button.alphaValue = 0.4
+            }
+
         } else {
             self.brrValueField.stringValue = ""
             self.cctValueField.stringValue = ""
+            self.lightModeTabView.selectTabViewItem(at: 0)
+            resetSceneButtons()
         }
     }
 
@@ -214,5 +358,27 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, ColorWheelD
             dev.setRGBLightValues(hue, saturation)
         }
     }
+
+    func tabView(_ tabView: NSTabView, didSelect tabViewItem: NSTabViewItem?)
+    {
+        if tabView == self.lightModeTabView {
+            if let dev = self.device {
+                if self.lightModeTabView.selectedTabViewItem == self.lightModeTabView.tabViewItem(at: 1) {
+                    // scene mode
+                    dev.isSceneOn.value = true
+                    self.updateScene()
+                } else {
+                    dev.isSceneOn.value = false
+                    if dev.lightMode == .CCTMode {
+                        dev.setCCTLightValues(CGFloat(dev.cctValue), CGFloat(dev.brrValue))
+                    } else {
+                        dev.setRGBLightValues(self.colorWheel.color.hueComponent, self.colorWheel.color.saturationComponent)
+                    }
+                }
+            }
+        }
+    }
 }
+
+
 
