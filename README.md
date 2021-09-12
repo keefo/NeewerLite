@@ -41,26 +41,27 @@ Here is a video I made to demo the scene:
 
 Open the app and let it scans all Neewer lights through Bluetooth. Once it finds lights. Then you could use command to switch On/Off lights.
 
-Use this command to turn on all lights:
+Turn on all lights:
 
 ```bash
 open neewerlite://turnOnLight
 ```
 
-Use this command to turn off all lights:
+Turn off all lights:
 ```bash
 open neewerlite://turnOffLight
 ```
 
-Use this command to toggle all lights:
+Toggle all lights:
 ```bash
 open neewerlite://toggleLight
 ```
 
-Use this command to scan all lights:
+Scan all lights:
 ```bash
 open neewerlite://scanLight
 ```
+
 ## Voice Control Interaction
 
 You could integrate these commands into Voice Control. 
