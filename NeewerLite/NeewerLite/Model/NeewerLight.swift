@@ -11,6 +11,7 @@ import IOBluetooth
 
 protocol ObservableNeewerLightProtocol {
     var isOn: Observable<Bool> { get set }
+    var isSceneOn: Observable<Bool> { get set }
     var channel: Observable<UInt8> { get set }
 }
 
@@ -26,13 +27,14 @@ class NeewerLight: NSObject, ObservableNeewerLightProtocol {
     private var gattCharacteristic: CBCharacteristic?
 
     var isOn: Observable<Bool> = Observable(false)
+    var isSceneOn: Observable<Bool> = Observable(false)
     var channel: Observable<UInt8> = Observable(1)
 
     private var writeWorkItem: DispatchWorkItem?
 
     var deviceName: String = "Unknow"
     var lightMode: NeewerLightMode  = .CCTMode
-    var channelValue: Int = 1  // 1
+    var channelValue: UInt8 = 1 // 1 ~ 9
     var cctValue: Int = 0x53  // 5300K
     var brrValue: Int = 50    // 0~100
     var hueValue: Int = 0     // 0~360
@@ -52,6 +54,7 @@ class NeewerLight: NSObject, ObservableNeewerLightProtocol {
     private let cmd_prefix_tag = 0x78  // 120
     private let cmd_set_rgb_light_tag = 0x86  // Set RGB Light Mode.
     private let cmd_set_cct_light_tag = 0x87  // Set CCT Light Mode.
+    private let cmd_set_scene_tag = 0x88      // Set Scene Light Mode.
     private let cmd_power_on = NSData(bytes: [0x78,0x81,0x01,0x01,0xFB] as [UInt8], length: 5)
     private let cmd_power_off = NSData(bytes: [0x78,0x81,0x01,0x02,0xFC] as [UInt8], length: 5)
     private let cmd_read_request = NSData(bytes: [0x78,0x84,0x00,0xFC] as [UInt8], length: 4)
@@ -71,6 +74,7 @@ class NeewerLight: NSObject, ObservableNeewerLightProtocol {
         var vals: [String: String] = [:]
         vals["on"] = isOn.value ? "1" : "0"
         vals["mod"] = "\(lightMode.rawValue)"
+        vals["sce"] = isSceneOn.value ? "1" : "0"
         vals["cct"] = "\(cctValue)"
         vals["brr"] = "\(brrValue)"
         vals["chn"] = "\(channelValue)"
@@ -90,14 +94,20 @@ class NeewerLight: NSObject, ObservableNeewerLightProtocol {
         if let val = vals["on"] {
             isOn.value = val == "1" ? true : false
         }
+
+        if let val = vals["sce"] {
+            isSceneOn.value = val == "1" ? true : false
+        }
+
         if let val = vals["mod"] {
             Logger.debug("load mod \(val)")
             if UInt8(val) == NeewerLightMode.CCTMode.rawValue {
                 lightMode = .CCTMode
-            } else {
+            } else if UInt8(val) == NeewerLightMode.RGBMode.rawValue {
                 lightMode = .RGBMode
             }
         }
+
         if let val = vals["cct"] {
             Logger.debug("load cct \(val)")
             cctValue = Int(val) ?? 0
@@ -107,7 +117,7 @@ class NeewerLight: NSObject, ObservableNeewerLightProtocol {
             brrValue = Int(val) ?? 0
         }
         if let val = vals["chn"] {
-            channelValue = Int(val) ?? 1
+            channelValue = UInt8(val) ?? 1
             Logger.debug("load channelValue \(channelValue)")
             self.channel.value = UInt8(channelValue)
         }
@@ -173,42 +183,10 @@ class NeewerLight: NSObject, ObservableNeewerLightProtocol {
         }
     }
 
-    private func updateLightChannel(_ data: Data)
-    {
-        if data[3] > 8 {
-            return
-        }
-        channelValue = Int(data[3])
-        Logger.debug("channelValue \(channelValue)")
-        self.channel.value = UInt8(channelValue)
-    }
-
     private func handleNotifyValueUpdate(_ data: Data)
     {
-        if data.count >= 5 && data[0] == cmd_prefix_tag {
-            Logger.debug("handleNotifyValueUpdate \(data.hexEncodedString())")
-            if data[1] == 1 {
-                if data[3] != 0 {
-                    updateLightChannel(data);
-                } else {
-                    // No channel
-                    updateLightChannel(data);
-                    // setCurrentLight();
-                }
-            } else if (data[1] != 2) {
-
-            } else {
-                if data[3] == 1 {
-                    // set switch ON
-                    Logger.debug("received switch ON notification.")
-                    isOn.value = true
-                } else {
-                    // set switch OFF
-                    Logger.debug("received switch OFF notification.")
-                    isOn.value = false
-                }
-            }
-        }
+        // Found a way to request data from a light, but don't know what is the data represents.
+        Logger.debug("handleNotifyValueUpdate \(data.hexEncodedString())")
     }
 
     private func appendCheckSum(_ bArr: [Int]) -> [UInt8] {
@@ -226,18 +204,34 @@ class NeewerLight: NSObject, ObservableNeewerLightProtocol {
 
     private func getCCTLightValue(brightness brr: CGFloat, correlatedColorTemperature cct: CGFloat ) -> Data {
 
-        assert(cct>=32.0 && cct<=56.0)
         assert(brr>=0 && brr<=100.0)
 
         // cct range from 0x20(32) - 0x38(56) 32 stands for 3200K 65 stands for 5600K
         let newCctValue: Int = Int(cct)
-
         // brr range from 0x00 - 0x64
         let newBrrValue: Int = Int(brr)
 
-        if cctValue == newCctValue && brrValue == newBrrValue {
-            return Data()
+        if newCctValue == 0 {
+            // only adjust the brightness and keep the color temp
+            if brrValue == newBrrValue {
+                return Data()
+            }
+            brrValue = newBrrValue
+            let byteCount = 1
+            var bArr: [Int] = [Int](repeating: 0, count: byteCount + 4)
+
+            bArr[0] = cmd_prefix_tag;
+            bArr[1] = cmd_set_cct_light_tag
+            bArr[2] = byteCount
+            bArr[3] = brrValue
+
+            let bArr1: [UInt8] = appendCheckSum(bArr)
+
+            let data = NSData(bytes: bArr1, length: bArr1.count)
+            return data as Data
         }
+
+        assert(cct>=32.0 && cct<=56.0)
 
         cctValue = newCctValue
         brrValue = newBrrValue
@@ -260,12 +254,18 @@ class NeewerLight: NSObject, ObservableNeewerLightProtocol {
     public func setBRRLightValues(_ brr: CGFloat)
     {
         if let characteristic = deviceCtlCharacteristic {
-            if lightMode == .CCTMode {
-                let cmd = getCCTLightValue(brightness: brr, correlatedColorTemperature: CGFloat(cctValue))
+            if isSceneOn.value {
+                let cmd = getSceneValue(channelValue, brightness: CGFloat(brr))
                 write(data: cmd as Data, to: characteristic)
-            } else {
-                let cmd = getRGBLightValue(brightness: brr, hue: CGFloat(hueValue) / 360.0, satruation: CGFloat(satruationValue) / 100.0)
-                write(data: cmd as Data, to: characteristic)
+            }
+            else {
+                if lightMode == .CCTMode {
+                    let cmd = getCCTLightValue(brightness: brr, correlatedColorTemperature: 0)
+                    write(data: cmd as Data, to: characteristic)
+                } else if lightMode == .RGBMode  {
+                    let cmd = getRGBLightValue(brightness: brr, hue: CGFloat(hueValue) / 360.0, satruation: CGFloat(satruationValue) / 100.0)
+                    write(data: cmd as Data, to: characteristic)
+                }
             }
         }
     }
@@ -351,6 +351,54 @@ class NeewerLight: NSObject, ObservableNeewerLightProtocol {
         }
     }
 
+    private func getSceneValue(_ scene: UInt8, brightness brr: CGFloat) -> Data {
+        assert(brr>=0 && brr<=100.0)
+
+        // 78 88 02 (br) 01 - sets the brightness to (br), and shows "emergency mode A" (the "police sirens")
+        // 78 88 02 (br) 02 - " ", and shoes "emergency mode B", but just stays one color?
+        // 78 88 02 (br) 03 - " ", and shows "emergency mode C", which is... ambulance? I'm not sure
+        // 78 88 02 (br) 04 - " ", and shows "party mode A", alternating colors
+        // 78 88 02 (br) 05 - " ", and shows "party mode B", same as A, but faster
+        // 78 88 02 (br) 06 - " ", and shows "party mode C", fading in and out (candle-light?)
+        // 78 88 02 (br) 07 - " ", and shows "lightning mode A"
+        // 78 88 02 (br) 08 - " ", and shows "lightning mode B"
+        // 78 88 02 (br) 09 - " ", and shows "lightning mode C"
+
+        // brr range from 0x00 - 0x64
+        let newBrrValue: Int = Int(brr)
+        brrValue = newBrrValue
+
+        channelValue = scene
+
+        let byteCount = 2
+        var bArr: [Int] = [Int](repeating: 0, count: byteCount + 4)
+
+        bArr[0] = cmd_prefix_tag;
+        bArr[1] = cmd_set_scene_tag
+        bArr[2] = byteCount
+        // 2 eletements
+        bArr[3] = Int(brr)   // brightness value from 0-100
+        bArr[4] = Int(scene) // scene from 1 ~ 9
+
+        let bArr1: [UInt8] = appendCheckSum(bArr)
+
+        let data = NSData(bytes: bArr1, length: bArr1.count)
+        return data as Data
+    }
+
+    // Set Scene
+    public func setScene(_ scene: UInt8, brightness brr: CGFloat)
+    {
+        assert(scene>=1 && scene<=9)
+        assert(brr>=0 && brr<=100.0)
+
+        if let characteristic = deviceCtlCharacteristic {
+            let cmd = getSceneValue(scene, brightness: CGFloat(brr))
+            write(data: cmd as Data, to: characteristic)
+            isSceneOn.value = true
+        }
+    }
+
     private func write(data value: Data, to characteristic: CBCharacteristic)
     {
         if value.count > 1 {
@@ -393,7 +441,6 @@ extension NeewerLight :  CBPeripheralDelegate {
 
     func peripheral(_ peripheral: CBPeripheral, didWriteValueFor characteristic: CBCharacteristic, error: Error?)
     {
-        Logger.debug("didWriteValueFor characteristic")
         //self.writeGroup.leave()
         if let err = error {
             Logger.error("didWriteValueFor err: \(err)")
