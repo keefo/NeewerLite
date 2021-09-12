@@ -98,7 +98,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 }
                 else if cmd == "scanLight" {
                     scanAction(cmd)
-               }
+                }
             }
         }
     }
@@ -155,7 +155,8 @@ extension AppDelegate :  NSCollectionViewDataSource {
         let item = collectionView.makeItem(withIdentifier: NSUserInterfaceItemIdentifier(rawValue: "CollectionViewItem"), for: indexPath)
 
         if let collectionViewItem = item as? CollectionViewItem {
-            collectionViewItem.updateWithViewObject(viewObjects[indexPath.section + indexPath.item])
+            let vo = viewObjects[indexPath.section + indexPath.item]
+            collectionViewItem.updateWithViewObject(vo)
         }
 
         return item

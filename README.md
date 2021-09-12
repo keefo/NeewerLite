@@ -24,7 +24,8 @@ Here is a video I made to demo the scene:
 <a align="left" href="https://youtu.be/pbNi6HZTDEc">
 	<img src="https://j.gifs.com/3Qz2Ox.gif" />
 </a>
-<img align="left" src="screenshot.jpg" width="300px" />
+<img align="left" src="screenshot.png” width="300px" />
+<img align="left" src="screenshot1.png” width="300px" />
 </p>
 
 # Features
@@ -33,6 +34,7 @@ Here is a video I made to demo the scene:
 - Brightness control
 - Correlated color temperature control
 - RGB color control
+- Scene control
 - Schema support
 
 ## Schema Usage
@@ -54,6 +56,11 @@ Use this command to toggle all lights:
 ```bash
 open neewerlite://toggleLight
 ```
+
+Use this command to scan all lights:
+```bash
+open neewerlite://scanLight
+```
 ## Voice Control Interaction
 
 You could integrate these commands into Voice Control. 
@@ -71,8 +78,7 @@ Now, when you say “Meow” voice control will switch on/off your LED lights.
 
 If you find a way to implement these features, feel free to create a pull request.
 
-- [ ] Test other Neewer LED lights
-- [ ] Add scene support
+- [ ] Test more Neewer LED lights
 - [ ] Lights sync with music
 - [ ] Add support for other Neewer LED lights
 

@@ -221,7 +221,7 @@
 			isa = PBXProject;
 			attributes = {
 				LastSwiftUpdateCheck = 1230;
-				LastUpgradeCheck = 1230;
+				LastUpgradeCheck = 1250;
 				TargetAttributes = {
 					A731DD2F25A57D0B00302E25 = {
 						CreatedOnToolsVersion = 12.3;
@@ -445,8 +445,10 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = NeewerLite/NeewerLite.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
+				DEVELOPMENT_TEAM = MJA89JYF67;
 				ENABLE_HARDENED_RUNTIME = YES;
 				INFOPLIST_FILE = NeewerLite/Resources/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -465,8 +467,10 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = NeewerLite/NeewerLite.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
+				DEVELOPMENT_TEAM = MJA89JYF67;
 				ENABLE_HARDENED_RUNTIME = YES;
 				INFOPLIST_FILE = NeewerLite/Resources/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
