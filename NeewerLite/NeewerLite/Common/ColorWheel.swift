@@ -8,7 +8,7 @@
 import Foundation
 import AppKit
 
-protocol ColorWheelDelegate: class {
+protocol ColorWheelDelegate: AnyObject {
     func hueAndSaturationSelected(_ hue: CGFloat, saturation: CGFloat)
 }
 

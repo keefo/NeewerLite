@@ -24,7 +24,8 @@ Here is a video I made to demo the scene:
 <a align="left" href="https://youtu.be/pbNi6HZTDEc">
 	<img src="https://j.gifs.com/3Qz2Ox.gif" />
 </a>
-<img align="left" src="screenshot.jpg" width="300px" />
+<img align="left" src="screenshot.png” width="300px" />
+<img align="left" src="screenshot1.png” width="300px" />
 </p>
 
 # Features
@@ -33,27 +34,34 @@ Here is a video I made to demo the scene:
 - Brightness control
 - Correlated color temperature control
 - RGB color control
+- Scene control
 - Schema support
 
 ## Schema Usage
 
 Open the app and let it scans all Neewer lights through Bluetooth. Once it finds lights. Then you could use command to switch On/Off lights.
 
-Use this command to turn on all lights:
+Turn on all lights:
 
 ```bash
 open neewerlite://turnOnLight
 ```
 
-Use this command to turn off all lights:
+Turn off all lights:
 ```bash
 open neewerlite://turnOffLight
 ```
 
-Use this command to toggle all lights:
+Toggle all lights:
 ```bash
 open neewerlite://toggleLight
 ```
+
+Scan all lights:
+```bash
+open neewerlite://scanLight
+```
+
 ## Voice Control Interaction
 
 You could integrate these commands into Voice Control. 
@@ -71,8 +79,7 @@ Now, when you say “Meow” voice control will switch on/off your LED lights.
 
 If you find a way to implement these features, feel free to create a pull request.
 
-- [ ] Test other Neewer LED lights
-- [ ] Add scene support
+- [ ] Test more Neewer LED lights
 - [ ] Lights sync with music
 - [ ] Add support for other Neewer LED lights
 
