@@ -99,6 +99,8 @@ class ColorWheel: NSView {
 
         self.color = NSColor(hue: color.hue, saturation: color.saturation, brightness: 1.0, alpha: 1.0)
 
+        Logger.debug("color.hue: \(color.hue) color.saturation: \(color.saturation)")
+
         // Notify delegate of the new Hue and Saturation
         delegate?.hueAndSaturationSelected(color.hue, saturation: color.saturation)
 
@@ -219,6 +221,17 @@ class ColorWheel: NSView {
             }
         }
         return (hue, saturation)
+    }
+
+    func setSaturation(_ sat: CGFloat)
+    {
+        var hue: CGFloat = 0.0, saturation: CGFloat = 0.0, brightness: CGFloat = 0.0, alpha: CGFloat = 0.0
+        color.getHue(&hue, saturation: &saturation, brightness: &brightness, alpha: &alpha)
+
+        self.color = NSColor(hue: hue, saturation: sat, brightness: brightness, alpha: alpha)
+
+        point = pointAtHueSaturation(hue, saturation: sat)
+        drawIndicator()
     }
 
     private func pointAtHueSaturation(_ hue: CGFloat, saturation: CGFloat) -> CGPoint {

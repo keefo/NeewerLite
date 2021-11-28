@@ -11,7 +11,6 @@
 		A731DD3625A57D0B00302E25 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A731DD3525A57D0B00302E25 /* Assets.xcassets */; };
 		A731DD3925A57D0B00302E25 /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = A731DD3725A57D0B00302E25 /* MainMenu.xib */; };
 		A731DD4525A57D0B00302E25 /* NeewerLiteTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A731DD4425A57D0B00302E25 /* NeewerLiteTests.swift */; };
-		A731DD6425A586A200302E25 /* CBUUIDExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = A731DD6325A586A200302E25 /* CBUUIDExtensions.swift */; };
 		A731DD6C25A5891E00302E25 /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = A731DD6B25A5891E00302E25 /* Logger.swift */; };
 		A731DD7425A5896B00302E25 /* NeewerLight.swift in Sources */ = {isa = PBXBuildFile; fileRef = A731DD7325A5896B00302E25 /* NeewerLight.swift */; };
 		A731DD8125A5922A00302E25 /* CollectionViewItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = A731DD8025A5922A00302E25 /* CollectionViewItem.swift */; };
@@ -47,7 +46,6 @@
 		A731DD4025A57D0B00302E25 /* NeewerLiteTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = NeewerLiteTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		A731DD4425A57D0B00302E25 /* NeewerLiteTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NeewerLiteTests.swift; sourceTree = "<group>"; };
 		A731DD4625A57D0B00302E25 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		A731DD6325A586A200302E25 /* CBUUIDExtensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CBUUIDExtensions.swift; sourceTree = "<group>"; };
 		A731DD6B25A5891E00302E25 /* Logger.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Logger.swift; sourceTree = "<group>"; };
 		A731DD7325A5896B00302E25 /* NeewerLight.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NeewerLight.swift; sourceTree = "<group>"; };
 		A731DD8025A5922A00302E25 /* CollectionViewItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CollectionViewItem.swift; sourceTree = "<group>"; };
@@ -141,7 +139,6 @@
 		A731DDA125A5A02F00302E25 /* Common */ = {
 			isa = PBXGroup;
 			children = (
-				A731DD6325A586A200302E25 /* CBUUIDExtensions.swift */,
 				A749F6F925B3AE7E0066EB06 /* DataExtensions.swift */,
 				A749F70125B3AE9A0066EB06 /* Observable.swift */,
 				A749F70625B3AEB60066EB06 /* CBCharacteristicExtensions.swift */,
@@ -220,7 +217,7 @@
 		A731DD2825A57D0B00302E25 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastSwiftUpdateCheck = 1230;
+				LastSwiftUpdateCheck = 1310;
 				LastUpgradeCheck = 1250;
 				TargetAttributes = {
 					A731DD2F25A57D0B00302E25 = {
@@ -228,6 +225,7 @@
 					};
 					A731DD3F25A57D0B00302E25 = {
 						CreatedOnToolsVersion = 12.3;
+						TestTargetID = A731DD2F25A57D0B00302E25;
 					};
 				};
 			};
@@ -285,7 +283,6 @@
 				A749F72225B3DFB30066EB06 /* ColorUtils.swift in Sources */,
 				A749F70725B3AEB60066EB06 /* CBCharacteristicExtensions.swift in Sources */,
 				A731DD6C25A5891E00302E25 /* Logger.swift in Sources */,
-				A731DD6425A586A200302E25 /* CBUUIDExtensions.swift in Sources */,
 				A749F6FA25B3AE7E0066EB06 /* DataExtensions.swift in Sources */,
 				A749F71A25B3DF4F0066EB06 /* NSBezierPathExtensions.swift in Sources */,
 				A731DD8125A5922A00302E25 /* CollectionViewItem.swift in Sources */,
@@ -445,11 +442,12 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = NeewerLite/NeewerLite.entitlements;
-				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = MJA89JYF67;
 				ENABLE_HARDENED_RUNTIME = YES;
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
 				INFOPLIST_FILE = NeewerLite/Resources/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -467,11 +465,12 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = NeewerLite/NeewerLite.entitlements;
-				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = MJA89JYF67;
 				ENABLE_HARDENED_RUNTIME = YES;
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
 				INFOPLIST_FILE = NeewerLite/Resources/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -487,8 +486,10 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
+				DEVELOPMENT_TEAM = MJA89JYF67;
 				INFOPLIST_FILE = NeewerLiteTests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -499,6 +500,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.beyondcow.neewerlite.NeewerLiteTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/NeewerLite.app/Contents/MacOS/NeewerLite";
 			};
 			name = Debug;
 		};
@@ -506,8 +508,10 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
+				DEVELOPMENT_TEAM = MJA89JYF67;
 				INFOPLIST_FILE = NeewerLiteTests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -518,6 +522,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.beyondcow.neewerlite.NeewerLiteTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/NeewerLite.app/Contents/MacOS/NeewerLite";
 			};
 			name = Release;
 		};

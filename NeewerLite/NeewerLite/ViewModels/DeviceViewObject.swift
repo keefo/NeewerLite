@@ -26,7 +26,10 @@ class DeviceViewObject
 
     public lazy var deviceImage: NSImage = {
         var img = NSImage(named: "defaultLightImage")
-        if device.rawName.contains("RGB660 PRO") || device.rawName.contains("RGB480") {
+        if device.rawName.contains("RGB660") || device.rawName.contains("RGB480") {
+            img = NSImage(named: "light-rgb660-pro")
+        }
+        else if device.rawName.contains("SNL660") {
             img = NSImage(named: "light-rgb660-pro")
         }
         if img == nil {

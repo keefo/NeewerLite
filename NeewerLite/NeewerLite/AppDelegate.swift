@@ -10,7 +10,7 @@ import CoreBluetooth
 import IOBluetooth
 
 @main
-class AppDelegate: NSObject, NSApplicationDelegate {
+class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
 
     @IBOutlet var window: NSWindow!
     @IBOutlet var appMenu: NSMenu!
@@ -25,6 +25,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ aNotification: Notification) {
         // Insert code here to initialize your application
         NSApp.setActivationPolicy(.accessory)
+
+        appMenu.delegate = self
+        self.statusItem.menu = appMenu
 
         if let button = statusItem.button {
             button.image = NSImage(named: "statusItemOffIcon")
@@ -55,8 +58,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     @IBAction func aboutAction(_ sender: Any) {
         showWindow(sender)
+        func getYear () -> Int {
+            return Calendar.current.component(.year, from: Date())
+        }
         NSApp.orderFrontStandardAboutPanel(options: [
-            NSApplication.AboutPanelOptionKey(rawValue: "Copyright"): "Copyright © 2021 Keefo"
+            NSApplication.AboutPanelOptionKey(rawValue: "Copyright"): "Copyright © \(getYear()) Keefo"
         ])
     }
 
@@ -110,6 +116,30 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
 
+    func menuWillOpen(_ menu: NSMenu)
+    {
+        Logger.debug("menuWillOpen \(menu)")
+        for item in appMenu.items {
+            if item.tag == 8 {
+                appMenu.removeItem(item)
+            }
+        }
+
+        let opt = NSEvent.modifierFlags.contains(.option)
+
+        for vo in viewObjects.reversed() {
+            var name = vo.device.userLightName
+            if opt  {
+                name = "\(vo.device.userLightName) - \(vo.device.identifier) - \(vo.device.rawName)"
+            }
+            let item =  NSMenuItem(title: name, action: #selector(self.showWindow(_:)), keyEquivalent: "")
+            item.target = self
+            item.image = NSImage(systemSymbolName: vo.device.isOn.value ? "lightbulb" : "lightbulb.slash", accessibilityDescription: "Light")
+            item.tag = 8
+            appMenu.insertItem(item, at: 2)
+        }
+    }
+
     public func updateUI() {
         viewObjects.removeAll()
 
@@ -120,21 +150,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
         statusItem.button?.title = "\(viewObjects.count)"
 
-        for item in appMenu.items {
-            if item.tag == 8 {
-                appMenu.removeItem(item)
-            }
+        // make view items order stable
+        viewObjects.sort {
+            $0.deviceIdentifier > $1.deviceIdentifier
         }
-
-        for vo in viewObjects {
-            let item =  NSMenuItem(title: vo.deviceName, action: #selector(self.showWindow(_:)), keyEquivalent: "")
-            item.target = self
-            item.image = NSImage(systemSymbolName: "lightbulb", accessibilityDescription: "Light")
-            item.tag = 8
-            appMenu.insertItem(item, at: 2)
-        }
-
-        self.statusItem.menu = appMenu
 
         collectionView.reloadData()
     }
@@ -224,24 +243,20 @@ extension AppDelegate :  CBCentralManagerDelegate {
     }
 
     func centralManager(_ central: CBCentralManager, didDiscover peripheral: CBPeripheral, advertisementData: [String : Any], rssi RSSI: NSNumber) {
-        guard peripheral.name != nil else {return}
+        guard let name = peripheral.name else {return}
 
-        if peripheral.name?.contains("NWR") == false &&
-            peripheral.name?.contains("NEEWER") == false &&
-            peripheral.name?.contains("SL") == false
-        {
+        if NeewerLight.isValidPeripheralName(name) == false {
             return
         }
 
         if devices[peripheral.identifier] != nil || tempDevices[peripheral.identifier] != nil {
             return
         }
-        
 
         peripheral.delegate = self
         tempDevices[peripheral.identifier] = peripheral
 
-        Logger.debug("Neewer Light Found! \(peripheral.name!) \(peripheral.identifier)")
+        Logger.info("Neewer Light Found: \(peripheral.name!) \(peripheral.identifier)")
 
         cbCentralManager?.connect(peripheral, options: nil)
     }
@@ -256,7 +271,7 @@ extension AppDelegate :  CBPeripheralDelegate {
 
     func peripheral(_ peripheral: CBPeripheral, didDiscoverServices error: Error?) {
         if let services = peripheral.services {
-            guard let neewerService: CBService = services.first(where: {$0.uuid == CBUUID.NeewerBleServiceUUID}) else {
+            guard let neewerService: CBService = services.first(where: {$0.uuid == NeewerLight.NeewerBleServiceUUID}) else {
                 return
             }
 
@@ -269,12 +284,12 @@ extension AppDelegate :  CBPeripheralDelegate {
 
         if let characteristics = service.characteristics {
 
-            guard let characteristic1: CBCharacteristic = characteristics.first(where: {$0.uuid == CBUUID.NeewerDeviceCtlCharacteristicUUID}) else {
+            guard let characteristic1: CBCharacteristic = characteristics.first(where: {$0.uuid == NeewerLight.NeewerDeviceCtlCharacteristicUUID}) else {
                 Logger.info("NeewerGattCharacteristicUUID not found")
                 return
             }
 
-            guard let characteristic2: CBCharacteristic = characteristics.first(where: {$0.uuid == CBUUID.NeewerGattCharacteristicUUID}) else {
+            guard let characteristic2: CBCharacteristic = characteristics.first(where: {$0.uuid == NeewerLight.NeewerGattCharacteristicUUID}) else {
                 Logger.info("NeewerGattCharacteristicUUID not found")
                 return
             }
