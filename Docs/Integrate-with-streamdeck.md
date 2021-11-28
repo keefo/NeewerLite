@@ -1,68 +1,25 @@
 # Integrate NeewerLite with StreamDeck
 
-# About The Project
+## Download and save scripts
 
-NeewerLite is an un-official Neewer LED light control app for macOS.
+Download and save these 2 scripts into your home folder: [lite_turn_off.sh](./lite_turn_off.sh) and [lite_turn_on.sh](./lite_turn_on.sh) 
 
-[Neewer](https://neewer.com/) produces some very popupler high-CRI LED lights for photography industry. They provides android and iOS app to control those lights through Bluetooth. However, they don't provides any means to control lights from a PC or Mac.
+## Add exectuabled permission
 
-This project is meant to provide such app so you could control bluetooth-enabled Neewer LED light from you Mac.
+Open "Terminal.app"
 
-You could integrate the light control in your [Elgato Stream Deck](https://www.elgato.com/en/gaming/stream-deck) through this app. 
+```bash
+chmod +x ~/lite_turn_on.sh
+chmod +x ~/lite_turn_off.sh
+```
 
-Here is a video I made to demo the scene: 
+## Add 2 "Open" buttons in StreamDeck
 
 <p>
-<a align="left" href="https://youtu.be/pbNi6HZTDEc">
-	<img src="https://j.gifs.com/3Qz2Ox.gif" />
-</a>
-<img align="left" src="screenshot.jpg" width="300px" />
+<img src="./StreamDeck.png" width="300px" />
 </p>
 
-# Features
 
-- Power On/Off control
-- Brightness control
-- Correlated color temperature control
-- RGB color control
-- Schema support
-
-## Schema Usage
-
-Open the app and let it scans all Neewer lights through Bluetooth. Once it finds lights. Then you could use command to switch On/Off lights.
-
-Use this command to turn on all lights:
-
-```bash
-open neewerlite://turnOnLight
-```
-
-Use this command to turn off all lights:
-```bash
-open neewerlite://turnOffLight
-```
-
-Use this command to toggle all lights:
-```bash
-open neewerlite://toggleLight
-```
-## Voice Control Interaction
-
-You could integrate these commands into Voice Control. 
-
-Open “System Preferences” -> “Accessibility” -> “Voice Control” -> “Commands”, Click the “+” button to create a new command, give a name to your new command such as “Meow” and choose “Any Application” then choose perform “Open URL”.  Type in “neewerlite://toggleLight” for example. 
-
-Now, when you say “Meow” voice control will switch on/off your LED lights.
-
-# TO DO LIST
-
-If you find a way to implement these features, feel free to create a pull request.
-
-- [ ] Add scene support
-- [ ] Lights sync with music
-- [ ] Add pictures for other Neewer LED lights
-
-# License
-
-Follow NeewerLite, the code and examples of this project is released under MIT License.
+* Map the 1st button to ```~/lite_turn_on.sh```
+* Map the 2nd button to ```~/lite_turn_off.sh```
 
