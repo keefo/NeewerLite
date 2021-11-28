@@ -62,6 +62,10 @@ Scan all lights:
 open neewerlite://scanLight
 ```
 
+### How to use schema to integate with Elgato Stream Deck?
+
+Read this [Integate with Elgato Stream Deck](./Docs/Integrate-with-streamdeck.md)
+
 ## Voice Control Interaction
 
 You could integrate these commands into Voice Control. 
