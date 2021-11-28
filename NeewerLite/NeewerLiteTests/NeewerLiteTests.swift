@@ -18,9 +18,17 @@ class NeewerLiteTests: XCTestCase {
         // Put teardown code here. This method is called after the invocation of each test method in the class.
     }
 
-    func testExample() throws {
+    func test_getLightTypeByName() throws {
         // This is an example of a functional test case.
-        // Use XCTAssert and related functions to verify your tests produce the correct results.
+        XCTAssertEqual(NeewerLight.getLightTypeByName("NEEWER-RGB660 PRO"), 3, "")
+        XCTAssertEqual(NeewerLight.getLightTypeByName("NEEWER-RGB480 PRO"), 3, "")
+        XCTAssertEqual(NeewerLight.getLightTypeByName("NEEWER-SL80-RGB"), 3, "")
+        XCTAssertEqual(NeewerLight.getLightTypeByName("NEEWER-RGB520"), 3, "")
+        XCTAssertEqual(NeewerLight.getLightTypeByName("NEEWER-RGB960"), 12, "")
+        XCTAssertEqual(NeewerLight.getLightTypeByName("NEEWER-SNL660"), 7, "")
+        XCTAssertEqual(NeewerLight.getLightTypeByName("NEEWER-SL80"), 6, "")
+        XCTAssertEqual(NeewerLight.getLightTypeByName("NEEWER-SL140"), 6, "") // Color Temperature: 2500K-9000K
+        XCTAssertEqual(NeewerLight.getLightTypeByName("NEEWER-NL-116AI"), 2, "")
     }
 
     func testPerformanceExample() throws {
