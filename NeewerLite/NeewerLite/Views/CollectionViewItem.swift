@@ -265,7 +265,7 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, ColorWheelD
         }
         else if sender == self.hsi_satSlide {
             if let dev = self.device {
-                self.hsi_colorWheel.setSaturation(hsi_satSlide.doubleValue/100.0)
+                self.hsi_colorWheel.setSaturation(CGFloat(hsi_satSlide.doubleValue/100.0))
                 dev.setRGBLightValues(self.hsi_colorWheel.color.hueComponent, self.hsi_colorWheel.color.saturationComponent)
                 self.hsi_satValueField.stringValue = "\(dev.satruationValue)"
             }
@@ -479,7 +479,7 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, ColorWheelD
         if let dev = self.device {
             if dev.supportRGB {
                 dev.setRGBLightValues(hue, saturation)
-                self.hsi_satSlide.doubleValue = saturation * 100.0
+                self.hsi_satSlide.doubleValue = Double(saturation * 100.0)
                 self.hsi_satValueField.stringValue = "\(dev.satruationValue)"
             }
         }
