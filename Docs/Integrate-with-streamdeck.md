@@ -2,7 +2,7 @@
 
 ## Download and save scripts
 
-Download and save these 2 scripts into your home folder: 
+Download and save these scripts into your home folder: 
 
 * [lite_turn_off.sh](./lite_turn_off.sh) 
 * [lite_turn_on.sh](./lite_turn_on.sh) 
@@ -10,7 +10,7 @@ Download and save these 2 scripts into your home folder:
 
 ## Add exectuabled permission
 
-Open "Terminal.app"
+Open "Terminal.app" run the following command lines:
 
 ```bash
 chmod +x ~/lite_turn_on.sh
