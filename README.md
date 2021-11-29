@@ -66,6 +66,11 @@ open neewerlite://scanLight
 
 Read this [Integate with Elgato Stream Deck](./Docs/Integrate-with-streamdeck.md)
 
+### How to use schema to integate with macOS Shortcuts?
+
+Read this [Integate with Shortcuts](./Docs/Integrate-with-shortcut.md)
+
+
 ## Voice Control Interaction
 
 You could integrate these commands into Voice Control. 
