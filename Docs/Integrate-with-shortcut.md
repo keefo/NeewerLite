@@ -11,11 +11,11 @@ open neewerlite://turnOnLight
 ```
 
 <p>
-<img src="./shortcut1.png" width="300px" />
+<img src="./shortcut1.png" width="600px" />
 </p>
 
 
 <p>
-<img src="./shortcut2.png" width="300px" />
+<img src="./shortcut2.png" width="600px" />
 </p>
 
