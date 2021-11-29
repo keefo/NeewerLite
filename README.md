@@ -35,9 +35,9 @@ Here is a video I made to demo the scene:
 - Correlated color temperature control
 - RGB color control
 - Scene control
-- Schema support
+- Script support
 
-## Schema Usage
+## Script Usage
 
 Open the app and let it scans all Neewer lights through Bluetooth. Once it finds lights. Then you could use command to switch On/Off lights.
 
@@ -62,16 +62,15 @@ Scan all lights:
 open neewerlite://scanLight
 ```
 
-### How to use schema to integate with Elgato Stream Deck?
+### How to use script to integate with Elgato Stream Deck?
 
 Read this [Integate with Elgato Stream Deck](./Docs/Integrate-with-streamdeck.md)
 
-### How to use schema to integate with macOS Shortcuts?
+### How to use script to integate with macOS Shortcuts?
 
 Read this [Integate with Shortcuts](./Docs/Integrate-with-shortcut.md)
 
-
-## Voice Control Interaction
+### Voice Control Interaction
 
 You could integrate these commands into Voice Control. 
 
