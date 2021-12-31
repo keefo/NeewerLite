@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="18122" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES" customObjectInstantitationMethod="direct">
+<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="19455" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES" customObjectInstantitationMethod="direct">
     <dependencies>
-        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="18122"/>
+        <deployment identifier="macosx"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="19455"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <objects>
@@ -15,6 +16,7 @@
         <customObject id="Voe-Tx-rLC" customClass="AppDelegate" customModule="NeewerLite" customModuleProvider="target">
             <connections>
                 <outlet property="appMenu" destination="e9d-Eg-Uqj" id="zRm-mb-lnZ"/>
+                <outlet property="audioSpectrogramView" destination="Vag-0P-leW" id="idA-lF-aMK"/>
                 <outlet property="collectionView" destination="QRn-Qa-fcm" id="W1P-pv-jgi"/>
                 <outlet property="window" destination="QvC-M9-y7g" id="gIp-Ho-8D9"/>
             </connections>
@@ -686,7 +688,7 @@
             <windowStyleMask key="styleMask" titled="YES" closable="YES" miniaturizable="YES" resizable="YES"/>
             <windowPositionMask key="initialPositionMask" leftStrut="YES" rightStrut="YES" topStrut="YES" bottomStrut="YES"/>
             <rect key="contentRect" x="335" y="390" width="857" height="477"/>
-            <rect key="screenRect" x="0.0" y="0.0" width="2560" height="1415"/>
+            <rect key="screenRect" x="0.0" y="0.0" width="2048" height="1127"/>
             <view key="contentView" id="EiT-Mj-1SZ">
                 <rect key="frame" x="0.0" y="0.0" width="857" height="477"/>
                 <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
@@ -734,9 +736,17 @@
                             <action selector="scanAction:" target="Voe-Tx-rLC" id="VtW-s7-w6H"/>
                         </connections>
                     </toolbarItem>
+                    <toolbarItem implicitItemIdentifier="25FA5F91-C7AA-4FF0-A732-481CDB022EBE" label="Music Visualizer" paletteLabel="Music Visualizer" tag="-1" image="music.quarternote.3" catalog="system" id="LpZ-9N-lmq">
+                        <size key="minSize" width="31.5" height="29"/>
+                        <size key="maxSize" width="31.5" height="29"/>
+                        <connections>
+                            <action selector="orderFront:" target="Qbc-yp-aDY" id="Zet-HI-RNW"/>
+                        </connections>
+                    </toolbarItem>
                 </allowedToolbarItems>
                 <defaultToolbarItems>
                     <toolbarItem reference="0dz-tH-pf8"/>
+                    <toolbarItem reference="LpZ-9N-lmq"/>
                     <toolbarItem reference="9qe-kN-jyV"/>
                 </defaultToolbarItems>
             </toolbar>
@@ -775,8 +785,21 @@
             <point key="canvasLocation" x="-421" y="-518"/>
         </menu>
         <customObject id="WJC-nf-vfx" customClass="SUUpdater"/>
+        <viewController id="vKd-6S-GXf" customClass="SpectrogramViewController" customModule="NeewerLite" customModuleProvider="target"/>
+        <window title="Audio Spectrogram" allowsToolTipsWhenApplicationIsInactive="NO" autorecalculatesKeyViewLoop="NO" hidesOnDeactivate="YES" releasedWhenClosed="NO" visibleAtLaunch="NO" frameAutosaveName="" animationBehavior="default" id="Qbc-yp-aDY" customClass="NSPanel">
+            <windowStyleMask key="styleMask" titled="YES" closable="YES" utility="YES"/>
+            <windowPositionMask key="initialPositionMask" leftStrut="YES" rightStrut="YES" topStrut="YES" bottomStrut="YES"/>
+            <rect key="contentRect" x="211" y="123" width="501" height="300"/>
+            <rect key="screenRect" x="0.0" y="0.0" width="2048" height="1127"/>
+            <view key="contentView" id="Vag-0P-leW" customClass="AudioSpectrogramView" customModule="NeewerLite" customModuleProvider="target">
+                <rect key="frame" x="0.0" y="0.0" width="501" height="300"/>
+                <autoresizingMask key="autoresizingMask"/>
+            </view>
+            <point key="canvasLocation" x="152" y="156"/>
+        </window>
     </objects>
     <resources>
         <image name="NSBluetoothTemplate" width="13" height="16"/>
+        <image name="music.quarternote.3" catalog="system" width="18" height="15"/>
     </resources>
 </document>

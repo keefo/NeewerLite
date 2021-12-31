@@ -77,7 +77,7 @@
                                         </connections>
                                     </slider>
                                     <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="xd6-oS-RjE">
-                                        <rect key="frame" x="190" y="11" width="27" height="11"/>
+                                        <rect key="frame" x="189" y="11" width="27" height="11"/>
                                         <autoresizingMask key="autoresizingMask" flexibleMinX="YES" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                         <textFieldCell key="cell" controlSize="mini" lineBreakMode="clipping" title="BRR" id="sfG-UD-69Q">
                                             <font key="font" metaFont="miniSystem"/>
@@ -185,6 +185,17 @@
                                             <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                                         </textFieldCell>
                                     </textField>
+                                    <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="1Mn-Ge-isi">
+                                        <rect key="frame" x="9" y="10" width="176" height="11"/>
+                                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                        <buttonCell key="cell" type="check" title="Follow music" bezelStyle="regularSquare" imagePosition="left" controlSize="mini" state="on" inset="2" id="rwX-o9-TaA">
+                                            <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
+                                            <font key="font" metaFont="miniSystem"/>
+                                        </buttonCell>
+                                        <connections>
+                                            <action selector="toggleFollowMusicAction:" target="XuX-Dg-DgW" id="eMi-3B-MmY"/>
+                                        </connections>
+                                    </button>
                                 </subviews>
                             </view>
                         </tabViewItem>
@@ -486,6 +497,7 @@
                 <outlet property="cct_brrValueField" destination="iw2-aW-WSn" id="3LC-M6-QOz"/>
                 <outlet property="cct_cctSlide" destination="bJq-Dj-cLH" id="VL4-Qf-wsX"/>
                 <outlet property="cct_cctValueField" destination="Yqj-sD-pGh" id="ltm-UB-Quv"/>
+                <outlet property="followMusicButton" destination="1Mn-Ge-isi" id="0v6-4H-OGi"/>
                 <outlet property="hsi_brrSlide" destination="40H-VN-aee" id="Agw-M7-cUz"/>
                 <outlet property="hsi_brrValueField" destination="V9K-xM-yD8" id="BL6-pT-fpP"/>
                 <outlet property="hsi_colorWheel" destination="R7g-Fr-5DS" id="TeW-j7-Kh6"/>

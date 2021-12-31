@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		A71B39B72756EBA20005E271 /* AudioSpectrogramView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A71B39B62756EBA20005E271 /* AudioSpectrogramView.swift */; };
+		A71B39BA275726800005E271 /* Atomics in Frameworks */ = {isa = PBXBuildFile; productRef = A71B39B9275726800005E271 /* Atomics */; };
 		A731DD3425A57D0B00302E25 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = A731DD3325A57D0B00302E25 /* AppDelegate.swift */; };
 		A731DD3625A57D0B00302E25 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A731DD3525A57D0B00302E25 /* Assets.xcassets */; };
 		A731DD3925A57D0B00302E25 /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = A731DD3725A57D0B00302E25 /* MainMenu.xib */; };
@@ -22,6 +24,7 @@
 		A749F71525B3DE9B0066EB06 /* ColorWheel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A749F71425B3DE9B0066EB06 /* ColorWheel.swift */; };
 		A749F71A25B3DF4F0066EB06 /* NSBezierPathExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = A749F71925B3DF4F0066EB06 /* NSBezierPathExtensions.swift */; };
 		A749F72225B3DFB30066EB06 /* ColorUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = A749F72125B3DFB30066EB06 /* ColorUtils.swift */; };
+		A76C4B6D275474FA00D2F145 /* AudioSpectrogram.swift in Sources */ = {isa = PBXBuildFile; fileRef = A76C4B6C275474FA00D2F145 /* AudioSpectrogram.swift */; };
 		A76E1F21266496FC00E5788B /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = A76E1F20266496FC00E5788B /* Sparkle */; };
 		A76E1F2326649F2A00E5788B /* Credits.rtf in Resources */ = {isa = PBXBuildFile; fileRef = A76E1F2226649F2A00E5788B /* Credits.rtf */; };
 /* End PBXBuildFile section */
@@ -37,6 +40,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		A71B39B62756EBA20005E271 /* AudioSpectrogramView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AudioSpectrogramView.swift; sourceTree = "<group>"; };
 		A731DD3025A57D0B00302E25 /* NeewerLite.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = NeewerLite.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A731DD3325A57D0B00302E25 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		A731DD3525A57D0B00302E25 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -57,6 +61,7 @@
 		A749F71425B3DE9B0066EB06 /* ColorWheel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorWheel.swift; sourceTree = "<group>"; };
 		A749F71925B3DF4F0066EB06 /* NSBezierPathExtensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NSBezierPathExtensions.swift; sourceTree = "<group>"; };
 		A749F72125B3DFB30066EB06 /* ColorUtils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorUtils.swift; sourceTree = "<group>"; };
+		A76C4B6C275474FA00D2F145 /* AudioSpectrogram.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioSpectrogram.swift; sourceTree = "<group>"; };
 		A76E1F2226649F2A00E5788B /* Credits.rtf */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.rtf; path = Credits.rtf; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -66,6 +71,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				A76E1F21266496FC00E5788B /* Sparkle in Frameworks */,
+				A71B39BA275726800005E271 /* Atomics in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -102,6 +108,7 @@
 			children = (
 				A731DD3B25A57D0B00302E25 /* NeewerLite.entitlements */,
 				A731DDA125A5A02F00302E25 /* Common */,
+				A76C4B5D275448E200D2F145 /* Spectrogram */,
 				A731DD8A25A5925500302E25 /* Model */,
 				A731DD7F25A5921F00302E25 /* Views */,
 				A731DDA525A5A04000302E25 /* ViewModels */,
@@ -124,6 +131,7 @@
 			isa = PBXGroup;
 			children = (
 				A731DD8025A5922A00302E25 /* CollectionViewItem.swift */,
+				A71B39B62756EBA20005E271 /* AudioSpectrogramView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -170,6 +178,14 @@
 			path = Resources;
 			sourceTree = "<group>";
 		};
+		A76C4B5D275448E200D2F145 /* Spectrogram */ = {
+			isa = PBXGroup;
+			children = (
+				A76C4B6C275474FA00D2F145 /* AudioSpectrogram.swift */,
+			);
+			path = Spectrogram;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -188,6 +204,7 @@
 			name = NeewerLite;
 			packageProductDependencies = (
 				A76E1F20266496FC00E5788B /* Sparkle */,
+				A71B39B9275726800005E271 /* Atomics */,
 			);
 			productName = NeewerLite;
 			productReference = A731DD3025A57D0B00302E25 /* NeewerLite.app */;
@@ -240,6 +257,7 @@
 			mainGroup = A731DD2725A57D0B00302E25;
 			packageReferences = (
 				A76E1F1F266496FC00E5788B /* XCRemoteSwiftPackageReference "Sparkle" */,
+				A71B39B8275726800005E271 /* XCRemoteSwiftPackageReference "swift-atomics" */,
 			);
 			productRefGroup = A731DD3125A57D0B00302E25 /* Products */;
 			projectDirPath = "";
@@ -287,7 +305,9 @@
 				A749F71A25B3DF4F0066EB06 /* NSBezierPathExtensions.swift in Sources */,
 				A731DD8125A5922A00302E25 /* CollectionViewItem.swift in Sources */,
 				A731DD7425A5896B00302E25 /* NeewerLight.swift in Sources */,
+				A71B39B72756EBA20005E271 /* AudioSpectrogramView.swift in Sources */,
 				A749F71525B3DE9B0066EB06 /* ColorWheel.swift in Sources */,
+				A76C4B6D275474FA00D2F145 /* AudioSpectrogram.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -561,6 +581,14 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		A71B39B8275726800005E271 /* XCRemoteSwiftPackageReference "swift-atomics" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/apple/swift-atomics.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.0.0;
+			};
+		};
 		A76E1F1F266496FC00E5788B /* XCRemoteSwiftPackageReference "Sparkle" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/sparkle-project/Sparkle";
@@ -572,6 +600,11 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		A71B39B9275726800005E271 /* Atomics */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A71B39B8275726800005E271 /* XCRemoteSwiftPackageReference "swift-atomics" */;
+			productName = Atomics;
+		};
 		A76E1F20266496FC00E5788B /* Sparkle */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = A76E1F1F266496FC00E5788B /* XCRemoteSwiftPackageReference "Sparkle" */;

@@ -12,9 +12,9 @@
 
 NeewerLite is an un-official Neewer LED light control app for macOS.
 
-[Neewer](https://neewer.com/) produces some very popupler high-CRI LED lights for photography industry. They provides android and [iOS app](https://apps.apple.com/us/app/neewer/id1455948340) to control those lights through Bluetooth. However, they don't provides any means to control lights from a PC or Mac.
+[Neewer](https://neewer.com/) produces popular high-CRI LED lights for media industry. They provides android and [iOS app](https://apps.apple.com/us/app/neewer/id1455948340) to control their lights through Bluetooth. However, they don't provides any means to control lights from a PC or Mac.
 
-This project is meant to provide such app so you could control bluetooth-enabled Neewer LED light from you Mac.
+This project creates a macOS app so you could control bluetooth-enabled Neewer LED lights from you Mac.
 
 You could integrate the light control in your [Elgato Stream Deck](https://www.elgato.com/en/gaming/stream-deck) through this app. 
 
@@ -36,6 +36,7 @@ Here is a video I made to demo the scene:
 - RGB color control
 - Scene control
 - Script support
+- Sync RGB lights with music
 
 ## Script Usage
 
@@ -62,13 +63,13 @@ Scan all lights:
 open neewerlite://scanLight
 ```
 
-### How to use script to integate with Elgato Stream Deck?
+### How to use script to integrate with Elgato Stream Deck?
 
-Read this [Integate with Elgato Stream Deck](./Docs/Integrate-with-streamdeck.md)
+Read this [Integrate with Elgato Stream Deck](./Docs/Integrate-with-streamdeck.md)
 
-### How to use script to integate with macOS Shortcuts?
+### How to use script to integrate with macOS Shortcuts?
 
-Read this [Integate with Shortcuts](./Docs/Integrate-with-shortcut.md)
+Read this [Integrate with Shortcuts](./Docs/Integrate-with-shortcut.md)
 
 ### Voice Control Interaction
 
@@ -88,7 +89,6 @@ Now, when you say “Meow” voice control will switch on/off your LED lights.
 If you find a way to implement these features, feel free to create a pull request.
 
 - [ ] Test more Neewer LED lights
-- [ ] Lights sync with music
 - [ ] Add support for other Neewer LED lights
 
 # License

@@ -24,6 +24,7 @@ class ColorWheel: NSView {
     var indicatorCircleRadius: CGFloat = 8.0
     var indicatorColor: CGColor = NSColor.gray.cgColor
     var indicatorBorderWidth: CGFloat = 1.0
+    var lastHueValue: CGFloat = 0.0
     var point: CGPoint!
 
     // Retina scaling factor
@@ -98,8 +99,6 @@ class ColorWheel: NSView {
         }
 
         self.color = NSColor(hue: color.hue, saturation: color.saturation, brightness: 1.0, alpha: 1.0)
-
-        Logger.debug("color.hue: \(color.hue) color.saturation: \(color.saturation)")
 
         // Notify delegate of the new Hue and Saturation
         delegate?.hueAndSaturationSelected(color.hue, saturation: color.saturation)
@@ -228,6 +227,18 @@ class ColorWheel: NSView {
         var hue: CGFloat = 0.0, saturation: CGFloat = 0.0, brightness: CGFloat = 0.0, alpha: CGFloat = 0.0
         color.getHue(&hue, saturation: &saturation, brightness: &brightness, alpha: &alpha)
 
+        if sat == 0 {
+            if  hue > 0 {
+                lastHueValue = hue
+            }
+        }
+        else {
+            if hue == 0 && lastHueValue > 0 {
+                hue = lastHueValue
+                lastHueValue = 0
+            }
+        }
+        
         self.color = NSColor(hue: hue, saturation: sat, brightness: brightness, alpha: alpha)
 
         point = pointAtHueSaturation(hue, saturation: sat)
@@ -250,7 +261,20 @@ class ColorWheel: NSView {
         var hue: CGFloat = 0.0, saturation: CGFloat = 0.0, brightness: CGFloat = 0.0, alpha: CGFloat = 0.0
         color.getHue(&hue, saturation: &saturation, brightness: &brightness, alpha: &alpha)
 
+        if color.saturationComponent == 0 {
+            if  hue > 0 {
+                lastHueValue = hue
+            }
+        }
+        else {
+            if hue == 0 && lastHueValue > 0 {
+                hue = lastHueValue
+                lastHueValue = 0
+            }
+        }
+
         self.color = color
+
         point = pointAtHueSaturation(hue, saturation: saturation)
         drawIndicator()
     }
