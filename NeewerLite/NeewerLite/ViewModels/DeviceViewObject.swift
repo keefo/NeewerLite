@@ -7,17 +7,19 @@
 
 import Cocoa
 
+typealias HSB_t = (CGFloat,CGFloat,CGFloat)
+
 class DeviceViewObject
 {
     var device: NeewerLight
+    var view: CollectionViewItem? = nil
 
     init(_ device: NeewerLight) {
         self.device = device
     }
 
     public lazy var deviceName: String = {
-        let name = device.deviceName
-        return name
+        return device.deviceName
     }()
 
     public lazy var deviceIdentifier: String = {
@@ -37,5 +39,45 @@ class DeviceViewObject
         }
         return img!
     }()
+
+    public var followMusic: Bool {
+        return self.device.followMusic
+    }
+
+    public var isON: Bool {
+        return self.device.isOn.value
+    }
+
+    public var isHSIMode: Bool {
+        return self.device.lightMode == .HSIMode
+    }
+
+    public var HSB : HSB_t {
+        @available(*, unavailable)
+        get {
+            fatalError("You cannot read from this object.")
+        }
+        set {
+            if let theView = view {
+                theView.updateHueAndSaturationAndBrightness(newValue.0, saturation: CGFloat(self.device.satruationValue)/100.0, brightness: CGFloat(self.device.brrValue)/100.0, updateWheel: true)
+            }
+        }
+    }
+
+    public func toggleLight()
+    {
+        device.isOn.value ? device.sendPowerOffRequest() : device.sendPowerOnRequest()
+    }
+
+    public func turnOnLight()
+    {
+        device.sendPowerOnRequest()
+    }
+
+    public func turnOffLight()
+    {
+        device.sendPowerOffRequest()
+    }
+
 }
 

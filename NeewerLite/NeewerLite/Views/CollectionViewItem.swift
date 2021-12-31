@@ -37,6 +37,7 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, ColorWheelD
     @IBOutlet weak var sceneModeButton3: NSButton!
     @IBOutlet weak var scenebrrSlide: NSSlider!
     @IBOutlet weak var scenebrrValueField: NSTextField!
+    @IBOutlet weak var followMusicButton: NSButton!
 
     @IBOutlet weak var scene1Button: NSButton!
     @IBOutlet weak var scene2Button: NSButton!
@@ -54,7 +55,7 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, ColorWheelD
 
     var currentScene: UInt8 {
         set {
-            if newValue >= 1 && newValue <= 9 {
+            if (1...9).contains(newValue) {
                 currentSceneIndex = newValue
                 updateScene()
             }
@@ -86,7 +87,6 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, ColorWheelD
                         self.updateDeviceStatus()
                     }
                 }
-
                 lightModeButton1.removeFromSuperview()
                 lightModeButton.removeFromSuperview()
 
@@ -135,6 +135,7 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, ColorWheelD
         view.layer?.borderWidth = 1.0
         view.layer?.cornerRadius = 10.0
 
+        self.followMusicButton.state = .off
         self.lightModeButton1.selectedSegment = 0
         self.lightModeButton.selectedSegment = 0
         self.lightModeTabView.selectTabViewItem(at: 0)
@@ -168,8 +169,20 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, ColorWheelD
 
     @IBAction func modeAction(_ sender: NSSegmentedControl)
     {
-        if sender.selectedSegment == 0 || sender.selectedSegment == 1 || sender.selectedSegment == 2 {
+        if [0, 1, 2].contains(sender.selectedSegment)  {
             lightModeTabView.selectTabViewItem(at: sender.selectedSegment)
+        }
+    }
+
+    @IBAction func toggleFollowMusicAction(_ sender: NSButton)
+    {
+        if let dev = self.device {
+            Logger.debug("sender.state= \(sender.state)")
+            dev.followMusic = sender.state == .on
+            Logger.debug("dev.followMusic= \(dev.followMusic)")
+            if let app = NSApp.delegate as? AppDelegate {
+                app.updateAudioDriver()
+            }
         }
     }
 
@@ -245,20 +258,20 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, ColorWheelD
     {
         if sender == self.cct_brrSlide {
             if let dev = self.device {
-                dev.setBRRLightValues(CGFloat(self.cct_brrSlide.doubleValue))
+                dev.setBRRLightValues(CGFloat(self.cct_brrSlide.doubleValue) / 100.0)
                 self.scenebrrSlide.doubleValue = Double(dev.brrValue)
                 updateBRRValueField()
             }
         }
         else if sender == self.cct_cctSlide {
             if let dev = self.device {
-                dev.setCCTLightValues(CGFloat(self.cct_cctSlide.doubleValue), CGFloat(self.hsi_brrSlide.doubleValue))
+                dev.setCCTLightValues(CGFloat(self.cct_cctSlide.doubleValue), CGFloat(self.hsi_brrSlide.doubleValue) / 100.0)
                 updateCCTValueField()
             }
         }
         else if sender == self.hsi_brrSlide {
             if let dev = self.device {
-                dev.setBRRLightValues(CGFloat(self.hsi_brrSlide.doubleValue))
+                dev.setBRRLightValues(CGFloat(self.hsi_brrSlide.doubleValue) / 100.0)
                 self.hsi_brrValueField.stringValue = "\(dev.brrValue)"
                 self.scenebrrSlide.doubleValue = Double(dev.brrValue)
             }
@@ -475,14 +488,22 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, ColorWheelD
         updateDeviceStatus()
     }
 
-    func hueAndSaturationSelected(_ hue: CGFloat, saturation: CGFloat) {
+    func updateHueAndSaturationAndBrightness(_ hue: CGFloat, saturation: CGFloat, brightness: CGFloat, updateWheel: Bool) {
         if let dev = self.device {
             if dev.supportRGB {
-                dev.setRGBLightValues(hue, saturation)
+                dev.setRGBLightValues(hue, saturation, brightness)
                 self.hsi_satSlide.doubleValue = Double(saturation * 100.0)
                 self.hsi_satValueField.stringValue = "\(dev.satruationValue)"
+                self.hsi_brrSlide.doubleValue =  Double(brightness * 100.0)
+                if updateWheel {
+                    updateDeviceColorToWheel()
+                }
             }
         }
+    }
+
+    func hueAndSaturationSelected(_ hue: CGFloat, saturation: CGFloat) {
+        updateHueAndSaturationAndBrightness(hue, saturation: saturation, brightness: self.hsi_brrSlide.doubleValue / 100.0, updateWheel: false)
     }
 
     func tabView(_ tabView: NSTabView, didSelect tabViewItem: NSTabViewItem?)
@@ -491,7 +512,7 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, ColorWheelD
             if let dev = self.device {
                 if tabViewItem == tabView.tabViewItem(at: 0) {
                     // CCT mode
-                    dev.setCCTLightValues(CGFloat(dev.cctValue), CGFloat(dev.brrValue))
+                    dev.setCCTLightValues(CGFloat(dev.cctValue) / 100.0, CGFloat(dev.brrValue) / 100.0)
                 }
                 else if tabViewItem == tabView.tabViewItem(at: 1) {
                     // HSI mode

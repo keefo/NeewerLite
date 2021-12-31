@@ -9,6 +9,15 @@
           "revision": "c0933a516b420806e9216e71bd13ba76c54f0de6",
           "version": "1.26.0"
         }
+      },
+      {
+        "package": "swift-atomics",
+        "repositoryURL": "https://github.com/apple/swift-atomics.git",
+        "state": {
+          "branch": null,
+          "revision": "919eb1d83e02121cdb434c7bfc1f0c66ef17febe",
+          "version": "1.0.2"
+        }
       }
     ]
   },
