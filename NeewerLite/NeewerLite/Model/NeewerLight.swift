@@ -39,9 +39,13 @@ class NeewerLight: NSObject, ObservableNeewerLightProtocol {
         static let set_longcct_light_cct_tag = 0x83         // 131 Set long CCT Light CCT.
 
         static let set_scene_tag = 0x88      // 136 Set Scene Light Mode.
-        static let power_on = NSData(bytes: [0x78,0x81,0x01,0x01,0xFB] as [UInt8], length: 5)
-        static let power_off = NSData(bytes: [0x78,0x81,0x01,0x02,0xFC] as [UInt8], length: 5)
-        static let read_request = NSData(bytes: [0x78,0x84,0x00,0xFC] as [UInt8], length: 4)
+        static let power_on = Data([0x78,0x81,0x01,0x01,0xFB])
+        static let power_off = Data([0x78,0x81,0x01,0x02,0xFC])
+        static let read_request = Data([0x78,0x84,0x00,0xFC])
+    }
+
+    struct BleUpdate {
+        static let channel_update_prefix = Data([0x78,0x01,0x01])
     }
 
     private var peripheral: CBPeripheral
@@ -49,7 +53,8 @@ class NeewerLight: NSObject, ObservableNeewerLightProtocol {
     private var gattCharacteristic: CBCharacteristic?
 
     var isOn: Observable<Bool> = Observable(false)
-    var channel: Observable<UInt8> = Observable(1)
+    var channel: Observable<UInt8> = Observable(1) // 1 ~ maxChannel
+    let maxChannel: UInt8 = 9
 
     private var _writeDispatcher: DispatchWorkItem?
     private var _nickName: String?
@@ -58,7 +63,6 @@ class NeewerLight: NSObject, ObservableNeewerLightProtocol {
 
     var userLightName: String = "Unknow"
     var lightMode: NeewerLight.Mode = .CCTMode
-    var channelValue: UInt8 = 1 // 1 ~ 9
     var cctValue: Int = 0x53  // 5300K
     var brrValue: Int = 50    // 0~100
     var hueValue: Int = 0     // 0~360
@@ -174,7 +178,6 @@ class NeewerLight: NSObject, ObservableNeewerLightProtocol {
         return _lightType
     }()
 
-    
     private func getConfig() -> [String: String]
     {
         var vals: [String: String] = [:]
@@ -182,7 +185,7 @@ class NeewerLight: NSObject, ObservableNeewerLightProtocol {
         vals["mod"] = "\(lightMode.rawValue)"
         vals["cct"] = "\(cctValue)"
         vals["brr"] = "\(brrValue)"
-        vals["chn"] = "\(channelValue)"
+        vals["chn"] = "\(channel.value)"
         vals["hue"] = "\(hueValue)"
         vals["sat"] = "\(satruationValue)"
         vals["nme"] = userLightName
@@ -220,9 +223,8 @@ class NeewerLight: NSObject, ObservableNeewerLightProtocol {
             brrValue = Int(val) ?? 0
         }
         if let val = vals["chn"] {
-            channelValue = UInt8(val) ?? 1
-            Logger.debug("load channelValue \(channelValue)")
-            self.channel.value = UInt8(channelValue)
+            Logger.debug("load channelValue \(val)")
+            channel.value = UInt8(val) ?? 1
         }
         if let val = vals["hue"] {
             hueValue = Int(val) ?? 1
@@ -349,105 +351,138 @@ class NeewerLight: NSObject, ObservableNeewerLightProtocol {
 
     func sendPowerOnRequest()
     {
-        if let characteristic = deviceCtlCharacteristic {
-            Logger.debug("send powerOn")
-            self.write(data: NeewerLight.BleCommand.power_on as Data, to: characteristic)
-            isOn.value = true
+        guard let characteristic = deviceCtlCharacteristic else {
+            return
         }
+        Logger.debug("send powerOn")
+        self.write(data: NeewerLight.BleCommand.power_on as Data, to: characteristic)
+        isOn.value = true
     }
 
     func sendPowerOffRequest()
     {
-        if let characteristic = deviceCtlCharacteristic {
-            Logger.debug("send powerOff")
-            self.write(data: NeewerLight.BleCommand.power_off as Data, to: characteristic)
-            isOn.value = false
+        guard let characteristic = deviceCtlCharacteristic else {
+            return
         }
+        Logger.debug("send powerOff")
+        self.write(data: NeewerLight.BleCommand.power_off as Data, to: characteristic)
+        isOn.value = false
     }
 
     func sendReadRequest()
     {
-        if let characteristic = deviceCtlCharacteristic {
-            write(data: NeewerLight.BleCommand.read_request as Data, to: characteristic)
+        guard let characteristic = deviceCtlCharacteristic else {
+            return
         }
+        write(data: NeewerLight.BleCommand.read_request as Data, to: characteristic)
     }
 
     func startLightOnNotify()
     {
-        if let characteristic = gattCharacteristic {
-            if !characteristic.canNotify {
-                Logger.debug("gattCharacteristic can not Notify")
-                return
-            }
-            peripheral.setNotifyValue(true, for: characteristic)
+        guard let characteristic = gattCharacteristic else {
+            return
         }
+        if !characteristic.canNotify {
+            Logger.debug("gattCharacteristic can not Notify")
+            return
+        }
+        peripheral.setNotifyValue(true, for: characteristic)
     }
 
     func stopLightOnNotify()
     {
-        if let characteristic = gattCharacteristic {
-            if !characteristic.canNotify {
-                Logger.debug("gattCharacteristic can not Notify")
-                return
-            }
-            peripheral.setNotifyValue(false, for: characteristic)
+        guard let characteristic = gattCharacteristic else {
+            return
         }
+        if !characteristic.canNotify {
+            Logger.debug("gattCharacteristic can not Notify")
+            return
+        }
+        peripheral.setNotifyValue(false, for: characteristic)
     }
 
     // Set correlated color temperature and bulb brightness in CCT Mode
     public func setCCTLightValues(_ cct: CGFloat, _ brr: CGFloat)
     {
-        if let characteristic = deviceCtlCharacteristic {
-            if supportRGB {
-                let cmd = getCCTLightValue(brightness: brr, correlatedColorTemperature: cct)
-                write(data: cmd as Data, to: characteristic)
-            }
-            else {
-                let cmd = getCCTOnlyLightValue(brightness: brr, correlatedColorTemperature: cct)
-                write(data: cmd as Data, to: characteristic)
-            }
-            lightMode = .CCTMode
+        guard let characteristic = deviceCtlCharacteristic else {
+            return
         }
+        if supportRGB {
+            let cmd = getCCTLightValue(brightness: brr, correlatedColorTemperature: cct)
+            write(data: cmd as Data, to: characteristic)
+        }
+        else {
+            let cmd = getCCTOnlyLightValue(brightness: brr, correlatedColorTemperature: cct)
+            write(data: cmd as Data, to: characteristic)
+        }
+        lightMode = .CCTMode
     }
 
     // Set RBG light in HSV Mode
     public func setRGBLightValues(_ hue: CGFloat, _ sat: CGFloat)
     {
-        Logger.debug("hue: \(hue) sat: \(sat)")
-        if let characteristic = deviceCtlCharacteristic {
-            let cmd = getRGBLightValue(brightness: CGFloat(brrValue) / 100.0, hue: hue, satruation: sat)
-            write(data: cmd as Data, to: characteristic)
-            lightMode = .HSIMode
+        guard let characteristic = deviceCtlCharacteristic else {
+            return
         }
+        Logger.debug("hue: \(hue) sat: \(sat)")
+        let cmd = getRGBLightValue(brightness: CGFloat(brrValue) / 100.0, hue: hue, satruation: sat)
+        write(data: cmd as Data, to: characteristic)
+        lightMode = .HSIMode
     }
 
     public func setRGBLightValues(_ hue: CGFloat, _ sat: CGFloat, _ brr: CGFloat)
     {
-        if let characteristic = deviceCtlCharacteristic {
-            let cmd = getRGBLightValue(brightness: brr, hue: hue, satruation: sat)
-            write(data: cmd as Data, to: characteristic)
-            lightMode = .HSIMode
+        guard let characteristic = deviceCtlCharacteristic else {
+            return
         }
+        let cmd = getRGBLightValue(brightness: brr, hue: hue, satruation: sat)
+        write(data: cmd as Data, to: characteristic)
+        lightMode = .HSIMode
     }
 
     // Set Scene
     public func setScene(_ scene: UInt8, brightness brr: CGFloat)
     {
-        if let characteristic = deviceCtlCharacteristic {
-            let cmd = getSceneValue(scene, brightness: CGFloat(brr))
-            write(data: cmd as Data, to: characteristic)
-            lightMode = .SCEMode
+        guard let characteristic = deviceCtlCharacteristic else {
+            return
         }
+        let cmd = getSceneValue(scene, brightness: CGFloat(brr))
+        write(data: cmd as Data, to: characteristic)
+        lightMode = .SCEMode
     }
-
 
     private func handleNotifyValueUpdate(_ data: Data)
     {
-        // Found a way to request data from a light, but don't know what is the data represents.
-        Logger.debug("handleNotifyValueUpdate \(data.hexEncodedString())")
+        guard validateCheckSum(data) else {
+            Logger.error("recived notify value update, but the checksum is invalid. \(data.hexEncodedString())")
+            return
+        }
+
+        if data.prefix(upTo: BleUpdate.channel_update_prefix.count) == BleUpdate.channel_update_prefix
+            && data.count == BleUpdate.channel_update_prefix.count + 2 {
+            // data[3] range in [0,1,2,3,4,5,6,7,8]
+            channel.value = UInt8(data[3]+1).clamped(to: 1...maxChannel) // only 1-maxChannel channel a allowed.
+        } else {
+            Logger.info("handleNotifyValueUpdate \(data.hexEncodedString())")
+        }
     }
 
-    
+    private func validateCheckSum(_ data: Data) -> Bool {
+        if data.count < 2 {
+            return false
+        }
+
+        var checkSum: Int = 0
+        for i in 0 ..< data.count - 1 {
+            checkSum = checkSum + Int(data[i])
+        }
+
+        if data[data.count - 1]  == UInt8(checkSum & 0xFF) {
+            return true
+        }
+        return false
+    }
+
     private func appendCheckSum(_ bArr: [Int]) -> [UInt8] {
         var bArr1: [UInt8] = [UInt8](repeating: 0, count: bArr.count)
 
@@ -537,23 +572,24 @@ class NeewerLight: NSObject, ObservableNeewerLightProtocol {
 
     public func setBRRLightValues(_ brr: CGFloat)
     {
-        if let characteristic = deviceCtlCharacteristic {
-            if lightMode == .CCTMode {
-                if supportRGB {
-                    let cmd = getCCTLightValue(brightness: brr, correlatedColorTemperature: CGFloat(cctValue))
-                    write(data: cmd as Data, to: characteristic)
-                }
-                else {
-                    let cmd = getCCTOnlyLightValue(brightness: brr, correlatedColorTemperature: CGFloat(cctValue))
-                    write(data: cmd as Data, to: characteristic)
-                }
-            } else if lightMode == .HSIMode  {
-                let cmd = getRGBLightValue(brightness: brr, hue: CGFloat(hueValue) / 360.0, satruation: CGFloat(satruationValue) / 100.0)
-                write(data: cmd as Data, to: characteristic)
-            } else {
-                let cmd = getSceneValue(channelValue, brightness: CGFloat(brr))
+        guard let characteristic = deviceCtlCharacteristic else {
+            return
+        }
+        if lightMode == .CCTMode {
+            if supportRGB {
+                let cmd = getCCTLightValue(brightness: brr, correlatedColorTemperature: CGFloat(cctValue))
                 write(data: cmd as Data, to: characteristic)
             }
+            else {
+                let cmd = getCCTOnlyLightValue(brightness: brr, correlatedColorTemperature: CGFloat(cctValue))
+                write(data: cmd as Data, to: characteristic)
+            }
+        } else if lightMode == .HSIMode  {
+            let cmd = getRGBLightValue(brightness: brr, hue: CGFloat(hueValue) / 360.0, satruation: CGFloat(satruationValue) / 100.0)
+            write(data: cmd as Data, to: characteristic)
+        } else {
+            let cmd = getSceneValue(channel.value, brightness: CGFloat(brr))
+            write(data: cmd as Data, to: characteristic)
         }
     }
 
@@ -609,7 +645,7 @@ class NeewerLight: NSObject, ObservableNeewerLightProtocol {
         brrValue = newBrrValue
 
         // scene from 1 ~ 9
-        channelValue = scene.clamped(to: 1...9)
+        channel.value = scene.clamped(to: 1...maxChannel)
 
         let byteCount = 2
         var bArr: [Int] = [Int](repeating: 0, count: byteCount + 4)
@@ -649,21 +685,22 @@ extension NeewerLight :  CBPeripheralDelegate {
 
     func peripheralDidUpdateRSSI(_ peripheral: CBPeripheral, error: Error?)
     {
-        Logger.debug("peripheralDidUpdateRSSI")
         if let err = error {
-            Logger.error("err: \(err)")
+            Logger.error("peripheralDidUpdateRSSI err: \(err)")
+            return
         }
+        Logger.debug("peripheralDidUpdateRSSI")
     }
 
     func peripheral(_ peripheral: CBPeripheral, didUpdateValueFor characteristic: CBCharacteristic, error: Error?)
     {
-        Logger.debug("didUpdateValueFor characteristic: \(characteristic)")
+        // Logger.debug("didUpdateValueFor characteristic: \(characteristic)")
         if let err = error {
             Logger.error("err: \(err)")
-        } else {
-            if let data: Data = characteristic.value as Data? {
-                handleNotifyValueUpdate(data)
-            }
+            return
+        }
+        if let data: Data = characteristic.value as Data? {
+            handleNotifyValueUpdate(data)
         }
     }
 
@@ -672,40 +709,42 @@ extension NeewerLight :  CBPeripheralDelegate {
         //self.writeGroup.leave()
         if let err = error {
             Logger.error("didWriteValueFor err: \(err)")
+            return
         }
     }
 
     func peripheral(_ peripheral: CBPeripheral, didUpdateNotificationStateFor characteristic: CBCharacteristic, error: Error?)
     {
-        Logger.debug("didUpdateNotificationStateFor characteristic: \(characteristic)")
         if let err = error {
-            Logger.error("err: \(err)")
-        } else {
-            let properties : CBCharacteristicProperties = characteristic.properties
-            Logger.info("properties: \(properties)")
-            Logger.info("properties.rawValue: \(properties.rawValue)")
-            //self.write(data: cmd_check_power as Data, to: characteristic)
-            sendReadRequest()
+            Logger.error("didUpdateNotificationStateFor err: \(err)")
+            return
         }
+        Logger.debug("didUpdateNotificationStateFor characteristic: \(characteristic)")
+        let properties : CBCharacteristicProperties = characteristic.properties
+        Logger.info("properties: \(properties)")
+        Logger.info("properties.rawValue: \(properties.rawValue)")
+        //self.write(data: cmd_check_power as Data, to: characteristic)
+        sendReadRequest()
     }
 
     func peripheral(_ peripheral: CBPeripheral, didDiscoverDescriptorsFor characteristic: CBCharacteristic, error: Error?)
     {
-        Logger.debug("didDiscoverDescriptorsFor characteristic: \(characteristic)")
         if let err = error {
-            Logger.error("err: \(err)")
+            Logger.error("didDiscoverDescriptorsFor err: \(err)")
+            return
         }
-        else{
-            if let descriptors = characteristic.descriptors
-            {
-                let characteristicConfigurationDescriptor = descriptors.first { (des) -> Bool in
-                    return des.uuid == CBUUID(string: CBUUIDClientCharacteristicConfigurationString)
-                }
 
-                if let cd = characteristicConfigurationDescriptor {
-                    peripheral.readValue(for: cd)
-                }
-            }
+        Logger.debug("didDiscoverDescriptorsFor characteristic: \(characteristic)")
+        guard let descriptors = characteristic.descriptors else {
+            return
+        }
+
+        let characteristicConfigurationDescriptor = descriptors.first { (des) -> Bool in
+            return des.uuid == CBUUID(string: CBUUIDClientCharacteristicConfigurationString)
+        }
+
+        if let cd = characteristicConfigurationDescriptor {
+            peripheral.readValue(for: cd)
         }
     }
 
@@ -714,6 +753,7 @@ extension NeewerLight :  CBPeripheralDelegate {
         Logger.debug("didUpdateValueFor descriptor: \(descriptor)")
         if let err = error {
             Logger.error("err: \(err)")
+            return
         }
     }
 
@@ -722,6 +762,7 @@ extension NeewerLight :  CBPeripheralDelegate {
         Logger.debug("didWriteValueFor descriptor: \(descriptor)")
         if let err = error {
             Logger.error("err: \(err)")
+            return
         }
     }
 
@@ -735,6 +776,7 @@ extension NeewerLight :  CBPeripheralDelegate {
         Logger.debug("peripheral didOpen channel: \(channel!)")
         if let err = error {
             Logger.error("err: \(err)")
+            return
         }
     }
 }
