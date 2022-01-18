@@ -63,6 +63,12 @@ Scan all lights:
 open neewerlite://scanLight
 ```
 
+Turn on light by name:
+
+```bash
+open neewerlite://turnOnLight?light=left
+```
+
 ### How to use script to integrate with Elgato Stream Deck?
 
 Read this [Integrate with Elgato Stream Deck](./Docs/Integrate-with-streamdeck.md)
