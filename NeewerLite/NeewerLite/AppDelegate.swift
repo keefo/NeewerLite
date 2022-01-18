@@ -93,17 +93,17 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
 
                     if let characteristics = neewerService.characteristics {
 
-                        guard let characteristic1: CBCharacteristic = characteristics.first(where: {$0.uuid == NeewerLight.Constants.NeewerDeviceCtlCharacteristicUUID}) else {
+                        guard let ctlCharacteristic: CBCharacteristic = characteristics.first(where: {$0.uuid == NeewerLight.Constants.NeewerDeviceCtlCharacteristicUUID}) else {
+                            Logger.info("NeewerDeviceCtlCharacteristicUUID not found")
+                            return
+                        }
+
+                        guard let gattCharacteristic: CBCharacteristic = characteristics.first(where: {$0.uuid == NeewerLight.Constants.NeewerGattCharacteristicUUID}) else {
                             Logger.info("NeewerGattCharacteristicUUID not found")
                             return
                         }
 
-                        guard let characteristic2: CBCharacteristic = characteristics.first(where: {$0.uuid == NeewerLight.Constants.NeewerGattCharacteristicUUID}) else {
-                            Logger.info("NeewerGattCharacteristicUUID not found")
-                            return
-                        }
-
-                        let light: NeewerLight = NeewerLight(peripheral, characteristic1, characteristic2)
+                        let light: NeewerLight = NeewerLight(peripheral, ctlCharacteristic, gattCharacteristic)
                         devices[peripheral.identifier] = light
                         light.startLightOnNotify()
 
@@ -131,25 +131,57 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     }
 
     @objc func handleURLEvent(_ event: NSAppleEventDescriptor?, withReplyEvent: NSAppleEventDescriptor?) {
-        if let url = event?.paramDescriptor(forKeyword: keyDirectObject)?.stringValue {
-            if let range = url.range(of: "neewerlite://") {
-                let cmd = url[range.upperBound...]
-                switch cmd {
-                    case "turnOnLight":
-                        viewObjects.forEach { $0.turnOnLight() }
-                        statusItem.button?.image = NSImage(named: "statusItemOnIcon")
-                    case "turnOffLight":
-                        viewObjects.forEach { $0.turnOffLight() }
-                        statusItem.button?.image = NSImage(named: "statusItemOffIcon")
-                    case "toggleLight":
-                        viewObjects.forEach { $0.toggleLight() }
-                        statusItem.button?.image = NSImage(named: "statusItemOffIcon")
-                    case "scanLight":
-                        scanAction(cmd)
-                    default:
-                        Logger.info("unknown command: [\(cmd)]")
+        guard let url = event?.paramDescriptor(forKeyword: keyDirectObject)?.stringValue else  {
+            return
+        }
+        guard let theUrl = URL(string: url) else {
+            return
+        }
+        let components = URLComponents(url: theUrl, resolvingAgainstBaseURL: false)!
+        if components.scheme?.lowercased() != "neewerlite" {
+            return
+        }
+        let cmd = components.host ?? ""
+        let lightname = components.queryItems?.first(where: { $0.name == "light" })?.value
+
+        switch cmd {
+            case "turnOnLight":
+                if lightname != nil {
+                    viewObjects.forEach {
+                        if lightname?.caseInsensitiveCompare($0.device.userLightName) == .orderedSame {
+                            $0.turnOnLight()
+                        }
+                    }
+                } else {
+                    viewObjects.forEach { $0.turnOnLight() }
                 }
-            }
+                statusItem.button?.image = NSImage(named: "statusItemOnIcon")
+            case "turnOffLight":
+                if lightname != nil {
+                    viewObjects.forEach {
+                        if lightname?.caseInsensitiveCompare($0.device.userLightName) == .orderedSame {
+                            $0.turnOffLight()
+                        }
+                    }
+                } else {
+                    viewObjects.forEach { $0.turnOffLight() }
+                }
+                statusItem.button?.image = NSImage(named: "statusItemOffIcon")
+            case "toggleLight":
+                if lightname != nil {
+                    viewObjects.forEach {
+                        if lightname?.caseInsensitiveCompare($0.device.userLightName) == .orderedSame {
+                            $0.toggleLight()
+                        }
+                    }
+                } else {
+                    viewObjects.forEach { $0.toggleLight() }
+                }
+                statusItem.button?.image = NSImage(named: "statusItemOffIcon")
+            case "scanLight":
+                scanAction(cmd)
+            default:
+                Logger.info("unknown command: [\(cmd)]")
         }
     }
 
@@ -226,7 +258,6 @@ extension AppDelegate :  AudioSpectrogramDelegate {
                 self.viewObjects.forEach { if $0.followMusic && $0.isON && $0.isHSIMode {
                     $0.HSB = (CGFloat(hue), 1.0, CGFloat(brr))
                 }}
-
                 //self.spectrogram_data.hueBase += 0.001
                 //Logger.debug("self.spectrogram_data.hueBase: \(self.spectrogram_data.hueBase)")
             }
@@ -322,7 +353,6 @@ extension AppDelegate :  CBCentralManagerDelegate {
         guard let name = peripheral.name else {return}
 
         if NeewerLight.isValidPeripheralName(name) == false {
-            Logger.debug("Invalid Peripheral Name: \(name)")
             return
         }
 
@@ -336,6 +366,26 @@ extension AppDelegate :  CBCentralManagerDelegate {
         Logger.info("Neewer Light Found: \(peripheral.name!) \(peripheral.identifier)")
 
         cbCentralManager?.connect(peripheral, options: nil)
+    }
+
+    func centralManager(_ central: CBCentralManager, didDisconnectPeripheral peripheral: CBPeripheral, error: Error?) {
+        guard let name = peripheral.name else {return}
+
+        if NeewerLight.isValidPeripheralName(name) == false {
+            return
+        }
+
+        if tempDevices[peripheral.identifier] != nil {
+            tempDevices.removeValue(forKey: peripheral.identifier)
+            return
+        }
+
+        if let _ = devices[peripheral.identifier] {
+            devices.removeValue(forKey: peripheral.identifier)
+            DispatchQueue.main.async {
+                self.updateUI()
+            }
+        }
     }
 }
 
