@@ -57,7 +57,7 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, ColorWheelD
         set {
             if (1...9).contains(newValue) {
                 currentSceneIndex = newValue
-                updateScene()
+                updateScene(false)
             }
         }
         get {
@@ -77,16 +77,6 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, ColorWheelD
     var device: NeewerLight? {
         didSet {
             if let dev = self.device {
-                dev.isOn.bind { (on) in
-                    DispatchQueue.main.async {
-                        self.updateDeviceStatus()
-                    }
-                }
-                dev.channel.bind { (ch) in
-                    DispatchQueue.main.async {
-                        self.updateDeviceStatus()
-                    }
-                }
                 lightModeButton1.removeFromSuperview()
                 lightModeButton.removeFromSuperview()
 
@@ -286,7 +276,7 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, ColorWheelD
         else if sender == self.scenebrrSlide
         {
             if let dev = self.device {
-                updateScene()
+                updateScene(false)
                 self.hsi_brrSlide.doubleValue = Double(dev.brrValue)
             }
         }
@@ -305,25 +295,43 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, ColorWheelD
 
     @IBAction func changeModeAction(_ sender: NSButton)
     {
-        sceneModeButton1.state = .off
-        sceneModeButton2.state = .off
-        sceneModeButton3.state = .off
+        resetSceneModeButtons()
         sender.state = .on
         switch sender.tag {
             case 0:
                 sceneTabView.selectTabViewItem(at: 0)
+                sceneModeButton1.state = .on
+                sceneModeButton1.alphaValue = 1.0
             case 1:
                 sceneTabView.selectTabViewItem(at: 1)
+                sceneModeButton2.state = .on
+                sceneModeButton2.alphaValue = 1.0
             case 2:
                 sceneTabView.selectTabViewItem(at: 2)
+                sceneModeButton3.state = .on
+                sceneModeButton3.alphaValue = 1.0
             default:
                 sceneTabView.selectTabViewItem(at: 0)
+                sceneModeButton1.state = .on
+                sceneModeButton1.alphaValue = 1.0
         }
-        updateScene()
+        updateScene(true)
+    }
+
+    func resetSceneModeButtons()
+    {
+        sceneModeButton1.state = .off
+        sceneModeButton2.state = .off
+        sceneModeButton3.state = .off
+        sceneModeButton1.alphaValue = 0.4
+        sceneModeButton2.alphaValue = 0.4
+        sceneModeButton3.alphaValue = 0.4
     }
 
     func resetSceneButtons()
     {
+        resetSceneModeButtons()
+
         scene1Button.state = .off
         scene2Button.state = .off
         scene3Button.state = .off
@@ -353,15 +361,23 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, ColorWheelD
         self.currentScene = UInt8(sender.tag)
     }
 
-    func updateScene()
+    func updateScene(_ changeModeOnly: Bool)
     {
         if lightModeTabView.selectedTabViewItem != lightModeTabView.tabViewItem(at: 2) {
             return
         }
         if let dev = self.device {
             if dev.supportRGB {
-                dev.setScene(self.currentScene, brightness: CGFloat(self.scenebrrSlide.doubleValue))
-                self.scenebrrValueField.stringValue = "\(dev.brrValue)"
+                if changeModeOnly {
+                    if dev.lightMode != .SCEMode {
+                        dev.setScene(self.currentScene, brightness: CGFloat(self.scenebrrSlide.doubleValue))
+                        self.scenebrrValueField.stringValue = "\(dev.brrValue)"
+                    }
+                } else {
+                    dev.setScene(self.currentScene, brightness: CGFloat(self.scenebrrSlide.doubleValue))
+                    self.scenebrrValueField.stringValue = "\(dev.brrValue)"
+                }
+
             }
         }
     }
@@ -425,14 +441,17 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, ColorWheelD
 
                 if dev.channel.value >= 1 && dev.channel.value <= 3 {
                     self.sceneModeButton1.state = .on
+                    sceneModeButton1.alphaValue = 1.0
                     self.sceneTabView.selectTabViewItem(at: 0)
                 }
                 else if dev.channel.value >= 4 && dev.channel.value <= 6 {
                     self.sceneModeButton2.state = .on
+                    self.sceneModeButton2.alphaValue = 1.0
                     self.sceneTabView.selectTabViewItem(at: 1)
                 }
                 else if dev.channel.value >= 7 && dev.channel.value <= 9 {
                     self.sceneModeButton3.state = .on
+                    self.sceneModeButton3.alphaValue = 1.0
                     self.sceneTabView.selectTabViewItem(at: 2)
                 }
 
@@ -448,7 +467,7 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, ColorWheelD
                         scene3Button.alphaValue = 1
                     case 4:
                         scene4Button.state = .on
-                        scene5Button.alphaValue = 1
+                        scene4Button.alphaValue = 1
                     case 5:
                         scene5Button.state = .on
                         scene5Button.alphaValue = 1
@@ -522,7 +541,7 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, ColorWheelD
                 }
                 else {
                     // scene mode
-                    self.updateScene()
+                    self.updateScene(true)
                 }
             }
         }

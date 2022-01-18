@@ -11,11 +11,46 @@ typealias HSB_t = (CGFloat,CGFloat,CGFloat)
 
 class DeviceViewObject
 {
+    private var syncLifetime: Timer?
+    private var doNotUpdateUI: Bool = false
+
     var device: NeewerLight
     var view: CollectionViewItem? = nil
 
     init(_ device: NeewerLight) {
         self.device = device
+        self.syncLifetime = Timer.scheduledTimer(withTimeInterval: 10.0, repeats: true) { _ in
+            self.doNotUpdateUI = true
+            device.sendReadRequest()
+            device.saveToUserDefault()
+        }
+        self.device.isOn.bind { (on) in
+            DispatchQueue.main.async {
+                if let theView = self.view {
+                    theView.updateDeviceStatus()
+                }
+            }
+        }
+        self.device.channel.bind { (ch) in
+            if self.doNotUpdateUI {
+                Logger.debug("Device channel update: \(ch) doNotUpdateUI")
+                self.doNotUpdateUI = false
+                return
+            }
+            Logger.debug("Device channel update: \(ch)")
+            DispatchQueue.main.async {
+                if let theView = self.view {
+                    theView.updateDeviceStatus()
+                }
+            }
+        }
+    }
+
+    deinit {
+        Logger.debug("DeviceViewObject deinit")
+        if let safeTimer = self.syncLifetime {
+            safeTimer.invalidate()
+        }
     }
 
     public lazy var deviceName: String = {
@@ -78,6 +113,5 @@ class DeviceViewObject
     {
         device.sendPowerOffRequest()
     }
-
 }
 
