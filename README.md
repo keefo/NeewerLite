@@ -69,6 +69,8 @@ Turn on light by name:
 open neewerlite://turnOnLight?light=left
 ```
 
+The 'left' is the name I give one of my light. You could change your light's name in the app and use it in this command.
+
 ### How to use script to integrate with Elgato Stream Deck?
 
 Read this [Integrate with Elgato Stream Deck](./Docs/Integrate-with-streamdeck.md)
