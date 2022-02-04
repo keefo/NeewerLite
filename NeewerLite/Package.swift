@@ -5,6 +5,10 @@ import PackageDescription
 
 let package = Package(
     name: "NeewerLite",
+    defaultLocalization: "en",
+    platforms: [
+        .macOS(.v11),
+    ],
     products: [
         // Products define the executables and libraries a package produces, and make them visible to other packages.
         .library(
@@ -20,9 +24,11 @@ let package = Package(
         // Targets can depend on other targets in this package, and on products in packages this package depends on.
         .target(
             name: "NeewerLite",
-            dependencies: []),
+            dependencies: [],
+            path: "NeewerLite"),
         .testTarget(
             name: "NeewerLiteTests",
-            dependencies: ["NeewerLite"]),
+            dependencies: ["NeewerLite"],
+            path: "NeewerLiteTests"),
     ]
 )
