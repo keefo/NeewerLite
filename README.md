@@ -8,7 +8,7 @@
 
 # About The Project
 
-[![Build Status](https://travis-ci.com/keefo/NeewerLite.svg?branch=main)](https://travis-ci.com/github/keefo/NeewerLite)
+[![Build Status](https://github.com/keefo/NeewerLite/actions/workflows/swift.yml/badge.svg)](https://github.com/keefo/NeewerLite/actions/workflows/swift.yml)
 
 NeewerLite is an un-official Neewer LED light control app for macOS.
 
