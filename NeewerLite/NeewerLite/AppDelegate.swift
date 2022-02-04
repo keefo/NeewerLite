@@ -66,8 +66,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
                 audioSpectrogram!.delegate = self
                 audioSpectrogram!.startRunning()
             }
-        }
-        else{
+        } else {
             if audioSpectrogram != nil {
                 Logger.debug("stopAudioDriver")
                 audioSpectrogram!.stopRunning()
