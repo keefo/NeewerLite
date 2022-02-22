@@ -37,19 +37,13 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
 
     func applicationDidFinishLaunching(_ aNotification: Notification) {
         NSApp.setActivationPolicy(.accessory)
-
         appMenu.delegate = self
         self.statusItem.menu = appMenu
-
         if let button = statusItem.button {
             button.image = NSImage(named: "statusItemOffIcon")
         }
-
         self.window.minSize = NSMakeSize(580, 400)
-        updateUI()
-
         cbCentralManager = CBCentralManager(delegate: self, queue: nil)
-
         NSAppleEventManager.shared().setEventHandler(self, andSelector: #selector(handleURLEvent(_:withReplyEvent:)), forEventClass: AEEventClass(kInternetEventClass), andEventID: AEEventID(kAEGetURL))
     }
 

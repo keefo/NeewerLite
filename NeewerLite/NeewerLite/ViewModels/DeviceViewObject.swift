@@ -66,6 +66,9 @@ class DeviceViewObject
         if device.rawName.contains("RGB660") || device.rawName.contains("RGB480") {
             img = NSImage(named: "light-rgb660-pro")
         }
+        else if device.rawName.contains("RGB176") {
+            img = NSImage(named: "light-rgb176")
+        }
         else if device.rawName.contains("SNL660") {
             img = NSImage(named: "light-rgb660-pro")
         }
