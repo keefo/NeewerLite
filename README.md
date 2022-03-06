@@ -105,3 +105,13 @@ If you find a way to implement these features, feel free to create a pull reques
 
 Follow NeewerLite, the code and examples of this project is released under MIT License.
 
+# Donations
+
+If you would like to support me, donations are very welcome.
+You can send bitcoin to this address:
+
+```
+1A4mwftoNpuNCLbS8dHpk9XHrcyvtExrYF
+```
+
+
