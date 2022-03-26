@@ -100,7 +100,7 @@ If you find a way to implement these features, feel free to create a pull reques
 
 - [ ] Test more Neewer LED lights
 - [ ] Add support for other Neewer LED lights
-- [ ] Add interface to support color change
+- [ ] Add command interface to support Hue, Saturation, & Brightness adjustment.
 
 # License
 
