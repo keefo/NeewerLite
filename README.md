@@ -93,6 +93,7 @@ Now, when you say “Meow” voice control will switch on/off your LED lights.
 * [Neewer 480 RGB Led Light](https://neewer.com/collections/rgb-led-panel-light/products/neewer-led-light-10096594)
 * [Neewer RGB176 Led Light](https://neewer.com/products/neewer-rgb176-video-light-with-app-control-10098961)
 * [Neewer RGB 530PRO Led Light](https://neewer.com/products/neewer-led-light-10096806)
+* [Neewer GL1 Led Key Light](https://neewer.com/products/neewer-15-5-45w-gl1-gaming-key-light-10099348)
 
 # TO DO LIST
 
