@@ -63,6 +63,11 @@ Scan all lights:
 open neewerlite://scanLight
 ```
 
+Set lights RGB color:
+```bash
+open neewerlite://setLightRGB?RGB=ff00ff
+```
+
 Turn on light by name:
 
 ```bash

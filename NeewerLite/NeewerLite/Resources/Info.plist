@@ -28,10 +28,12 @@
 	<string>Use Bluetooth to control Neewer LED light</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>Conver Audio to LED light color</string>
-	<key>NSMainNibFile</key>
-	<string>MainMenu</string>
 	<key>NSPrincipalClass</key>
 	<string>NSApplication</string>
+	<key>NSMainNibFile</key>
+	<string>MainMenu</string>
+	<key>LSUIElement</key>
+	<false/>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>bluetooth-central</string>

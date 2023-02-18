@@ -11,7 +11,13 @@ extension CALayer {
     func getBitmapImage() -> NSImage {
 
         let btmpImgRep =
-        NSBitmapImageRep(bitmapDataPlanes: nil, pixelsWide: Int(self.frame.width), pixelsHigh: Int(self.frame.height), bitsPerSample: 8, samplesPerPixel: 4, hasAlpha: true, isPlanar: false, colorSpaceName: NSColorSpaceName.deviceRGB, bytesPerRow: 0, bitsPerPixel: 32)
+        NSBitmapImageRep(bitmapDataPlanes: nil,
+                         pixelsWide: Int(self.frame.width),
+                         pixelsHigh: Int(self.frame.height),
+                         bitsPerSample: 8, samplesPerPixel: 4,
+                         hasAlpha: true, isPlanar: false,
+                         colorSpaceName: NSColorSpaceName.deviceRGB,
+                         bytesPerRow: 0, bitsPerPixel: 32)
 
         let ctx = NSGraphicsContext(bitmapImageRep: btmpImgRep!)
         let cgContext = ctx!.cgContext
@@ -29,18 +35,17 @@ extension CALayer {
 class AudioSpectrogramView: NSView {
 
     var bars: [CALayer] = []
-    let n: Int = AudioSpectrogram.filterBankCount
-    let w: Int = 10
-    let h: Int = 128
+    let num: Int = AudioSpectrogram.filterBankCount
+    let width: Int = 10
+    let height: Int = 128
 
-    override func awakeFromNib()
-    {
+    override func awakeFromNib() {
         self.wantsLayer = true
 
         self.window?.title = "Audio Spectrogram"
 
-        self.window?.setContentSize(NSSize(width: n * w,
-                                           height: h))
+        self.window?.setContentSize(NSSize(width: num * width,
+                                           height: height))
         self.window?.showsResizeIndicator = false
         self.window?.contentResizeIncrements = NSSize(width: Double.greatestFiniteMagnitude,
                                                       height: Double.greatestFiniteMagnitude)
@@ -48,44 +53,46 @@ class AudioSpectrogramView: NSView {
 
         self.layer?.backgroundColor = NSColor.black.cgColor
 
-        let bg = CAGradientLayer()
-        bg.frame = CGRect(x: 0, y: 0, width: w, height: h)
-        bg.startPoint = CGPoint(x:0.0, y:1.0)
-        bg.endPoint = CGPoint(x:0.0, y:0.0)
-        bg.colors = [NSColor.red.cgColor, NSColor.orange.cgColor, NSColor.yellow.cgColor, NSColor.green.cgColor, NSColor.blue.cgColor, NSColor.purple.cgColor]
+        let bgLayer = CAGradientLayer()
+        bgLayer.frame = CGRect(x: 0, y: 0, width: width, height: height)
+        bgLayer.startPoint = CGPoint(x: 0.0, y: 1.0)
+        bgLayer.endPoint = CGPoint(x: 0.0, y: 0.0)
+        bgLayer.colors = [NSColor.red.cgColor,
+                          NSColor.orange.cgColor,
+                          NSColor.yellow.cgColor,
+                          NSColor.green.cgColor,
+                          NSColor.blue.cgColor,
+                          NSColor.purple.cgColor]
 
-        var x = 0
-        for _ in 0...n {
+        var xOffset = 0
+        for _ in 0...num {
 
             let bar = CALayer()
-            bar.frame = CGRect(x: x, y: 0, width: w, height: 10)
-            bar.contents = bg.getBitmapImage()
+            bar.frame = CGRect(x: xOffset, y: 0, width: width, height: 10)
+            bar.contents = bgLayer.getBitmapImage()
             bar.contentsScale = 1.0
             bar.masksToBounds = true
             bar.contentsGravity = .bottomLeft
             self.layer?.addSublayer(bar)
             bars.append(bar)
-            x += w
+            xOffset += width
         }
     }
 
     func updateFrequency(frequency: [CGFloat]) {
-        if frequency.count == n {
-            for i in 0..<n {
-                let freq = Int(frequency[i] < 0 ? 0 : frequency[i] * 3.8)
-                bars[i].frame = CGRect(x: i*w, y: 0, width: w, height: freq)
+        if frequency.count == num {
+            for idx in 0..<num {
+                let freq = Int(frequency[idx] < 0 ? 0 : frequency[idx] * 3.8)
+                bars[idx].frame = CGRect(x: idx*width, y: 0, width: width, height: freq)
             }
         }
     }
 
     func clearFrequency() {
-        for i in 0..<n {
+        for idx in 0..<num {
             let freq = Int(0)
-            bars[i].frame = CGRect(x: i*w, y: 0, width: w, height: freq)
+            bars[idx].frame = CGRect(x: idx*width, y: 0, width: width, height: freq)
         }
     }
 
 }
-
-
-

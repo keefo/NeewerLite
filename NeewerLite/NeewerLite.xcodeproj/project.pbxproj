@@ -9,7 +9,7 @@
 /* Begin PBXBuildFile section */
 		A71B39B72756EBA20005E271 /* AudioSpectrogramView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A71B39B62756EBA20005E271 /* AudioSpectrogramView.swift */; };
 		A71B39BA275726800005E271 /* Atomics in Frameworks */ = {isa = PBXBuildFile; productRef = A71B39B9275726800005E271 /* Atomics */; };
-		A731DD3425A57D0B00302E25 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = A731DD3325A57D0B00302E25 /* AppDelegate.swift */; };
+		A7311C4629A0BD5E009C03D8 /* Command.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7311C4529A0BD5E009C03D8 /* Command.swift */; };
 		A731DD3625A57D0B00302E25 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A731DD3525A57D0B00302E25 /* Assets.xcassets */; };
 		A731DD3925A57D0B00302E25 /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = A731DD3725A57D0B00302E25 /* MainMenu.xib */; };
 		A731DD4525A57D0B00302E25 /* NeewerLiteTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A731DD4425A57D0B00302E25 /* NeewerLiteTests.swift */; };
@@ -18,6 +18,8 @@
 		A731DD8125A5922A00302E25 /* CollectionViewItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = A731DD8025A5922A00302E25 /* CollectionViewItem.swift */; };
 		A731DD8F25A592CC00302E25 /* CollectionViewItem.xib in Resources */ = {isa = PBXBuildFile; fileRef = A731DD8E25A592CC00302E25 /* CollectionViewItem.xib */; };
 		A731DD9D25A5A01300302E25 /* DeviceViewObject.swift in Sources */ = {isa = PBXBuildFile; fileRef = A731DD9C25A5A01300302E25 /* DeviceViewObject.swift */; };
+		A733AE47292DF05F00F37DDD /* SpectrogramViewObject.swift in Sources */ = {isa = PBXBuildFile; fileRef = A733AE46292DF05F00F37DDD /* SpectrogramViewObject.swift */; };
+		A733AEC22933185900F37DDD /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = A733AEC12933185900F37DDD /* AppDelegate.swift */; };
 		A749F6FA25B3AE7E0066EB06 /* DataExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = A749F6F925B3AE7E0066EB06 /* DataExtensions.swift */; };
 		A749F70225B3AE9A0066EB06 /* Observable.swift in Sources */ = {isa = PBXBuildFile; fileRef = A749F70125B3AE9A0066EB06 /* Observable.swift */; };
 		A749F70725B3AEB60066EB06 /* CBCharacteristicExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = A749F70625B3AEB60066EB06 /* CBCharacteristicExtensions.swift */; };
@@ -41,8 +43,9 @@
 
 /* Begin PBXFileReference section */
 		A71B39B62756EBA20005E271 /* AudioSpectrogramView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AudioSpectrogramView.swift; sourceTree = "<group>"; };
+		A7311C4529A0BD5E009C03D8 /* Command.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Command.swift; sourceTree = "<group>"; };
+		A7311C4829A191BE009C03D8 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; name = README.md; path = ../../README.md; sourceTree = "<group>"; };
 		A731DD3025A57D0B00302E25 /* NeewerLite.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = NeewerLite.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		A731DD3325A57D0B00302E25 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		A731DD3525A57D0B00302E25 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		A731DD3825A57D0B00302E25 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Base.lproj/MainMenu.xib; sourceTree = "<group>"; };
 		A731DD3A25A57D0B00302E25 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -55,6 +58,8 @@
 		A731DD8025A5922A00302E25 /* CollectionViewItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CollectionViewItem.swift; sourceTree = "<group>"; };
 		A731DD8E25A592CC00302E25 /* CollectionViewItem.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = CollectionViewItem.xib; sourceTree = "<group>"; };
 		A731DD9C25A5A01300302E25 /* DeviceViewObject.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceViewObject.swift; sourceTree = "<group>"; };
+		A733AE46292DF05F00F37DDD /* SpectrogramViewObject.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpectrogramViewObject.swift; sourceTree = "<group>"; };
+		A733AEC12933185900F37DDD /* AppDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		A749F6F925B3AE7E0066EB06 /* DataExtensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataExtensions.swift; sourceTree = "<group>"; };
 		A749F70125B3AE9A0066EB06 /* Observable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Observable.swift; sourceTree = "<group>"; };
 		A749F70625B3AEB60066EB06 /* CBCharacteristicExtensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CBCharacteristicExtensions.swift; sourceTree = "<group>"; };
@@ -106,14 +111,15 @@
 		A731DD3225A57D0B00302E25 /* NeewerLite */ = {
 			isa = PBXGroup;
 			children = (
+				A7311C4829A191BE009C03D8 /* README.md */,
 				A731DD3B25A57D0B00302E25 /* NeewerLite.entitlements */,
 				A731DDA125A5A02F00302E25 /* Common */,
 				A76C4B5D275448E200D2F145 /* Spectrogram */,
 				A731DD8A25A5925500302E25 /* Model */,
 				A731DD7F25A5921F00302E25 /* Views */,
 				A731DDA525A5A04000302E25 /* ViewModels */,
-				A731DD3325A57D0B00302E25 /* AppDelegate.swift */,
 				A731DDAC25A5A13000302E25 /* Resources */,
+				A733AEC12933185900F37DDD /* AppDelegate.swift */,
 			);
 			path = NeewerLite;
 			sourceTree = "<group>";
@@ -140,6 +146,7 @@
 			isa = PBXGroup;
 			children = (
 				A731DD7325A5896B00302E25 /* NeewerLight.swift */,
+				A7311C4529A0BD5E009C03D8 /* Command.swift */,
 			);
 			path = Model;
 			sourceTree = "<group>";
@@ -162,6 +169,7 @@
 			isa = PBXGroup;
 			children = (
 				A731DD9C25A5A01300302E25 /* DeviceViewObject.swift */,
+				A733AE46292DF05F00F37DDD /* SpectrogramViewObject.swift */,
 			);
 			path = ViewModels;
 			sourceTree = "<group>";
@@ -193,6 +201,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = A731DD5425A57D0B00302E25 /* Build configuration list for PBXNativeTarget "NeewerLite" */;
 			buildPhases = (
+				A7311C4429A0A6A1009C03D8 /* ShellScript */,
 				A731DD2C25A57D0B00302E25 /* Sources */,
 				A731DD2D25A57D0B00302E25 /* Frameworks */,
 				A731DD2E25A57D0B00302E25 /* Resources */,
@@ -290,22 +299,44 @@
 		};
 /* End PBXResourcesBuildPhase section */
 
+/* Begin PBXShellScriptBuildPhase section */
+		A7311C4429A0A6A1009C03D8 /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# Type a script or drag a script file from your workspace to insert its path.\nexport PATH=\"$PATH:/opt/homebrew/bin\"\nif which swiftlint > /dev/null; then\n  swiftlint\nelse\n  echo \"warning: SwiftLint not installed, download from https://github.com/realm/SwiftLint\"\nfi\n\n";
+		};
+/* End PBXShellScriptBuildPhase section */
+
 /* Begin PBXSourcesBuildPhase section */
 		A731DD2C25A57D0B00302E25 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 				A749F70225B3AE9A0066EB06 /* Observable.swift in Sources */,
-				A731DD3425A57D0B00302E25 /* AppDelegate.swift in Sources */,
 				A731DD9D25A5A01300302E25 /* DeviceViewObject.swift in Sources */,
 				A749F72225B3DFB30066EB06 /* ColorUtils.swift in Sources */,
 				A749F70725B3AEB60066EB06 /* CBCharacteristicExtensions.swift in Sources */,
 				A731DD6C25A5891E00302E25 /* Logger.swift in Sources */,
+				A733AEC22933185900F37DDD /* AppDelegate.swift in Sources */,
 				A749F6FA25B3AE7E0066EB06 /* DataExtensions.swift in Sources */,
 				A749F71A25B3DF4F0066EB06 /* NSBezierPathExtensions.swift in Sources */,
+				A7311C4629A0BD5E009C03D8 /* Command.swift in Sources */,
 				A731DD8125A5922A00302E25 /* CollectionViewItem.swift in Sources */,
 				A731DD7425A5896B00302E25 /* NeewerLight.swift in Sources */,
 				A71B39B72756EBA20005E271 /* AudioSpectrogramView.swift in Sources */,
+				A733AE47292DF05F00F37DDD /* SpectrogramViewObject.swift in Sources */,
 				A749F71525B3DE9B0066EB06 /* ColorWheel.swift in Sources */,
 				A76C4B6D275474FA00D2F145 /* AudioSpectrogram.swift in Sources */,
 			);
@@ -374,8 +405,10 @@
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_IDENTITY = "Apple Development";
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = MJA89JYF67;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
@@ -435,8 +468,10 @@
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_IDENTITY = "Apple Development";
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = MJA89JYF67;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
@@ -462,10 +497,10 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = NeewerLite/NeewerLite.entitlements;
-				CODE_SIGN_IDENTITY = "";
+				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = MJA89JYF67;
 				ENABLE_HARDENED_RUNTIME = YES;
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
 				INFOPLIST_FILE = NeewerLite/Resources/Info.plist;
@@ -473,6 +508,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.beyondcow.neewerlite;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
@@ -485,10 +521,10 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = NeewerLite/NeewerLite.entitlements;
-				CODE_SIGN_IDENTITY = "";
+				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = MJA89JYF67;
 				ENABLE_HARDENED_RUNTIME = YES;
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
 				INFOPLIST_FILE = NeewerLite/Resources/Info.plist;
@@ -496,6 +532,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.beyondcow.neewerlite;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
@@ -507,10 +544,10 @@
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				BUNDLE_LOADER = "$(TEST_HOST)";
-				CODE_SIGN_IDENTITY = "";
+				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = MJA89JYF67;
 				INFOPLIST_FILE = NeewerLiteTests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -530,7 +567,7 @@
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				BUNDLE_LOADER = "$(TEST_HOST)";
-				CODE_SIGN_IDENTITY = "";
+				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				DEVELOPMENT_TEAM = MJA89JYF67;

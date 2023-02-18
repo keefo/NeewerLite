@@ -32,4 +32,3 @@ extension Strideable where Stride: SignedInteger {
     }
 }
 #endif
-

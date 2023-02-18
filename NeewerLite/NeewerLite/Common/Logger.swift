@@ -8,7 +8,7 @@
 import Foundation
 
 public class Logger {
-    public class func debug(_ message:String? = nil, function: String = #function, file: String = #file, line: Int = #line) {
+    public class func debug(_ message: String? = nil, function: String = #function, file: String = #file, line: Int = #line) {
 #if DEBUG
         if let message = message {
             print("\(file):\(function):\(line): \(message)")
@@ -18,7 +18,7 @@ public class Logger {
 #endif
     }
 
-    public class func info(_ message:String? = nil, function: String = #function, file: String = #file, line: Int = #line) {
+    public class func info(_ message: String? = nil, function: String = #function, file: String = #file, line: Int = #line) {
         if let message = message {
             print("\(file):\(function):\(line): \(message)")
         } else {
@@ -26,7 +26,7 @@ public class Logger {
         }
     }
 
-    public class func error(_ message:String? = nil, function: String = #function, file: String = #file, line: Int = #line) {
+    public class func error(_ message: String? = nil, function: String = #function, file: String = #file, line: Int = #line) {
         if let message = message {
             print("\(file):\(function):\(line): \(message)")
         } else {
