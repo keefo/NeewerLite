@@ -137,7 +137,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
             self.statusItem.button?.image = NSImage(named: "statusItemOffIcon")
         }))
 
-        commandHandler.register(command: Command(type: .setLightRGB, action: { cmdParameter in
+        commandHandler.register(command: Command(type: .setLightHSB, action: { cmdParameter in
             guard let color = cmdParameter.RGB() else {
                 return
             }

@@ -16,7 +16,7 @@ enum CommandType {
     case turnOffLight
     case toggleLight
     case scanLight
-    case setLightRGB
+    case setLightHSB
 
     var description: String {
         switch self {
@@ -28,8 +28,8 @@ enum CommandType {
                 return "toggleLight"
             case .scanLight:
                 return "scanLight"
-            case .setLightRGB:
-                return "setLightRGB"
+            case .setLightHSB:
+                return "setLightHSB"
         }
     }
 }

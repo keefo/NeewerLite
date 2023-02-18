@@ -63,9 +63,9 @@ Scan all lights:
 open neewerlite://scanLight
 ```
 
-Set lights RGB color and Saturation and Brightness:
+Set lights Hue and Saturation and Brightness:
 ```bash
-open neewerlite://setLightRGB?RGB=ff00ff&Saturation=100&Brightness=100
+open neewerlite://setLightHSB?RGB=ff00ff&Saturation=100&Brightness=100
 ```
 
 Turn on light by name:
