@@ -44,6 +44,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         if let button = statusItem.button {
             button.image = NSImage(named: "statusItemOffIcon")
         }
+        window.minSize = NSSize(width: 580, height: 400)
 
         registerCommands()
 
@@ -52,11 +53,13 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
                                                      forEventClass: AEEventClass(kInternetEventClass),
                                                      andEventID: AEEventID(kAEGetURL))
 
-        self.collectionView.dataSource = self
-        self.collectionView.delegate = self
-        self.cbCentralManager = CBCentralManager(delegate: self, queue: nil)
+        collectionView.dataSource = self
+        collectionView.delegate = self
+        cbCentralManager = CBCentralManager(delegate: self, queue: nil)
 
         keepLightConnectionAlive()
+
+        cbCentralManager = CBCentralManager(delegate: self, queue: nil)
     }
 
     func applicationShouldHandleReopen(_ sender: NSApplication,
@@ -138,18 +141,20 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
             guard let color = cmdParameter.RGB() else {
                 return
             }
+            let sat = cmdParameter.saturation()
+            let bri = cmdParameter.brightness()
             if let lightname = cmdParameter.lightName() {
                 self.viewObjects.forEach {
                     if lightname.caseInsensitiveCompare($0.device.userLightName) == .orderedSame {
                         if $0.isON && $0.isHSIMode {
-                            $0.HSB = HSB(hue: CGFloat(color.hueComponent), saturation: 1.0, brightness: CGFloat(1.0), alpha: 1)
+                            $0.HSB = HSB(hue: CGFloat(color.hueComponent), saturation: sat, brightness: CGFloat(bri), alpha: 1)
                         }
                     }
                 }
             } else {
                 self.viewObjects.forEach {
                     if $0.isON && $0.isHSIMode {
-                        $0.HSB = HSB(hue: CGFloat(color.hueComponent), saturation: 1.0, brightness: CGFloat(1.0), alpha: 1)
+                        $0.HSB = HSB(hue: CGFloat(color.hueComponent), saturation: sat, brightness: CGFloat(bri), alpha: 1)
                     }
                 }
             }
@@ -318,9 +323,10 @@ extension AppDelegate: AudioSpectrogramDelegate {
                 // self.spectrogram_data.last_n_BRR.append(frequency.reduce(0, +) / Float(frequency.count) * 3.0)
                 let hue = self.spectrogramViewObject.hue
                 let brr = 1.0
+                let sat = 1.0
                 Logger.debug("frequency: \(frequency[1])) hue: \(hue)")
                 self.viewObjects.forEach { if $0.followMusic && $0.isON && $0.isHSIMode {
-                    $0.HSB = HSB(hue: CGFloat(hue), saturation: 1.0, brightness: CGFloat(brr), alpha: 1)
+                    $0.HSB = HSB(hue: CGFloat(hue), saturation: CGFloat(sat), brightness: CGFloat(brr), alpha: 1)
                 }}
                 // self.spectrogram_data.hueBase += 0.001
                 // Logger.debug("self.spectrogram_data.hueBase: \(self.spectrogram_data.hueBase)")

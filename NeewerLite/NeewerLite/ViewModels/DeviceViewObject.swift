@@ -97,8 +97,8 @@ class DeviceViewObject {
         set {
             if let theView = view {
                 theView.updateHueAndSaturationAndBrightness(newValue.hue,
-                                                            saturation: CGFloat(device.satruationValue)/100.0,
-                                                            brightness: CGFloat(device.brrValue)/100.0,
+                                                            saturation: newValue.saturation,
+                                                            brightness: newValue.brightness,
                                                             updateWheel: true)
             }
         }

@@ -63,9 +63,9 @@ Scan all lights:
 open neewerlite://scanLight
 ```
 
-Set lights RGB color:
+Set lights RGB color and Saturation and Brightness:
 ```bash
-open neewerlite://setLightRGB?RGB=ff00ff
+open neewerlite://setLightRGB?RGB=ff00ff&Saturation=100&Brightness=100
 ```
 
 Turn on light by name:
@@ -96,6 +96,8 @@ Now, when you say “Meow” voice control will switch on/off your LED lights.
 
 * [Neewer 660 RGB Led Light](https://neewer.com/products/neewer-led-light-10096807)
 * [Neewer 480 RGB Led Light](https://neewer.com/collections/rgb-led-panel-light/products/neewer-led-light-10096594)
+* [Neewer RGB176 Led Light](https://neewer.com/products/neewer-rgb176-video-light-with-app-control-10098961)
+* [Neewer RGB 530PRO Led Light](https://neewer.com/products/neewer-led-light-10096806)
 
 # TO DO LIST
 
@@ -103,9 +105,18 @@ If you find a way to implement these features, feel free to create a pull reques
 
 - [ ] Test more Neewer LED lights
 - [ ] Add support for other Neewer LED lights
-- [ ] Add interface to support color change
 
 # License
 
 Follow NeewerLite, the code and examples of this project is released under MIT License.
+
+# Donations
+
+If you would like to support me, donations are very welcome.
+You can send bitcoin to this address:
+
+```
+1A4mwftoNpuNCLbS8dHpk9XHrcyvtExrYF
+```
+
 

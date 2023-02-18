@@ -49,6 +49,20 @@ struct CommandParameter {
         }
         return nil
     }
+
+    func saturation() -> Double {
+        if let sat = components.queryItems?.first(where: { $0.name == "Saturation" })?.value {
+            return (Double(sat) ?? 100.0) / 100.0
+        }
+        return 1.0
+    }
+
+    func brightness() -> Double {
+        if let val = components.queryItems?.first(where: { $0.name == "Brightness" })?.value {
+            return (Double(val) ?? 100.0) / 100.0
+        }
+        return 1.0
+    }
 }
 
 // Define a struct for command
