@@ -6,83 +6,134 @@
 //
 
 import Foundation
+import AppKit
 
 // Typealias for RGB color values
-typealias RGB = (red: CGFloat, green: CGFloat, blue: CGFloat, alpha: CGFloat)
+struct RGB {
+    var red: CGFloat
+    var green: CGFloat
+    var blue: CGFloat
+    var alpha: CGFloat
+}
 
 // Typealias for HSV color values
-typealias HSV = (hue: CGFloat, saturation: CGFloat, brightness: CGFloat, alpha: CGFloat)
+struct HSB {
+    var hue: CGFloat
+    var saturation: CGFloat
+    var brightness: CGFloat
+    var alpha: CGFloat
+}
 
-func hsv2rgb(_ hsv: HSV) -> RGB {
+func hsv2rgb(_ hsv: HSB) -> RGB {
     // Converts HSV to a RGB color
-    var rgb: RGB = (red: 0.0, green: 0.0, blue: 0.0, alpha: 0.0)
-    var r: CGFloat
-    var g: CGFloat
-    var b: CGFloat
+    var rgb: RGB = RGB(red: 0.0, green: 0.0, blue: 0.0, alpha: 0.0)
+    var red: CGFloat
+    var green: CGFloat
+    var blue: CGFloat
 
-    let i = Int(hsv.hue * 6)
-    let f = hsv.hue * 6 - CGFloat(i)
-    let p = hsv.brightness * (1 - hsv.saturation)
-    let q = hsv.brightness * (1 - f * hsv.saturation)
-    let t = hsv.brightness * (1 - (1 - f) * hsv.saturation)
-    switch (i % 6) {
-        case 0: r = hsv.brightness; g = t; b = p; break;
+    let iVal = Int(hsv.hue * 6)
+    let fVal = hsv.hue * 6 - CGFloat(iVal)
+    let pVal = hsv.brightness * (1 - hsv.saturation)
+    let qVal = hsv.brightness * (1 - fVal * hsv.saturation)
+    let tVal = hsv.brightness * (1 - (1 - fVal) * hsv.saturation)
+    let remainder = iVal % 6
 
-        case 1: r = q; g = hsv.brightness; b = p; break;
-
-        case 2: r = p; g = hsv.brightness; b = t; break;
-
-        case 3: r = p; g = q; b = hsv.brightness; break;
-
-        case 4: r = t; g = p; b = hsv.brightness; break;
-
-        case 5: r = hsv.brightness; g = p; b = q; break;
-
-        default: r = hsv.brightness; g = t; b = p;
+    switch remainder {
+        case 0:
+            red = hsv.brightness; green = tVal; blue = pVal
+        case 1:
+            red = qVal; green = hsv.brightness; blue = pVal
+        case 2:
+            red = pVal; green = hsv.brightness; blue = tVal
+        case 3:
+            red = pVal; green = qVal; blue = hsv.brightness
+        case 4:
+            red = tVal; green = pVal; blue = hsv.brightness
+        case 5:
+            red = hsv.brightness; green = pVal; blue = qVal
+        default:
+            red = hsv.brightness; green = tVal; blue = pVal
     }
 
-    rgb.red = r
-    rgb.green = g
-    rgb.blue = b
+    rgb.red = red
+    rgb.green = green
+    rgb.blue = blue
     rgb.alpha = hsv.alpha
     return rgb
 }
 
-func rgb2hsv(_ rgb: RGB) -> HSV {
+func rgb2hsv(_ rgb: RGB) -> HSB {
     // Converts RGB to a HSV color
-    var hsb: HSV = (hue: 0.0, saturation: 0.0, brightness: 0.0, alpha: 0.0)
+    var hsb: HSB = HSB(hue: 0.0, saturation: 0.0, brightness: 0.0, alpha: 0.0)
 
-    let rd: CGFloat = rgb.red
-    let gd: CGFloat = rgb.green
-    let bd: CGFloat = rgb.blue
+    let rVal: CGFloat = rgb.red
+    let gVal: CGFloat = rgb.green
+    let bVal: CGFloat = rgb.blue
 
-    let maxV: CGFloat = max(rd, max(gd, bd))
-    let minV: CGFloat = min(rd, min(gd, bd))
-    var h: CGFloat = 0
-    var s: CGFloat = 0
-    let b: CGFloat = maxV
+    let maxV: CGFloat = max(rVal, max(gVal, bVal))
+    let minV: CGFloat = min(rVal, min(gVal, bVal))
+    var hVal: CGFloat = 0
+    var sVal: CGFloat = 0
+    let brVal: CGFloat = maxV
 
-    let d: CGFloat = maxV - minV
+    let dVal: CGFloat = maxV - minV
 
-    s = maxV == 0 ? 0 : d / minV;
+    sVal = maxV == 0 ? 0 : dVal / minV
 
     if maxV == minV {
-        h = 0
+        hVal = 0
     } else {
-        if maxV == rd {
-            h = (gd - bd) / d + (gd < bd ? 6 : 0)
-        } else if maxV == gd {
-            h = (bd - rd) / d + 2
-        } else if maxV == bd {
-            h = (rd - gd) / d + 4
+        if maxV == rVal {
+            hVal = (gVal - bVal) / dVal + (gVal < bVal ? 6 : 0)
+        } else if maxV == gVal {
+            hVal = (bVal - rVal) / dVal + 2
+        } else if maxV == bVal {
+            hVal = (rVal - gVal) / dVal + 4
         }
 
-        h /= 6;
+        hVal /= 6
     }
 
-    hsb.hue = h
-    hsb.saturation = s
-    hsb.brightness = b
+    hsb.hue = hVal
+    hsb.saturation = sVal
+    hsb.brightness = brVal
     hsb.alpha = rgb.alpha
     return hsb
+}
+
+extension String {
+    func conformsTo(_ pattern: String) -> Bool {
+        return NSPredicate(format: "SELF MATCHES %@", pattern).evaluate(with: self)
+    }
+}
+
+extension NSColor {
+    convenience init(hex: UInt64, alpha: Float) {
+        self.init(
+            calibratedRed: CGFloat((hex & 0xFF0000) >> 16) / 255.0,
+            green: CGFloat((hex & 0xFF00) >> 8) / 255.0,
+            blue: CGFloat((hex & 0xFF)) / 255.0,
+            alpha: 1.0
+        )
+    }
+    convenience init(hex: String, alpha: Float) {
+        // Handle two types of literals: 0x and # prefixed
+        var cleanedString = ""
+        if hex.hasPrefix("0x") {
+            cleanedString = String(hex[hex.index(cleanedString.startIndex, offsetBy: 2)..<hex.endIndex])
+        } else if hex.hasPrefix("#") {
+            cleanedString = String(hex[hex.index(cleanedString.startIndex, offsetBy: 1)..<hex.endIndex])
+        } else if hex.count == 6 {
+            cleanedString = hex
+        }
+        // Ensure it only contains valid hex characters 0
+        let validHexPattern = "[a-fA-F0-9]+"
+        if cleanedString.conformsTo(validHexPattern) {
+            var rgbValue: UInt64 = 0
+            Scanner(string: cleanedString).scanHexInt64(&rgbValue)
+            self.init(hex: rgbValue, alpha: 1)
+        } else {
+            fatalError("Unable to parse color?")
+        }
+    }
 }

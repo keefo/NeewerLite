@@ -17,8 +17,8 @@ extension NSBezierPath {
         if elementCount > 0 {
             var didClosePath = true
 
-            for i in 0 ..< self.elementCount {
-                let type = self.element(at: i, associatedPoints: points)
+            for idx in 0 ..< self.elementCount {
+                let type = self.element(at: idx, associatedPoints: points)
                 switch type {
                     case .moveTo:
                         path.move(to: points[0])
@@ -41,5 +41,3 @@ extension NSBezierPath {
         return path
     }
 }
-
-

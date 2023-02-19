@@ -7,7 +7,6 @@
 
 import Foundation
 
-
 class Observable<T> {
 
     var value: T {
@@ -27,4 +26,3 @@ class Observable<T> {
         listener = closure
     }
 }
-

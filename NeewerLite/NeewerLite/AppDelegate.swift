@@ -10,30 +10,32 @@ import CoreBluetooth
 import IOBluetooth
 import Dispatch
 import Accelerate
+import SwiftUI
+import Sparkle
 
-@main
+@NSApplicationMain
 class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
 
     @IBOutlet var window: NSWindow!
-    @IBOutlet var appMenu: NSMenu!
+    @IBOutlet weak var appMenu: NSMenu!
     @IBOutlet weak var collectionView: NSCollectionView!
     @IBOutlet weak var audioSpectrogramView: AudioSpectrogramView!
+
     private var statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
-    private var audioSpectrogram: AudioSpectrogram? = nil
-
-    struct spectrogram_data_t {
-        var lastTime: CFAbsoluteTime = 0
-        var last_n_HUE = [Float](repeating: 0, count: 3)
-       //var last_n_BRR = [Float](repeating: 0, count: 8)
-        var hueBase: Float = 0.0
-    }
-
-    private var spectrogram_data  = spectrogram_data_t()
+    private var audioSpectrogram: AudioSpectrogram?
+    private var spectrogramViewObject  = SpectrogramViewObject()
+    private let commandHandler = CommandHandler()
 
     var cbCentralManager: CBCentralManager?
-    var tempDevices: [UUID: CBPeripheral] = [:]
-    var devices: [UUID: NeewerLight] = [:]
+    /*
+     when discovery a new device, it will save to peripheralCache
+     then connect to the new device, if connection is established. then move from peripheralCache
+     to viewObjects
+     */
+    var peripheralCache: [UUID: CBPeripheral] = [:]
+    var peripheralIgnoreCache: [UUID: Bool] = [:]
     var viewObjects: [DeviceViewObject] = []
+    var scanning: Bool = false
 
     func applicationDidFinishLaunching(_ aNotification: Notification) {
         NSApp.setActivationPolicy(.accessory)
@@ -42,14 +44,161 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         if let button = statusItem.button {
             button.image = NSImage(named: "statusItemOffIcon")
         }
-        self.window.minSize = NSMakeSize(580, 400)
+        window.minSize = NSSize(width: 580, height: 400)
+
+        registerCommands()
+
+        NSAppleEventManager.shared().setEventHandler(self,
+                                                     andSelector: #selector(handleURLEvent(_:withReplyEvent:)),
+                                                     forEventClass: AEEventClass(kInternetEventClass),
+                                                     andEventID: AEEventID(kAEGetURL))
+
+        collectionView.dataSource = self
+        collectionView.delegate = self
         cbCentralManager = CBCentralManager(delegate: self, queue: nil)
-        NSAppleEventManager.shared().setEventHandler(self, andSelector: #selector(handleURLEvent(_:withReplyEvent:)), forEventClass: AEEventClass(kInternetEventClass), andEventID: AEEventID(kAEGetURL))
+
+        keepLightConnectionAlive()
+
+        cbCentralManager = CBCentralManager(delegate: self, queue: nil)
     }
 
     func applicationShouldHandleReopen(_ sender: NSApplication,
                                        hasVisibleWindows flag: Bool) -> Bool {
         return true
+    }
+
+    func applicationWillTerminate(_ aNotification: Notification) {
+        // Store all Lights values
+        for viewObject in viewObjects {
+            viewObject.device.saveToUserDefault()
+            viewObject.clear()
+        }
+    }
+
+    func keepLightConnectionAlive() {
+        Timer.scheduledTimer(withTimeInterval: 10.0, repeats: true) { _ in
+            var removed: Int = 0
+            for viewObject in self.viewObjects {
+                viewObject.device.sendKeepAlive(self.cbCentralManager)
+                if viewObject.device.offCounter > 2 {
+                    removed += 1
+                }
+            }
+            if removed > 0 {
+                DispatchQueue.main.async {
+                    self.viewObjects.removeAll { $0.device.offCounter > 2 }
+                    self.updateUI()
+                }
+            }
+        }
+    }
+
+    func registerCommands() {
+        commandHandler.register(command: Command(type: .scanLight, action: { _ in
+            self.scanAction(self)
+        }))
+
+        commandHandler.register(command: Command(type: .turnOnLight, action: { cmdParameter in
+            if let lightname = cmdParameter.lightName() {
+                self.viewObjects.forEach {
+                    if lightname.caseInsensitiveCompare($0.device.userLightName) == .orderedSame {
+                        $0.turnOnLight()
+                    }
+                }
+            } else {
+                self.viewObjects.forEach { $0.turnOnLight() }
+            }
+            self.statusItem.button?.image = NSImage(named: "statusItemOnIcon")
+        }))
+
+        commandHandler.register(command: Command(type: .turnOffLight, action: { cmdParameter in
+            if let lightname = cmdParameter.lightName() {
+                self.viewObjects.forEach {
+                    if lightname.caseInsensitiveCompare($0.device.userLightName) == .orderedSame {
+                        $0.turnOffLight()
+                    }
+                }
+            } else {
+                self.viewObjects.forEach { $0.turnOffLight() }
+            }
+            self.statusItem.button?.image = NSImage(named: "statusItemOnIcon")
+        }))
+
+        commandHandler.register(command: Command(type: .toggleLight, action: { cmdParameter in
+            if let lightname = cmdParameter.lightName() {
+                self.viewObjects.forEach {
+                    if lightname.caseInsensitiveCompare($0.device.userLightName) == .orderedSame {
+                        $0.toggleLight()
+                    }
+                }
+            } else {
+                self.viewObjects.forEach { $0.toggleLight() }
+            }
+            self.statusItem.button?.image = NSImage(named: "statusItemOffIcon")
+        }))
+
+        commandHandler.register(command: Command(type: .setLightCCT, action: { cmdParameter in
+            let cct = cmdParameter.CCT()
+            let bri = cmdParameter.brightness() * 100
+            func act(_ viewObj: DeviceViewObject) {
+                if viewObj.isON {
+                    viewObj.changeToCCTMode()
+                    viewObj.updateCCT(cct, bri)
+                }
+            }
+
+            if let lightname = cmdParameter.lightName() {
+                self.viewObjects.forEach {
+                    if lightname.caseInsensitiveCompare($0.device.userLightName) == .orderedSame { act($0) }
+                }
+            } else {
+                self.viewObjects.forEach { act($0) }
+            }
+            self.statusItem.button?.image = NSImage(named: "statusItemOnIcon")
+        }))
+
+        commandHandler.register(command: Command(type: .setLightHSI, action: { cmdParameter in
+            guard let color = cmdParameter.RGB() else {
+                return
+            }
+            let sat = cmdParameter.saturation()
+            let bri = cmdParameter.brightness()
+            func act(_ viewObj: DeviceViewObject) {
+                if viewObj.isON && viewObj.device.supportRGB {
+                    viewObj.changeToHSIMode()
+                    viewObj.HSB = HSB(hue: CGFloat(color.hueComponent), saturation: sat, brightness: CGFloat(bri), alpha: 1)
+                }
+            }
+
+            if let lightname = cmdParameter.lightName() {
+                self.viewObjects.forEach {
+                    if lightname.caseInsensitiveCompare($0.device.userLightName) == .orderedSame { act($0) }
+                }
+            } else {
+                self.viewObjects.forEach { act($0) }
+            }
+            self.statusItem.button?.image = NSImage(named: "statusItemOnIcon")
+        }))
+
+        commandHandler.register(command: Command(type: .setLightScene, action: { cmdParameter in
+            let scene = cmdParameter.scene()
+
+            func act(_ viewObj: DeviceViewObject) {
+                if viewObj.isON && viewObj.device.supportRGB {
+                    viewObj.changeToSCE(scene)
+                    viewObj.changeToSCEMode()
+                }
+            }
+
+            if let lightname = cmdParameter.lightName() {
+                self.viewObjects.forEach {
+                    if lightname.caseInsensitiveCompare($0.device.userLightName) == .orderedSame { act($0) }
+                }
+            } else {
+                self.viewObjects.forEach { act($0) }
+            }
+            self.statusItem.button?.image = NSImage(named: "statusItemOnIcon")
+        }))
     }
 
     func updateAudioDriver() {
@@ -71,11 +220,39 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         }
     }
 
-    @IBAction func scanAction(_ sender: Any) {
-        devices.removeAll()
+    @IBAction func aboutAction(_ sender: AnyObject) {
+        showWindowAction(sender)
+        NSApp.orderFrontStandardAboutPanel(options: [
+            NSApplication.AboutPanelOptionKey(rawValue: "Copyright"): "Copyright © \(Calendar.current.component(.year, from: Date())) Keefo"
+        ])
+    }
+
+    @IBAction func showWindowAction(_ sender: AnyObject) {
+        self.window.makeKeyAndOrderFront(self)
+        NSApp.activate(ignoringOtherApps: true)
+    }
+
+    @IBAction func scanAction(_ sender: AnyObject) {
+        if scanning {
+            // stop scanning
+            cbCentralManager?.stopScan()
+            scanning = false
+        } else {
+            // start scanning
+            cbCentralManager?.scanForPeripherals(withServices: nil, options: nil)
+            // scanAction(self)
+            scanning = true
+            Logger.info("scanForPeripherals...")
+        }
+
+        Logger.debug("\(peripheralCache)")
+        Logger.debug("\(viewObjects)")
+        viewObjects.forEach { $0.clear() }
         viewObjects.removeAll()
-        statusItem.button?.image = NSImage(named: "statusItemOffIcon")
-        updateUI()
+        peripheralCache.removeAll()
+        Logger.debug("\(peripheralCache)")
+        Logger.debug("\(viewObjects)")
+
         let list = cbCentralManager?.retrieveConnectedPeripherals(withServices: [NeewerLight.Constants.NeewerBleServiceUUID])
         if let safeList = list {
             for peripheral in safeList {
@@ -83,48 +260,17 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
                     guard let neewerService: CBService = services.first(where: {$0.uuid == NeewerLight.Constants.NeewerBleServiceUUID}) else {
                         continue
                     }
-
-                    if let characteristics = neewerService.characteristics {
-
-                        guard let ctlCharacteristic: CBCharacteristic = characteristics.first(where: {$0.uuid == NeewerLight.Constants.NeewerDeviceCtlCharacteristicUUID}) else {
-                            Logger.info("NeewerDeviceCtlCharacteristicUUID not found")
-                            return
-                        }
-
-                        guard let gattCharacteristic: CBCharacteristic = characteristics.first(where: {$0.uuid == NeewerLight.Constants.NeewerGattCharacteristicUUID}) else {
-                            Logger.info("NeewerGattCharacteristicUUID not found")
-                            return
-                        }
-
-                        let light: NeewerLight = NeewerLight(peripheral, ctlCharacteristic, gattCharacteristic)
-                        devices[peripheral.identifier] = light
-                        light.startLightOnNotify()
-
-                        tempDevices.removeValue(forKey: peripheral.identifier)
-
-                        DispatchQueue.main.async {
-                            self.updateUI()
-                        }
-                    }
+                    advancePeripheralToDevice(peripheral: peripheral, service: neewerService, updateUI: false)
                 }
             }
         }
-    }
-
-    @IBAction func aboutAction(_ sender: Any) {
-        showWindow(sender)
-        NSApp.orderFrontStandardAboutPanel(options: [
-            NSApplication.AboutPanelOptionKey(rawValue: "Copyright"): "Copyright © \(Calendar.current.component(.year, from: Date())) Keefo"
-        ])
-    }
-
-    @IBAction func showWindow(_ sender: Any) {
-        self.window.makeKeyAndOrderFront(self)
-        NSApp.activate(ignoringOtherApps: true)
+        statusItem.button?.image = NSImage(named: "statusItemOffIcon")
+        updateUI()
+        cbCentralManager?.scanForPeripherals(withServices: nil, options: [CBCentralManagerScanOptionAllowDuplicatesKey: true])
     }
 
     @objc func handleURLEvent(_ event: NSAppleEventDescriptor?, withReplyEvent: NSAppleEventDescriptor?) {
-        guard let url = event?.paramDescriptor(forKeyword: keyDirectObject)?.stringValue else  {
+        guard let url = event?.paramDescriptor(forKeyword: keyDirectObject)?.stringValue else {
             return
         }
         guard let theUrl = URL(string: url) else {
@@ -135,59 +281,10 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
             return
         }
         let cmd = components.host ?? ""
-        let lightname = components.queryItems?.first(where: { $0.name == "light" })?.value
-
-        switch cmd {
-            case "turnOnLight":
-                if lightname != nil {
-                    viewObjects.forEach {
-                        if lightname?.caseInsensitiveCompare($0.device.userLightName) == .orderedSame {
-                            $0.turnOnLight()
-                        }
-                    }
-                } else {
-                    viewObjects.forEach { $0.turnOnLight() }
-                }
-                statusItem.button?.image = NSImage(named: "statusItemOnIcon")
-            case "turnOffLight":
-                if lightname != nil {
-                    viewObjects.forEach {
-                        if lightname?.caseInsensitiveCompare($0.device.userLightName) == .orderedSame {
-                            $0.turnOffLight()
-                        }
-                    }
-                } else {
-                    viewObjects.forEach { $0.turnOffLight() }
-                }
-                statusItem.button?.image = NSImage(named: "statusItemOffIcon")
-            case "toggleLight":
-                if lightname != nil {
-                    viewObjects.forEach {
-                        if lightname?.caseInsensitiveCompare($0.device.userLightName) == .orderedSame {
-                            $0.toggleLight()
-                        }
-                    }
-                } else {
-                    viewObjects.forEach { $0.toggleLight() }
-                }
-                statusItem.button?.image = NSImage(named: "statusItemOffIcon")
-            case "scanLight":
-                scanAction(cmd)
-            default:
-                Logger.info("unknown command: [\(cmd)]")
-        }
+        commandHandler.execute(commandName: cmd, components: components)
     }
 
-    func applicationWillTerminate(_ aNotification: Notification) {
-        // Store all Lights values
-        for device in devices {
-            device.value.saveToUserDefault()
-        }
-    }
-
-    func menuWillOpen(_ menu: NSMenu)
-    {
-        Logger.debug("menuWillOpen \(menu)")
+    func menuWillOpen(_ menu: NSMenu) {
         let lightTag = 8
         let optKeyPressed = NSEvent.modifierFlags.contains(.option)
 
@@ -195,7 +292,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
 
         viewObjects.reversed().forEach {
             let name = optKeyPressed ? "\($0.device.userLightName) - \($0.device.identifier) - \($0.device.rawName)" : "\($0.device.userLightName)"
-            let item =  NSMenuItem(title: name, action: #selector(self.showWindow(_:)), keyEquivalent: "")
+            let item =  NSMenuItem(title: name, action: #selector(self.showWindowAction(_:)), keyEquivalent: "")
             item.target = self
             item.image = NSImage(systemSymbolName: $0.isON ? "lightbulb" : "lightbulb.slash", accessibilityDescription: "Light")
             item.tag = lightTag
@@ -204,24 +301,50 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     }
 
     public func updateUI() {
-        viewObjects.removeAll()
-
-        viewObjects.append(contentsOf: devices.sorted(by: { $0.0.uuidString < $1.0.uuidString }).map {
-            return DeviceViewObject($0.value)
-        })
-
+        statusItem.button?.alignment = .center
         statusItem.button?.title = "\(viewObjects.count)"
+        statusItem.button?.imagePosition = .imageOverlaps
 
         // make view items order stable
-        viewObjects.sort {
-            $0.deviceIdentifier > $1.deviceIdentifier
-        }
+        viewObjects.sort { $0.deviceIdentifier > $1.deviceIdentifier }
 
+        print("collectionView: \(String(describing: collectionView))")
         collectionView.reloadData()
+    }
+
+    func advancePeripheralToDevice(peripheral: CBPeripheral, service: CBService, updateUI: Bool) {
+        if let characteristics = service.characteristics {
+            guard let characteristic1: CBCharacteristic = characteristics.first(where: {$0.uuid == NeewerLight.Constants.NeewerDeviceCtlCharacteristicUUID}) else {
+                Logger.info("NeewerGattCharacteristicUUID not found")
+                return
+            }
+
+            guard let characteristic2: CBCharacteristic = characteristics.first(where: {$0.uuid == NeewerLight.Constants.NeewerGattCharacteristicUUID}) else {
+                Logger.info("NeewerGattCharacteristicUUID not found")
+                return
+            }
+
+            Logger.info("advance peripheral to device \(peripheral) \(service)")
+
+            let light: NeewerLight = NeewerLight(peripheral, characteristic1, characteristic2)
+            viewObjects.append(DeviceViewObject(light))
+            light.startLightOnNotify()
+
+            // after moved to the devices data store, remove from cache
+            if peripheralCache[peripheral.identifier] != nil {
+                peripheralCache.removeValue(forKey: peripheral.identifier)
+            }
+
+            if updateUI {
+                DispatchQueue.main.async {
+                    self.updateUI()
+                }
+            }
+        }
     }
 }
 
-extension AppDelegate :  AudioSpectrogramDelegate {
+extension AppDelegate: AudioSpectrogramDelegate {
     func updateFrequency(frequency: [Float]) {
         if frequency[1].isInfinite {
             return
@@ -233,32 +356,37 @@ extension AppDelegate :  AudioSpectrogramDelegate {
                 }
             }
             let time = CFAbsoluteTimeGetCurrent()
-            if time - self.spectrogram_data.lastTime > 0.2 {
-                self.spectrogram_data.lastTime = time
-
-                self.spectrogram_data.last_n_HUE.removeFirst()
-                self.spectrogram_data.last_n_HUE.append(frequency[1])
-
-                //self.spectrogram_data.last_n_BRR.removeFirst()
-                //self.spectrogram_data.last_n_BRR.append(frequency.reduce(0, +) / Float(frequency.count) * 3.0)
-
-                var hue = sqrt(vDSP.meanSquare(self.spectrogram_data.last_n_HUE)) * 2.0 / 128.0 + self.spectrogram_data.hueBase
+            if time - self.spectrogramViewObject.lastTime > 0.2 {
+                self.spectrogramViewObject.update(time: time, frequency: frequency[1])
+                // self.spectrogram_data.last_n_BRR.removeFirst()
+                // self.spectrogram_data.last_n_BRR.append(frequency.reduce(0, +) / Float(frequency.count) * 3.0)
+                let hue = self.spectrogramViewObject.hue
                 let brr = 1.0
-                if hue > 1.0 {
-                    hue = hue - 1.0
-                }
-                Logger.debug("hue: \(hue)")
+                let sat = 1.0
+                Logger.debug("frequency: \(frequency[1])) hue: \(hue)")
                 self.viewObjects.forEach { if $0.followMusic && $0.isON && $0.isHSIMode {
-                    $0.HSB = (CGFloat(hue), 1.0, CGFloat(brr))
+                    $0.HSB = HSB(hue: CGFloat(hue), saturation: CGFloat(sat), brightness: CGFloat(brr), alpha: 1)
                 }}
-                //self.spectrogram_data.hueBase += 0.001
-                //Logger.debug("self.spectrogram_data.hueBase: \(self.spectrogram_data.hueBase)")
+                // self.spectrogram_data.hueBase += 0.001
+                // Logger.debug("self.spectrogram_data.hueBase: \(self.spectrogram_data.hueBase)")
+            }
+        }
+    }
+
+    func removeLightViewObject(_ identifier: UUID) {
+        if viewObjects.contains(where: { $0.deviceIdentifier == "\(identifier)" }) {
+            Logger.error("removeLightViewObject \(identifier)")
+            viewObjects.removeAll(where: { $0.deviceIdentifier == "\(identifier)" })
+            // peripheral.delegate = nil
+            // devices.removeValue(forKey: peripheral.identifier)
+            DispatchQueue.main.async {
+                self.updateUI()
             }
         }
     }
 }
 
-extension AppDelegate :  NSCollectionViewDataSource {
+extension AppDelegate: NSCollectionViewDataSource {
 
     func numberOfSections(in collectionView: NSCollectionView) -> Int {
         return 1
@@ -273,157 +401,144 @@ extension AppDelegate :  NSCollectionViewDataSource {
         let item = collectionView.makeItem(withIdentifier: NSUserInterfaceItemIdentifier(rawValue: "CollectionViewItem"), for: indexPath)
 
         if let collectionViewItem = item as? CollectionViewItem {
-            let vo = viewObjects[indexPath.section + indexPath.item]
-            vo.view = collectionViewItem
-            collectionViewItem.updateWithViewObject(vo)
+            let viewObject = viewObjects[indexPath.section + indexPath.item]
+            viewObject.view = collectionViewItem
+            collectionViewItem.updateWithViewObject(viewObject)
         }
 
         return item
     }
 }
 
-extension AppDelegate : NSCollectionViewDelegateFlowLayout {
+extension AppDelegate: NSCollectionViewDelegateFlowLayout {
     func collectionView(_ collectionView: NSCollectionView, layout collectionViewLayout: NSCollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> NSSize {
         return NSSize(width: 480, height: 280)
     }
 
-    func collectionView(_ collectionView: NSCollectionView, layout collectionViewLayout: NSCollectionViewLayout, insetForSectionAt section: Int) -> NSEdgeInsets
-    {
+    func collectionView(_ collectionView: NSCollectionView, layout collectionViewLayout: NSCollectionViewLayout, insetForSectionAt section: Int) -> NSEdgeInsets {
         return NSEdgeInsets(top: 10, left: 10, bottom: 10, right: 10)
     }
 
-    func collectionView(_ collectionView: NSCollectionView, layout collectionViewLayout: NSCollectionViewLayout, minimumLineSpacingForSectionAt section: Int) -> CGFloat
-    {
+    func collectionView(_ collectionView: NSCollectionView, layout collectionViewLayout: NSCollectionViewLayout, minimumLineSpacingForSectionAt section: Int) -> CGFloat {
         return 10.0
     }
 
-    func collectionView(_ collectionView: NSCollectionView, layout collectionViewLayout: NSCollectionViewLayout, minimumInteritemSpacingForSectionAt section: Int) -> CGFloat
-    {
+    func collectionView(_ collectionView: NSCollectionView, layout collectionViewLayout: NSCollectionViewLayout, minimumInteritemSpacingForSectionAt section: Int) -> CGFloat {
         return 10.0
     }
 
-    func collectionView(_ collectionView: NSCollectionView, layout collectionViewLayout: NSCollectionViewLayout, referenceSizeForHeaderInSection section: Int) -> NSSize
-    {
+    func collectionView(_ collectionView: NSCollectionView, layout collectionViewLayout: NSCollectionViewLayout, referenceSizeForHeaderInSection section: Int) -> NSSize {
         return NSSize(width: 0, height: 0)
     }
 
-    func collectionView(_ collectionView: NSCollectionView, layout collectionViewLayout: NSCollectionViewLayout, referenceSizeForFooterInSection section: Int) -> NSSize
-    {
+    func collectionView(_ collectionView: NSCollectionView, layout collectionViewLayout: NSCollectionViewLayout, referenceSizeForFooterInSection section: Int) -> NSSize {
         return NSSize(width: 0, height: 0)
     }
 }
 
-extension AppDelegate :  CBCentralManagerDelegate {
+extension AppDelegate: CBCentralManagerDelegate {
 
     func centralManagerDidUpdateState(_ central: CBCentralManager) {
 
         switch central.state {
             case .unauthorized:
                 switch central.authorization {
-                    case .allowedAlways:break
-                    case .denied:break
-                    case .restricted:break
-                    case .notDetermined:break
+                    case .allowedAlways: break
+                    case .denied: break
+                    case .restricted: break
+                    case .notDetermined: break
                     @unknown default:
                         break
                 }
             case .unknown: break
             case .unsupported: break
             case .poweredOn:
+                Logger.info("scanForPeripherals...")
                 central.scanForPeripherals(withServices: nil, options: nil)
-                Logger.info("Scanning...")
-                break
+                // scanAction(self)
+                self.scanning = true
             case .poweredOff:
-                cbCentralManager?.stopScan()
-                break
+                central.stopScan()
+                self.scanning = false
             case .resetting: break
             @unknown default: break
         }
-
     }
 
-    func centralManager(_ central: CBCentralManager, didDiscover peripheral: CBPeripheral, advertisementData: [String : Any], rssi RSSI: NSNumber) {
+    func centralManager(_ central: CBCentralManager, didDiscover peripheral: CBPeripheral, advertisementData: [String: Any], rssi RSSI: NSNumber) {
         guard let name = peripheral.name else {return}
-
         if NeewerLight.isValidPeripheralName(name) == false {
+            peripheralIgnoreCache[peripheral.identifier] = true
             return
         }
-
-        if devices[peripheral.identifier] != nil || tempDevices[peripheral.identifier] != nil {
+        if peripheralIgnoreCache[peripheral.identifier] != nil {
             return
         }
-
+        if viewObjects.contains(where: { $0.deviceIdentifier == "\(peripheral.identifier)" }) {
+            return
+        }
+        if peripheralCache[peripheral.identifier] != nil {
+            return
+        }
         peripheral.delegate = self
-        tempDevices[peripheral.identifier] = peripheral
-
-        Logger.info("Neewer Light Found: \(peripheral.name!) \(peripheral.identifier)")
-
+        peripheralCache[peripheral.identifier] = peripheral
         cbCentralManager?.connect(peripheral, options: nil)
     }
 
+    func centralManager(_ central: CBCentralManager, didConnect peripheral: CBPeripheral) {
+        // discover all service
+        peripheral.discoverServices(nil)
+    }
+
+    func centralManager(_ central: CBCentralManager, didFailToConnect peripheral: CBPeripheral, error: Error?) {
+        if peripheralCache[peripheral.identifier] != nil {
+            peripheral.delegate = nil
+            peripheralCache.removeValue(forKey: peripheral.identifier)
+        }
+        removeLightViewObject(peripheral.identifier)
+    }
+
     func centralManager(_ central: CBCentralManager, didDisconnectPeripheral peripheral: CBPeripheral, error: Error?) {
-        guard let name = peripheral.name else {return}
-
-        if NeewerLight.isValidPeripheralName(name) == false {
-            return
+        if peripheralCache[peripheral.identifier] != nil {
+            peripheral.delegate = nil
+            peripheralCache.removeValue(forKey: peripheral.identifier)
         }
-
-        if tempDevices[peripheral.identifier] != nil {
-            tempDevices.removeValue(forKey: peripheral.identifier)
-            return
-        }
-
-        if let _ = devices[peripheral.identifier] {
-            devices.removeValue(forKey: peripheral.identifier)
-            DispatchQueue.main.async {
-                self.updateUI()
-            }
+        if viewObjects.contains(where: { $0.deviceIdentifier == "\(peripheral.identifier)" }) {
+            Logger.info("didDisconnectPeripheral: \(peripheral) \(String(describing: error))")
+            Logger.info("try to connect to \(peripheral.identifier)")
+            cbCentralManager?.connect(peripheral, options: nil)
+            // removeLightViewObject(peripheral.identifier)
         }
     }
 }
 
-extension AppDelegate :  CBPeripheralDelegate {
+extension AppDelegate: CBPeripheralDelegate {
 
-    func centralManager(_ central: CBCentralManager, didConnect peripheral: CBPeripheral) {
-        //discover all service
-        peripheral.discoverServices(nil)
+    func peripheral(_ peripheral: CBPeripheral, didModifyServices invalidatedServices: [CBService]) {
+        // Logger.info("A peripheral: \(peripheral.name!) didModifyServices \(invalidatedServices)")
     }
 
     func peripheral(_ peripheral: CBPeripheral, didDiscoverServices error: Error?) {
         if let services = peripheral.services {
             guard let neewerService: CBService = services.first(where: {$0.uuid == NeewerLight.Constants.NeewerBleServiceUUID}) else {
+                cbCentralManager?.cancelPeripheralConnection(peripheral)
+                peripheralIgnoreCache[peripheral.identifier] = true
+                if peripheralCache[peripheral.identifier] != nil {
+                    peripheral.delegate = nil
+                    peripheralCache.removeValue(forKey: peripheral.identifier)
+                }
                 return
             }
 
-            //discover characteristics of services
+            Logger.info("A Valid Neewer Light Found: \(peripheral) \(services)")
+
+            // discover characteristics of services
             peripheral.discoverCharacteristics(nil, for: neewerService)
         }
     }
 
     func peripheral(_ peripheral: CBPeripheral, didDiscoverCharacteristicsFor service: CBService, error: Error?) {
 
-        if let characteristics = service.characteristics {
-
-            guard let characteristic1: CBCharacteristic = characteristics.first(where: {$0.uuid == NeewerLight.Constants.NeewerDeviceCtlCharacteristicUUID}) else {
-                Logger.info("NeewerGattCharacteristicUUID not found")
-                return
-            }
-
-            guard let characteristic2: CBCharacteristic = characteristics.first(where: {$0.uuid == NeewerLight.Constants.NeewerGattCharacteristicUUID}) else {
-                Logger.info("NeewerGattCharacteristicUUID not found")
-                return
-            }
-
-            let light: NeewerLight = NeewerLight(peripheral, characteristic1, characteristic2)
-            devices[peripheral.identifier] = light
-            light.startLightOnNotify()
-
-            tempDevices.removeValue(forKey: peripheral.identifier)
-
-            DispatchQueue.main.async {
-                self.updateUI()
-            }
-        }
+        advancePeripheralToDevice(peripheral: peripheral, service: service, updateUI: true)
     }
 }
-

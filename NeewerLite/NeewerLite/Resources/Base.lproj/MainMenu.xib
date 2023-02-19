@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="19455" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES" customObjectInstantitationMethod="direct">
+<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="21507" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES" customObjectInstantitationMethod="direct">
     <dependencies>
-        <deployment identifier="macosx"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="19455"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="21507"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <objects>
@@ -17,7 +16,7 @@
             <connections>
                 <outlet property="appMenu" destination="e9d-Eg-Uqj" id="zRm-mb-lnZ"/>
                 <outlet property="audioSpectrogramView" destination="Vag-0P-leW" id="idA-lF-aMK"/>
-                <outlet property="collectionView" destination="QRn-Qa-fcm" id="W1P-pv-jgi"/>
+                <outlet property="collectionView" destination="QRn-Qa-fcm" id="KUB-iH-3m7"/>
                 <outlet property="window" destination="QvC-M9-y7g" id="gIp-Ho-8D9"/>
             </connections>
         </customObject>
@@ -693,15 +692,15 @@
                 <rect key="frame" x="0.0" y="0.0" width="857" height="477"/>
                 <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                 <subviews>
-                    <scrollView wantsLayer="YES" fixedFrame="YES" autohidesScrollers="YES" horizontalLineScroll="10" horizontalPageScroll="10" verticalLineScroll="10" verticalPageScroll="10" usesPredominantAxisScrolling="NO" translatesAutoresizingMaskIntoConstraints="NO" id="SPf-4G-nTF">
-                        <rect key="frame" x="20" y="20" width="817" height="443"/>
+                    <scrollView wantsLayer="YES" autohidesScrollers="YES" horizontalLineScroll="10" horizontalPageScroll="10" verticalLineScroll="10" verticalPageScroll="10" hasHorizontalScroller="NO" usesPredominantAxisScrolling="NO" id="SPf-4G-nTF">
+                        <rect key="frame" x="-1" y="-1" width="859" height="477"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <clipView key="contentView" id="jZY-dn-pja">
-                            <rect key="frame" x="1" y="1" width="815" height="441"/>
+                            <rect key="frame" x="1" y="1" width="857" height="475"/>
                             <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                             <subviews>
                                 <collectionView id="QRn-Qa-fcm">
-                                    <rect key="frame" x="0.0" y="0.0" width="815" height="158"/>
+                                    <rect key="frame" x="0.0" y="0.0" width="857" height="475"/>
                                     <autoresizingMask key="autoresizingMask" widthSizable="YES"/>
                                     <collectionViewFlowLayout key="collectionViewLayout" minimumInteritemSpacing="10" minimumLineSpacing="10" id="EaY-QF-OmV">
                                         <size key="itemSize" width="50" height="50"/>
@@ -715,10 +714,10 @@
                             </subviews>
                         </clipView>
                         <scroller key="horizontalScroller" hidden="YES" wantsLayer="YES" verticalHuggingPriority="750" horizontal="YES" id="kre-tA-DWI">
-                            <rect key="frame" x="1" y="144" width="233" height="15"/>
+                            <rect key="frame" x="-100" y="-100" width="233" height="15"/>
                             <autoresizingMask key="autoresizingMask"/>
                         </scroller>
-                        <scroller key="verticalScroller" hidden="YES" wantsLayer="YES" verticalHuggingPriority="750" doubleValue="1" horizontal="NO" id="aBX-d2-fJ9">
+                        <scroller key="verticalScroller" hidden="YES" wantsLayer="YES" verticalHuggingPriority="750" horizontal="NO" id="aBX-d2-fJ9">
                             <rect key="frame" x="234" y="1" width="15" height="143"/>
                             <autoresizingMask key="autoresizingMask"/>
                         </scroller>
@@ -750,14 +749,14 @@
                     <toolbarItem reference="9qe-kN-jyV"/>
                 </defaultToolbarItems>
             </toolbar>
-            <point key="canvasLocation" x="-402" y="-313"/>
+            <point key="canvasLocation" x="-74" y="-282"/>
         </window>
         <menu id="e9d-Eg-Uqj" userLabel="App Menu">
             <items>
                 <menuItem title="Show Window" id="pvu-xM-u7Y">
                     <modifierMask key="keyEquivalentModifierMask"/>
                     <connections>
-                        <action selector="showWindow:" target="Voe-Tx-rLC" id="ypk-5I-GzB"/>
+                        <action selector="showWindowAction:" target="Voe-Tx-rLC" id="VmR-d5-Uir"/>
                     </connections>
                 </menuItem>
                 <menuItem isSeparatorItem="YES" id="x0M-G5-6PX"/>
@@ -778,11 +777,11 @@
                 <menuItem title="Quit" id="e3m-7c-S0m">
                     <modifierMask key="keyEquivalentModifierMask"/>
                     <connections>
-                        <action selector="terminate:" target="-1" id="rX4-l8-O64"/>
+                        <action selector="terminate:" target="-1" id="Ydd-zL-Ir0"/>
                     </connections>
                 </menuItem>
             </items>
-            <point key="canvasLocation" x="-421" y="-518"/>
+            <point key="canvasLocation" x="-421.5" y="-518.5"/>
         </menu>
         <customObject id="WJC-nf-vfx" customClass="SUUpdater"/>
         <viewController id="vKd-6S-GXf" customClass="SpectrogramViewController" customModule="NeewerLite" customModuleProvider="target"/>
@@ -799,7 +798,7 @@
         </window>
     </objects>
     <resources>
-        <image name="NSBluetoothTemplate" width="13" height="16"/>
+        <image name="NSBluetoothTemplate" width="16" height="21"/>
         <image name="music.quarternote.3" catalog="system" width="18" height="15"/>
     </resources>
 </document>

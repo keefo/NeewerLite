@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="19455" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES" customObjectInstantitationMethod="direct">
+<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="21507" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES" customObjectInstantitationMethod="direct">
     <dependencies>
-        <deployment identifier="macosx"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="19455"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="21507"/>
         <capability name="Image references" minToolsVersion="12.0"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
@@ -493,16 +492,16 @@
         </customView>
         <collectionViewItem id="XuX-Dg-DgW" customClass="CollectionViewItem" customModule="NeewerLite" customModuleProvider="target">
             <connections>
-                <outlet property="cct_brrSlide" destination="h6H-yq-iHx" id="LbX-Ew-pJz"/>
-                <outlet property="cct_brrValueField" destination="iw2-aW-WSn" id="3LC-M6-QOz"/>
-                <outlet property="cct_cctSlide" destination="bJq-Dj-cLH" id="VL4-Qf-wsX"/>
-                <outlet property="cct_cctValueField" destination="Yqj-sD-pGh" id="ltm-UB-Quv"/>
+                <outlet property="cctBrrSlide" destination="h6H-yq-iHx" id="LbX-Ew-pJz"/>
+                <outlet property="cctBrrValueField" destination="iw2-aW-WSn" id="3LC-M6-QOz"/>
+                <outlet property="cctCctSlide" destination="bJq-Dj-cLH" id="VL4-Qf-wsX"/>
+                <outlet property="cctCctValueField" destination="Yqj-sD-pGh" id="ltm-UB-Quv"/>
                 <outlet property="followMusicButton" destination="1Mn-Ge-isi" id="0v6-4H-OGi"/>
-                <outlet property="hsi_brrSlide" destination="40H-VN-aee" id="Agw-M7-cUz"/>
-                <outlet property="hsi_brrValueField" destination="V9K-xM-yD8" id="BL6-pT-fpP"/>
-                <outlet property="hsi_colorWheel" destination="R7g-Fr-5DS" id="TeW-j7-Kh6"/>
-                <outlet property="hsi_satSlide" destination="8Zl-Ay-oZU" id="m9v-Bs-Nmn"/>
-                <outlet property="hsi_satValueField" destination="8VD-bZ-4qE" id="dna-EJ-W5l"/>
+                <outlet property="hsiBrrSlide" destination="40H-VN-aee" id="Agw-M7-cUz"/>
+                <outlet property="hsiBrrValueField" destination="V9K-xM-yD8" id="BL6-pT-fpP"/>
+                <outlet property="hsiColorWheel" destination="R7g-Fr-5DS" id="TeW-j7-Kh6"/>
+                <outlet property="hsiSatSlide" destination="8Zl-Ay-oZU" id="m9v-Bs-Nmn"/>
+                <outlet property="hsiSatValueField" destination="8VD-bZ-4qE" id="dna-EJ-W5l"/>
                 <outlet property="imageView" destination="vuc-wv-ctg" id="qKO-0Z-WbQ"/>
                 <outlet property="lightModeButton" destination="kRm-9y-Lz1" id="D7x-va-Jx6"/>
                 <outlet property="lightModeButton1" destination="ot0-cc-d4Y" id="qu5-px-2NK"/>
@@ -534,14 +533,14 @@
                 <font key="font" metaFont="system"/>
                 <segments>
                     <segment label="CCT" width="51"/>
-                    <segment label="HSI" width="50" selected="YES" tag="1"/>
+                    <segment label="HSI" width="50" tag="1"/>
                     <segment label="Scene" width="50"/>
                 </segments>
             </segmentedCell>
             <connections>
                 <action selector="modeAction:" target="XuX-Dg-DgW" id="WzX-q5-X97"/>
             </connections>
-            <point key="canvasLocation" x="-70" y="89"/>
+            <point key="canvasLocation" x="-70" y="48"/>
         </segmentedControl>
         <segmentedControl verticalHuggingPriority="750" id="ot0-cc-d4Y">
             <rect key="frame" x="0.0" y="0.0" width="61" height="26"/>

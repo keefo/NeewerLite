@@ -9,7 +9,7 @@ import Foundation
 import AVFoundation
 import Accelerate
 
-protocol AudioSpectrogramDelegate {
+protocol AudioSpectrogramDelegate: AnyObject {
     func updateFrequency(frequency: [Float])
 }
 
@@ -39,7 +39,7 @@ public class AudioSpectrogram: NSObject {
     let sessionQueue = DispatchQueue(label: "sessionQueue",
                                      attributes: [],
                                      autoreleaseFrequency: .workItem)
-    
+
     override init() {
         super.init()
         configureCaptureSession()
@@ -96,7 +96,8 @@ public class AudioSpectrogram: NSObject {
     static let signalCount = 1
     /// A buffer that contains the matrix multiply result of the current frame of frequency domain values in
     /// `frequencyDomainBuffer` multiplied by the `filterBank` matrix.
-    let sgemmResult = UnsafeMutableBufferPointer<Float>.allocate(capacity: AudioSpectrogram.signalCount * Int(AudioSpectrogram.filterBankCount))
+    let sgemmResult = UnsafeMutableBufferPointer<Float>
+        .allocate(capacity: AudioSpectrogram.signalCount * Int(AudioSpectrogram.filterBankCount))
 
     /// Process a frame of raw audio data:
     ///
@@ -314,7 +315,7 @@ extension AudioSpectrogram: AVCaptureAudioDataOutputSampleBufferDelegate {
             case .notDetermined:
                 sessionQueue.suspend()
                 AVCaptureDevice.requestAccess(for: .audio,
-                                                 completionHandler: { granted in
+                                              completionHandler: { granted in
                     if !granted {
                         Logger.error("App requires microphone access.")
                     } else {
@@ -385,7 +386,6 @@ extension AudioSpectrogram: AVCaptureAudioDataOutputSampleBufferDelegate {
     }
 }
 
-
 extension AudioSpectrogram {
 
     /// Populates the specified `filterBank` with a matrix of overlapping triangular windows.
@@ -401,8 +401,9 @@ extension AudioSpectrogram {
         /// that are indices of the `frequencyDomainBuffer`. The indices represent evenly spaced
         /// monotonically incrementing mel frequencies; that is, they're roughly logarithmically spaced as
         /// frequency in hertz.
-        let melFilterBankFrequencies: [Int] = AudioSpectrogram.populateMelFilterBankFrequencies(withFrequencyRange: frequencyRange,
-                                                                                              filterBankCount: filterBankCount)
+        let melFilterBankFrequencies: [Int] = AudioSpectrogram
+                .populateMelFilterBankFrequencies(withFrequencyRange: frequencyRange,
+                                                  filterBankCount: filterBankCount)
 
         let capacity = sampleCount * filterBankCount
         let filterBank = UnsafeMutableBufferPointer<Float>.allocate(capacity: capacity)
@@ -411,14 +412,14 @@ extension AudioSpectrogram {
         var baseValue: Float = 1
         var endValue: Float = 0
 
-        for i in 0 ..< melFilterBankFrequencies.count {
+        for idx in 0 ..< melFilterBankFrequencies.count {
 
-            let row = i * AudioSpectrogram.sampleCount
+            let row = idx * AudioSpectrogram.sampleCount
 
-            let startFrequency = melFilterBankFrequencies[ max(0, i - 1) ]
-            let centerFrequency = melFilterBankFrequencies[ i ]
-            let endFrequency = (i + 1) < melFilterBankFrequencies.count ?
-            melFilterBankFrequencies[ i + 1 ] : sampleCount - 1
+            let startFrequency = melFilterBankFrequencies[ max(0, idx - 1) ]
+            let centerFrequency = melFilterBankFrequencies[ idx ]
+            let endFrequency = (idx + 1) < melFilterBankFrequencies.count ?
+            melFilterBankFrequencies[ idx + 1 ] : sampleCount - 1
 
             let attackWidth = centerFrequency - startFrequency + 1
             let decayWidth = endFrequency - centerFrequency + 1

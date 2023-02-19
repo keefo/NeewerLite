@@ -49,8 +49,7 @@ class ColorWheel: NSView {
         setupView(color)
     }
 
-    private func setupView(_ color: NSColor!)
-    {
+    private func setupView(_ color: NSColor!) {
         self.wantsLayer = true
         self.layer = CALayer()
 
@@ -59,9 +58,9 @@ class ColorWheel: NSView {
         // Layer for the Hue/Saturation wheel
         wheelLayer = CALayer()
         wheelLayer.frame = CGRect(x: offset, y: offset, width: self.frame.width-offset-offset, height: self.frame.height-offset-offset)
-        //wheelLayer.contents = createColorWheel(wheelLayer.frame.size)
+        // wheelLayer.contents = createColorWheel(wheelLayer.frame.size)
         wheelLayer.contents = NSImage(named: "colorWheel")
-        wheelLayer.transform = CATransform3DMakeScale(1, -1, 1);
+        wheelLayer.transform = CATransform3DMakeScale(1, -1, 1)
         self.layer!.addSublayer(wheelLayer)
 
         // Layer for the indicator
@@ -71,7 +70,7 @@ class ColorWheel: NSView {
         indicatorLayer.fillColor = nil
         self.layer!.addSublayer(indicatorLayer)
 
-        setViewColor(color);
+        setViewColor(color)
     }
 
     override func mouseDown(with event: NSEvent) {
@@ -94,7 +93,7 @@ class ColorWheel: NSView {
         point = indicator.point
 
         var color = (hue: CGFloat(0), saturation: CGFloat(0))
-        if !indicator.isCenter  {
+        if !indicator.isCenter {
             color = hueSaturationAtPoint(CGPoint(x: (point.x-offset)*scale, y: (point.y-offset)*scale))
         }
 
@@ -110,7 +109,12 @@ class ColorWheel: NSView {
     private func drawIndicator() {
         // Draw the indicator
         if point != nil {
-            indicatorLayer.path = NSBezierPath(roundedRect: NSRect(x: point.x-indicatorCircleRadius, y: point.y-indicatorCircleRadius, width: indicatorCircleRadius*2.0, height: indicatorCircleRadius*2.0), xRadius: indicatorCircleRadius, yRadius: indicatorCircleRadius).cgPath
+            indicatorLayer.path = NSBezierPath(roundedRect: NSRect(x: point.x-indicatorCircleRadius,
+                                                                   y: point.y-indicatorCircleRadius,
+                                                                   width: indicatorCircleRadius*2.0,
+                                                                   height: indicatorCircleRadius*2.0),
+                                               xRadius: indicatorCircleRadius,
+                                               yRadius: indicatorCircleRadius).cgPath
             indicatorLayer.fillColor = self.color.cgColor
         }
     }
@@ -122,14 +126,14 @@ class ColorWheel: NSView {
         let radius: CGFloat = dimension/2
         let wheelLayerCenter: CGPoint = CGPoint(x: wheelLayer.frame.origin.x + radius, y: wheelLayer.frame.origin.y + radius)
 
-        let dx: CGFloat = coord.x - wheelLayerCenter.x
-        let dy: CGFloat = coord.y - wheelLayerCenter.y
-        let distance: CGFloat = sqrt(dx*dx + dy*dy)
+        let deltaX: CGFloat = coord.x - wheelLayerCenter.x
+        let deltaY: CGFloat = coord.y - wheelLayerCenter.y
+        let distance: CGFloat = sqrt(deltaX*deltaX + deltaY*deltaY)
         var outputCoord: CGPoint = coord
 
         // If the touch coordinate is outside the radius of the wheel, transform it to the edge of the wheel with polar coordinates
         if distance > radius {
-            let theta: CGFloat = atan2(dy, dx)
+            let theta: CGFloat = atan2(deltaY, deltaX)
             outputCoord.x = radius * cos(theta) + wheelLayerCenter.x
             outputCoord.y = radius * sin(theta) + wheelLayerCenter.y
         }
@@ -156,30 +160,30 @@ class ColorWheel: NSView {
         CFDataSetLength(bitmapData, CFIndex(bufferLength))
         let bitmap = CFDataGetMutableBytePtr(bitmapData)
 
-        for y in stride(from: CGFloat(0), to: dimension, by: CGFloat(1)) {
-            for x in stride(from: CGFloat(0), to: dimension, by: CGFloat(1)) {
-                var hsv: HSV = (hue: 0, saturation: 0, brightness: 0, alpha: 0)
-                var rgb: RGB = (red: 0, green: 0, blue: 0, alpha: 0)
+        for offY in stride(from: CGFloat(0), to: dimension, by: CGFloat(1)) {
+            for offX in stride(from: CGFloat(0), to: dimension, by: CGFloat(1)) {
+                var hsv: HSB = HSB(hue: 0, saturation: 0, brightness: 0, alpha: 0)
+                var rgb: RGB = RGB(red: 0, green: 0, blue: 0, alpha: 0)
 
-                let color = hueSaturationAtPoint(CGPoint(x: x, y: y))
+                let color = hueSaturationAtPoint(CGPoint(x: offX, y: offY))
                 let hue = color.hue
                 let saturation = color.saturation
-                var a: CGFloat = 0.0
+                var alpha: CGFloat = 0.0
                 if saturation < 1.0 {
                     // Antialias the edge of the circle.
                     if saturation > 0.99 {
-                        a = (1.0 - saturation) * 100
+                        alpha = (1.0 - saturation) * 100
                     } else {
-                        a = 1.0;
+                        alpha = 1.0
                     }
 
                     hsv.hue = hue
                     hsv.saturation = saturation
                     hsv.brightness = 1.0
-                    hsv.alpha = a
+                    hsv.alpha = alpha
                     rgb = hsv2rgb(hsv)
                 }
-                let offset = Int(4 * (x + y * dimension))
+                let offset = Int(4 * (offX + offY * dimension))
                 bitmap?[offset] = UInt8(rgb.red*255)
                 bitmap?[offset + 1] = UInt8(rgb.green*255)
                 bitmap?[offset + 2] = UInt8(rgb.blue*255)
@@ -191,7 +195,17 @@ class ColorWheel: NSView {
         let colorSpace: CGColorSpace? = CGColorSpaceCreateDeviceRGB()
         let dataProvider: CGDataProvider? = CGDataProvider(data: bitmapData)
         let bitmapInfo = CGBitmapInfo(rawValue: CGBitmapInfo().rawValue | CGImageAlphaInfo.last.rawValue)
-        let imageRef: CGImage? = CGImage(width: Int(dimension), height: Int(dimension), bitsPerComponent: 8, bitsPerPixel: 32, bytesPerRow: Int(dimension) * 4, space: colorSpace!, bitmapInfo: bitmapInfo, provider: dataProvider!, decode: nil, shouldInterpolate: false, intent: CGColorRenderingIntent.defaultIntent)
+        let imageRef: CGImage? = CGImage(width: Int(dimension),
+                                         height: Int(dimension),
+                                         bitsPerComponent: 8,
+                                         bitsPerPixel: 32,
+                                         bytesPerRow: Int(dimension) * 4,
+                                         space: colorSpace!,
+                                         bitmapInfo: bitmapInfo,
+                                         provider: dataProvider!,
+                                         decode: nil,
+                                         shouldInterpolate: false,
+                                         intent: CGColorRenderingIntent.defaultIntent)
 
         return imageRef!
     }
@@ -199,31 +213,30 @@ class ColorWheel: NSView {
     private func hueSaturationAtPoint(_ position: CGPoint) -> (hue: CGFloat, saturation: CGFloat) {
         // Get hue and saturation for a given point (x,y) in the wheel
 
-        let c = wheelLayer.frame.width * scale / 2.0
-        let dx = CGFloat(position.x - c) / c
-        let dy = CGFloat(position.y - c) / c
-        let d = sqrt(CGFloat (dx * dx + dy * dy))
+        let ratio = wheelLayer.frame.width * scale / 2.0
+        let deltaX = CGFloat(position.x - ratio) / ratio
+        let deltaY = CGFloat(position.y - ratio) / ratio
+        let delta = sqrt(CGFloat(deltaX * deltaX + deltaY * deltaY))
 
-        var saturation: CGFloat = d
+        var saturation: CGFloat = delta
 
         if saturation > 0.98 {
             saturation = 1.0
         }
 
         var hue: CGFloat
-        if d == 0 {
-            hue = 0;
+        if delta == 0 {
+            hue = 0
         } else {
-            hue = acos(dx/d) / CGFloat.pi / 2.0
-            if dy < 0 {
+            hue = acos(deltaX/delta) / CGFloat.pi / 2.0
+            if deltaY < 0 {
                 hue = 1.0 - hue
             }
         }
         return (hue, saturation)
     }
 
-    func setSaturation(_ sat: CGFloat)
-    {
+    func setSaturation(_ sat: CGFloat) {
         var hue: CGFloat = 0.0, saturation: CGFloat = 0.0, brightness: CGFloat = 0.0, alpha: CGFloat = 0.0
         color.getHue(&hue, saturation: &saturation, brightness: &brightness, alpha: &alpha)
 
@@ -231,14 +244,13 @@ class ColorWheel: NSView {
             if  hue > 0 {
                 lastHueValue = hue
             }
-        }
-        else {
+        } else {
             if hue == 0 && lastHueValue > 0 {
                 hue = lastHueValue
                 lastHueValue = 0
             }
         }
-        
+
         self.color = NSColor(hue: hue, saturation: sat, brightness: brightness, alpha: alpha)
 
         point = pointAtHueSaturation(hue, saturation: sat)
@@ -250,9 +262,9 @@ class ColorWheel: NSView {
 
         let dimension: CGFloat = min(wheelLayer.frame.width, wheelLayer.frame.height)
         let radius: CGFloat = saturation * dimension / 2
-        let x = dimension / 2 + radius * cos(hue * CGFloat.pi * 2) + 20;
-        let y = dimension / 2 + radius * sin(hue * CGFloat.pi * 2) + 20;
-        return CGPoint(x: x, y: y)
+        let offsetX = dimension / 2 + radius * cos(hue * CGFloat.pi * 2) + 20
+        let offsetY = dimension / 2 + radius * sin(hue * CGFloat.pi * 2) + 20
+        return CGPoint(x: offsetX, y: offsetY)
     }
 
     func setViewColor(_ color: NSColor!) {
@@ -265,8 +277,7 @@ class ColorWheel: NSView {
             if  hue > 0 {
                 lastHueValue = hue
             }
-        }
-        else {
+        } else {
             if hue == 0 && lastHueValue > 0 {
                 hue = lastHueValue
                 lastHueValue = 0
@@ -279,4 +290,3 @@ class ColorWheel: NSView {
         drawIndicator()
     }
 }
-

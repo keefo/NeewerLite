@@ -22,7 +22,7 @@ class ImageFile {
                 String(kCGImageSourceCreateThumbnailFromImageIfAbsent): true,
                 String(kCGImageSourceCreateThumbnailWithTransform): true,
                 String(kCGImageSourceThumbnailMaxPixelSize): 160
-            ] as [String : Any]
+            ] as [String: Any]
             if let thumbnailRef = CGImageSourceCreateThumbnailAtIndex(imageSource, 0, thumbnailOptions as CFDictionary?) {
                 thumbnail = NSImage(cgImage: thumbnailRef, size: NSSize.zero)
             }
@@ -34,4 +34,3 @@ class ImageFile {
         fileName = ""
     }
 }
-

@@ -63,6 +63,25 @@ Scan all lights:
 open neewerlite://scanLight
 ```
 
+Set lights CCT:
+```bash
+open neewerlite://setLightCCT?CCT=3200&Brightness=100
+```
+
+Most of light model support CCT range 3200K~5600K, Some lights support long CCT range 3200K~8500K.
+
+
+Set lights Hue and Saturation and Brightness:
+```bash
+open neewerlite://setLightHSI?RGB=ff00ff&Saturation=100&Brightness=100
+```
+
+Set lights to scene:
+```bash
+open neewerlite://setLightScene?Scene=SquadCar
+```
+Scene Values: SquadCar, Ambulance, FireEngine, Fireworks, Party, CandleLight, Lighting, Paparazzi, Screen
+
 Turn on light by name:
 
 ```bash
@@ -100,7 +119,12 @@ If you find a way to implement these features, feel free to create a pull reques
 
 - [ ] Test more Neewer LED lights
 - [ ] Add support for other Neewer LED lights
-- [ ] Add command interface to support Hue, Saturation, & Brightness adjustment.
+- [ ] Advanced scene mangement
+
+# How to add support to a new light?
+
+All you need to do is to use a bluetooth app to find the name of your light. 
+Then add the name into **isValidPeripheralName** function in Model/NeewerLight.swift file.
 
 # License
 
