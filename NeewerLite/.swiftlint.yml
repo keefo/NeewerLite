@@ -1,0 +1,17 @@
+# By default, SwiftLint uses a set of sensible default rules you can adjust:
+disabled_rules: # rule identifiers turned on by default to exclude from running
+  - file_length
+  - type_body_length
+  - cyclomatic_complexity
+  - function_body_length
+  - switch_case_alignment
+
+line_length:
+  warning: 180
+  ignores_comments: true
+
+type_name:
+  allowed_symbols: "_"
+
+excluded: 
+  - Package.swift

@@ -1,0 +1,19 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+
+    runs-on: macos-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Build
+      run: pushd NeewerLite; xcodebuild -scheme NeewerLite build -configuration Debug clean; popd;
+    # - name: Run tests
+    #   run: pushd NeewerLite; xcodebuild test -scheme NeewerLite; popd;
