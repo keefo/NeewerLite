@@ -16,7 +16,9 @@ enum CommandType {
     case turnOffLight
     case toggleLight
     case scanLight
-    case setLightHSB
+    case setLightHSI
+    case setLightCCT
+    case setLightScene
 
     var description: String {
         switch self {
@@ -28,8 +30,12 @@ enum CommandType {
                 return "toggleLight"
             case .scanLight:
                 return "scanLight"
-            case .setLightHSB:
-                return "setLightHSB"
+            case .setLightHSI:
+                return "setLightHSI"
+            case .setLightCCT:
+                return "setLightCCT"
+            case .setLightScene:
+                return "setLightScene"
         }
     }
 }
@@ -50,6 +56,20 @@ struct CommandParameter {
         return nil
     }
 
+    func CCT() -> Int {
+        if let val = components.queryItems?.first(where: { $0.name == "CCT" })?.value {
+            var valInt = Int(val)!
+            if valInt < 3200 {
+                valInt = 3200
+            }
+            if valInt > 8500 {
+                valInt = 8500
+            }
+            return valInt
+        }
+        return 3200
+    }
+
     func saturation() -> Double {
         if let sat = components.queryItems?.first(where: { $0.name == "Saturation" })?.value {
             return (Double(sat) ?? 100.0) / 100.0
@@ -62,6 +82,35 @@ struct CommandParameter {
             return (Double(val) ?? 100.0) / 100.0
         }
         return 1.0
+    }
+
+    func scene() -> Int {
+        if let val = components.queryItems?.first(where: { $0.name == "Scene" })?.value {
+            let valLow = val.lowercased()
+            switch valLow {
+                case "squadcar":
+                    return 1
+                case "ambulance":
+                    return 2
+                case "fireengine":
+                    return 3
+                case "fireworks":
+                    return 4
+                case "party":
+                    return 5
+                case "candlelight":
+                    return 6
+                case "lighting":
+                    return 7
+                case "paparazzi":
+                    return 8
+                case "screen":
+                    return 9
+                default:
+                    return 1
+            }
+        }
+        return 1
     }
 }
 

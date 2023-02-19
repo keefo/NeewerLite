@@ -137,26 +137,65 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
             self.statusItem.button?.image = NSImage(named: "statusItemOffIcon")
         }))
 
-        commandHandler.register(command: Command(type: .setLightHSB, action: { cmdParameter in
+        commandHandler.register(command: Command(type: .setLightCCT, action: { cmdParameter in
+            let cct = cmdParameter.CCT()
+            let bri = cmdParameter.brightness() * 100
+            func act(_ viewObj: DeviceViewObject) {
+                if viewObj.isON {
+                    viewObj.changeToCCTMode()
+                    viewObj.updateCCT(cct, bri)
+                }
+            }
+
+            if let lightname = cmdParameter.lightName() {
+                self.viewObjects.forEach {
+                    if lightname.caseInsensitiveCompare($0.device.userLightName) == .orderedSame { act($0) }
+                }
+            } else {
+                self.viewObjects.forEach { act($0) }
+            }
+            self.statusItem.button?.image = NSImage(named: "statusItemOnIcon")
+        }))
+
+        commandHandler.register(command: Command(type: .setLightHSI, action: { cmdParameter in
             guard let color = cmdParameter.RGB() else {
                 return
             }
             let sat = cmdParameter.saturation()
             let bri = cmdParameter.brightness()
+            func act(_ viewObj: DeviceViewObject) {
+                if viewObj.isON && viewObj.device.supportRGB {
+                    viewObj.changeToHSIMode()
+                    viewObj.HSB = HSB(hue: CGFloat(color.hueComponent), saturation: sat, brightness: CGFloat(bri), alpha: 1)
+                }
+            }
+
             if let lightname = cmdParameter.lightName() {
                 self.viewObjects.forEach {
-                    if lightname.caseInsensitiveCompare($0.device.userLightName) == .orderedSame {
-                        if $0.isON && $0.isHSIMode {
-                            $0.HSB = HSB(hue: CGFloat(color.hueComponent), saturation: sat, brightness: CGFloat(bri), alpha: 1)
-                        }
-                    }
+                    if lightname.caseInsensitiveCompare($0.device.userLightName) == .orderedSame { act($0) }
                 }
             } else {
-                self.viewObjects.forEach {
-                    if $0.isON && $0.isHSIMode {
-                        $0.HSB = HSB(hue: CGFloat(color.hueComponent), saturation: sat, brightness: CGFloat(bri), alpha: 1)
-                    }
+                self.viewObjects.forEach { act($0) }
+            }
+            self.statusItem.button?.image = NSImage(named: "statusItemOnIcon")
+        }))
+
+        commandHandler.register(command: Command(type: .setLightScene, action: { cmdParameter in
+            let scene = cmdParameter.scene()
+
+            func act(_ viewObj: DeviceViewObject) {
+                if viewObj.isON && viewObj.device.supportRGB {
+                    viewObj.changeToSCE(scene)
+                    viewObj.changeToSCEMode()
                 }
+            }
+
+            if let lightname = cmdParameter.lightName() {
+                self.viewObjects.forEach {
+                    if lightname.caseInsensitiveCompare($0.device.userLightName) == .orderedSame { act($0) }
+                }
+            } else {
+                self.viewObjects.forEach { act($0) }
             }
             self.statusItem.button?.image = NSImage(named: "statusItemOnIcon")
         }))

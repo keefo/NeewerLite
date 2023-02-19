@@ -85,8 +85,75 @@ class DeviceViewObject {
         return device.isOn.value
     }
 
+    public var isCCTMode: Bool {
+        return device.lightMode == .CCTMode
+    }
+
     public var isHSIMode: Bool {
         return device.lightMode == .HSIMode
+    }
+
+    public var isSCEMode: Bool {
+        return device.lightMode == .SCEMode
+    }
+
+    public func changeToMode(_ mode: Int) {
+        if let theView = view {
+            theView.lightModeButton.selectedSegment = mode
+            theView.lightModeButton.performClick(nil)
+        }
+    }
+
+    public func changeToCCTMode() {
+        if !isCCTMode {
+            changeToMode(0)
+        }
+    }
+
+    public func changeToHSIMode() {
+        if !isHSIMode {
+            changeToMode(1)
+        }
+    }
+
+    public func changeToSCEMode() {
+        if !isSCEMode {
+            changeToMode(2)
+        }
+    }
+
+    public func changeToSCE(_ val: Int) {
+        if let theView = view {
+            let btn = NSButton()
+            btn.tag = val
+            theView.channelAction(btn)
+            theView.updateScene(true)
+        }
+    }
+
+    public func updateCCT(_ cct: Int, _ bri: Double) {
+        if let theView = view {
+            var cttVal = Double(cct)
+            if device.supportLongCCT {
+                if cttVal < 3200 {
+                    cttVal = 3200
+                }
+                if cttVal > 8500 {
+                    cttVal = 8500
+                }
+            } else {
+                if cttVal < 3200 {
+                    cttVal = 3200
+                }
+                if cttVal > 5600 {
+                    cttVal = 5600
+                }
+            }
+            theView.cctCctSlide.doubleValue = Double(cttVal/100.0)
+            theView.cctBrrSlide.doubleValue = bri
+            theView.slideAction(theView.cctCctSlide)
+            theView.slideAction(theView.cctBrrSlide)
+        }
     }
 
     public var HSB: HSB {
