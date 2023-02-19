@@ -68,7 +68,7 @@ Set lights CCT:
 open neewerlite://setLightCCT?CCT=3200&Brightness=100
 ```
 
-Most of light model support CCT range 3200K~5600K, Some lights support long CCT range 3200K~8500K.
+Most of light model support CCT range 3200K to 5600K, Some lights support long CCT range 3200K to 8500K.
 
 
 Set lights Hue and Saturation and Brightness:
