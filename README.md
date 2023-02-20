@@ -123,7 +123,7 @@ If you find a way to implement these features, feel free to create a pull reques
 
 # How to add support to a new light?
 
-All you need to do is to use a bluetooth app to find the name of your light. 
+If you find the NeewerLite does note find your light, all you need to do is to use a bluetooth app to find the name of your light. 
 Then add the name into **isValidPeripheralName** function in Model/NeewerLight.swift file.
 
 # License
