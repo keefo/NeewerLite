@@ -7,15 +7,10 @@
 * Input the following script in the text field and save
 
 ```zsh
-open neewerlite://turnOnLight
+open "neewerlite://turnOnLight"
 ```
 
 <p>
-<img src="./shortcut1.png" width="600px" />
-</p>
-
-
-<p>
-<img src="./shortcut2.png" width="600px" />
+<img src="./shortcuts.png" width="600px" />
 </p>
 
