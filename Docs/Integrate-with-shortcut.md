@@ -1,5 +1,6 @@
 # Integrate NeewerLite with macOS shortcut
 
+* Open NeewerLite.app, make sure it is running.
 * Open shortcuts.app
 * Add a new shortcut
 * Drag in an action "Termnial -> Run Shell Script"
