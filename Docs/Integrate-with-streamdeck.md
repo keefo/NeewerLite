@@ -1,5 +1,7 @@
 # Integrate NeewerLite with StreamDeck
 
+Open NeewerLite.app, make sure it is running.
+
 ## Download and save scripts
 
 Download and save these scripts into your home folder: 
