@@ -133,6 +133,11 @@ Follow NeewerLite, the code and examples of this project is released under MIT L
 # Donations
 
 If you would like to support me, donations are very welcome.
+
+You can go fund this project through my [sponsors](https://github.com/sponsors/keefo) page.
+
+or
+
 You can send bitcoin to this address:
 
 ```
