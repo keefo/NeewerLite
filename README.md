@@ -45,27 +45,27 @@ Open the app and let it scans all Neewer lights through Bluetooth. Once it finds
 Turn on all lights:
 
 ```bash
-open neewerlite://turnOnLight
+open "neewerlite://turnOnLight"
 ```
 
 Turn off all lights:
 ```bash
-open neewerlite://turnOffLight
+open "neewerlite://turnOffLight"
 ```
 
 Toggle all lights:
 ```bash
-open neewerlite://toggleLight
+open "neewerlite://toggleLight"
 ```
 
 Scan all lights:
 ```bash
-open neewerlite://scanLight
+open "neewerlite://scanLight"
 ```
 
 Set lights CCT:
 ```bash
-open neewerlite://setLightCCT?CCT=3200&Brightness=100
+open "neewerlite://setLightCCT?CCT=3200&Brightness=100"
 ```
 
 Most of light model support CCT range 3200K to 5600K, Some lights support long CCT range 3200K to 8500K.
@@ -73,19 +73,19 @@ Most of light model support CCT range 3200K to 5600K, Some lights support long C
 
 Set lights Hue and Saturation and Brightness:
 ```bash
-open neewerlite://setLightHSI?RGB=ff00ff&Saturation=100&Brightness=100
+open "neewerlite://setLightHSI?RGB=ff00ff&Saturation=100&Brightness=100"
 ```
 
 Set lights to scene:
 ```bash
-open neewerlite://setLightScene?Scene=SquadCar
+open "neewerlite://setLightScene?Scene=SquadCar"
 ```
 Scene Values: SquadCar, Ambulance, FireEngine, Fireworks, Party, CandleLight, Lighting, Paparazzi, Screen
 
 Turn on light by name:
 
 ```bash
-open neewerlite://turnOnLight?light=left
+open "neewerlite://turnOnLight?light=left"
 ```
 
 The 'left' is the name I give one of my light. You could change your light's name in the app and use it in this command.
