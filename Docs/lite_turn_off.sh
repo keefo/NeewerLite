@@ -1,3 +1,3 @@
 #!/bin/bash
 
-open neewerlite://turnOffLight
+open "neewerlite://turnOffLight"
