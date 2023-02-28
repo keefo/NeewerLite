@@ -10,7 +10,7 @@
 
 [![CI](https://github.com/keefo/NeewerLite/actions/workflows/ci.yml/badge.svg)](https://github.com/keefo/NeewerLite/actions/workflows/ci.yml)
 
-NeewerLite is an un-official Neewer LED light control app for macOS.
+NeewerLite is an unofficial Neewer LED light control app for macOS.
 
 [Neewer](https://neewer.com/) produces popular high-CRI LED lights for media industry. They provides android and [iOS app](https://apps.apple.com/us/app/neewer/id1455948340) to control their lights through Bluetooth. However, they don't provides any means to control lights from a PC or Mac.
 
