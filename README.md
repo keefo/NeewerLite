@@ -10,13 +10,11 @@
 
 [![CI](https://github.com/keefo/NeewerLite/actions/workflows/ci.yml/badge.svg)](https://github.com/keefo/NeewerLite/actions/workflows/ci.yml)
 
-NeewerLite is an unofficial Neewer LED light control app for macOS.
+NeewerLite is a unofficial macOS app designed for controlling Neewer LED lights. 
 
-[Neewer](https://neewer.com/) produces popular high-CRI LED lights for media industry. They provides android and [iOS app](https://apps.apple.com/us/app/neewer/id1455948340) to control their lights through Bluetooth. However, they don't provides any means to control lights from a PC or Mac.
+While [Neewer](https://neewer.com/) provides official Android and [iOS app](https://apps.apple.com/us/app/neewer/id1455948340) for controlling their high-CRI LED lights via Bluetooth, they do not offer a means of control from a PC or Mac. 
 
-This project creates a macOS app so you could control bluetooth-enabled Neewer LED lights from you Mac.
-
-You could integrate the light control in your [Elgato Stream Deck](https://www.elgato.com/en/gaming/stream-deck) through this app. 
+This project aims to fill that gap by creating a macOS app that allows you to control your Bluetooth-enabled Neewer LED lights from your Mac. With NeewerLite, you can even integrate light control into your [Elgato Stream Deck](https://www.elgato.com/en/gaming/stream-deck) or shortcuts for better experince.
 
 Here is a video I made to demo the scene: 
 
@@ -126,10 +124,16 @@ If you find a way to implement these features, feel free to create a pull reques
 - [ ] Add support for other Neewer LED lights
 - [ ] Advanced scene mangement
 
-# How to add support to a new light?
+# How to add support for a new light?
 
-If you find the NeewerLite does note find your light, all you need to do is to use a bluetooth app to find the name of your light. 
-Then add the name into **isValidPeripheralName** function in Model/NeewerLight.swift file.
+If you are unable to find your Neewer light using NeewerLite, you can easily add support for it by following these steps:
+
+1. Use a Bluetooth app to find the name of your light.
+2. Add the name to the **isValidPeripheralName** function in the Model/NeewerLight.swift file.
+3. Recompile the app and test your light to ensure that it is working properly.
+4. If the light is working as expected, create a pull request on the project's GitHub repository to submit your changes.
+
+By following these steps, you can quickly add support for your Neewer light and start controlling it using NeewerLite.
 
 # License
 
