@@ -122,7 +122,7 @@ If you find a way to implement these features, feel free to create a pull reques
 
 - [ ] Test more Neewer LED lights
 - [ ] Add support for other Neewer LED lights
-- [ ] Advanced scene mangement
+- [ ] Advanced scene management
 
 # How to add support for a new light?
 
