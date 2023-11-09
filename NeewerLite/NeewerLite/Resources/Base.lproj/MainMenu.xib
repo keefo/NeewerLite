@@ -753,13 +753,20 @@
                         <action selector="checkForUpdates:" target="WJC-nf-vfx" id="Cgt-ZU-lnw"/>
                     </connections>
                 </menuItem>
-                <menuItem title="About" id="6gT-sj-tBh">
+                <menuItem isSeparatorItem="YES" id="eO8-am-ouw"/>
+                <menuItem title="Github" id="6gT-sj-tBh">
                     <modifierMask key="keyEquivalentModifierMask"/>
                     <connections>
-                        <action selector="aboutAction:" target="Voe-Tx-rLC" id="WBE-ey-u8B"/>
+                        <action selector="githubAction:" target="Voe-Tx-rLC" id="Rvo-Ie-N0A"/>
                     </connections>
                 </menuItem>
-                <menuItem isSeparatorItem="YES" id="eO8-am-ouw"/>
+                <menuItem title="About" id="1N6-in-FT0">
+                    <modifierMask key="keyEquivalentModifierMask"/>
+                    <connections>
+                        <action selector="aboutAction:" target="Voe-Tx-rLC" id="FNC-TQ-Vxz"/>
+                    </connections>
+                </menuItem>
+                <menuItem isSeparatorItem="YES" id="wlS-jB-2k6"/>
                 <menuItem title="Quit" id="e3m-7c-S0m">
                     <modifierMask key="keyEquivalentModifierMask"/>
                     <connections>

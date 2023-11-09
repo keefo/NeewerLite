@@ -8,113 +8,81 @@
 import Foundation
 import Cocoa
 
-class PopoverContentViewController: NSViewController {
-    var textField: NSTextField!
-    var okButton: NSButton!
-    var cancelButton: NSButton!
+class RenameViewController: NSObject {
+
+    // Reference to the sheet's text field
+    private var titleTextField: NSTextField?
+    private var sheetTextField: NSTextField?
+
+    var sheetWindow = NSWindow (
+        contentRect: NSRect(x: 0, y: 0, width: 300, height: 120),
+        styleMask: [.titled, .closable],
+        backing: .buffered,
+        defer: false
+    )
 
     var onOK: ((String) -> Bool)?
-    var onCancel: (() -> Void)?
 
-    init() {
-        super.init(nibName: nil, bundle: nil)
-        self.view = NSView(frame: NSRect(x: 0, y: 0, width: 200, height: 80))
+    override init() {
+        super.init()
 
-        // Text field setup
-        textField = NSTextField(frame: NSRect(x: 20, y: 40, width: 160, height: 20))
-        textField.placeholderString = "Give a label to your light..."
-        view.addSubview(textField)
+        titleTextField = NSTextField(frame: NSRect(x: 20, y: 75, width: 260, height: 24))
+        titleTextField?.stringValue = "Enter a new name for your light"
+        titleTextField?.isEditable = false
+        titleTextField?.isSelectable = false
+        titleTextField?.isBordered = false
+        titleTextField?.drawsBackground = false
+        sheetWindow.contentView?.addSubview(titleTextField!)
 
-        // OK button setup
-        okButton = NSButton(frame: NSRect(x: 200-60-10, y: 10, width: 60, height: 20))
+        // Set up the text field
+        let textField = NSTextField(frame: NSRect(x: 20, y: 50, width: 260, height: 24))
+        textField.placeholderString = "Enter a new name for your light"
+        sheetWindow.contentView?.addSubview(textField)
+
+        // Set up the OK button
+        let okButton = NSButton(frame: NSRect(x: 150, y: 10, width: 80, height: 30))
         okButton.title = "OK"
+        okButton.bezelStyle = .rounded
+        okButton.action = #selector(okButtonClicked(_:))
         okButton.target = self
-        okButton.action = #selector(okButtonClicked)
-        view.addSubview(okButton)
+        sheetWindow.contentView?.addSubview(okButton)
 
-        // Cancel button setup
-        cancelButton = NSButton(frame: NSRect(x: okButton.frame.minX-80, y: 10, width: 80, height: 20))
+        // Set up the Cancel button
+        let cancelButton = NSButton(frame: NSRect(x: 60, y: 10, width: 80, height: 30))
         cancelButton.title = "Cancel"
+        cancelButton.bezelStyle = .rounded
+        cancelButton.action = #selector(cancelButtonClicked(_:))
         cancelButton.target = self
-        cancelButton.action = #selector(cancelButtonClicked)
-        view.addSubview(cancelButton)
+        sheetWindow.contentView?.addSubview(cancelButton)
+
+        // Keep a reference to the text field if needed
+        self.sheetTextField = textField
     }
 
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
-    }
-
-    @objc func okButtonClicked() {
-        let res = onOK?(textField.stringValue)
-        if res == nil || res == true {
-            view.window?.close()
-        }
-        if res == false {
-            
-        }
-    }
-
-    @objc func cancelButtonClicked() {
-        onCancel?()
-        view.window?.close()
-    }
-}
-
-class RenameViewController: NSViewController {
-
-    let popover = NSPopover()
-    private let pvc = PopoverContentViewController()
-    
-    var onOK: ((String) -> Bool)? {
-        didSet {
-            pvc.onOK = { [weak self] text in
-                // Do something with text here
-                if let blk = self?.onOK {
-                    return blk(text)
-                }
-                return true
-            }
-        }
-    }
-
-    var onCancel: (() -> Void)? {
-        didSet {
-            pvc.onCancel = { [weak self] in
-                // Handle cancel here
-                if let blk = self?.onCancel {
-                    blk()
-                }
-            }
-        }
-    }
-
-    init() {
-        super.init(nibName: nil, bundle: nil)
-        // Configure the popover
-        popover.contentViewController = pvc
-        popover.behavior = .transient
-        popover.animates = true
-    }
-
-    required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
-
-    override func viewDidLoad() {
-        super.viewDidLoad()
-
-        // Configure the popover
-        popover.contentViewController = pvc
-        popover.behavior = .transient
-        popover.animates = true
     }
 
     func setCurrentValue(_ text: String) {
-        pvc.textField.stringValue = text
+        sheetTextField?.stringValue = text
     }
 
-    func showPopover(sender: NSButton) {
-        // Show the popover on the button click
-        popover.show(relativeTo: sender.bounds, of: sender, preferredEdge: .minY)
+    @objc func okButtonClicked(_ sender: NSButton) {
+        let enteredText = self.sheetTextField?.stringValue ?? ""
+        if let blk = self.onOK {
+            if blk(enteredText) {
+                if let sheetWindow = sender.window, let mainWindow = NSApplication.shared.mainWindow {
+                    mainWindow.endSheet(sheetWindow, returnCode: .OK)
+                }
+            }
+        }
+    }
+
+    @objc func cancelButtonClicked(_ sender: NSButton) {
+        // User canceled, maybe handle this if needed
+        // ...
+        if let sheetWindow = sender.window, let mainWindow = NSApplication.shared.mainWindow {
+            mainWindow.endSheet(sheetWindow, returnCode: .OK)
+        }
     }
 }

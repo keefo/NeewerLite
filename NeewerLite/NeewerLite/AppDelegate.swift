@@ -78,8 +78,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
 
     func applicationDidFinishLaunching(_ aNotification: Notification) {
 
-        // NSApp.setActivationPolicy(.regular)
-        NSApp.setActivationPolicy(.accessory)
+        NSApp.setActivationPolicy(.regular)
+        // NSApp.setActivationPolicy(.accessory)
 
         scanningStatus?.stringValue = ""
         let idx = UserDefaults.standard.value(forKey: "viewIdx") as? Int
@@ -311,6 +311,13 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         ])
     }
 
+    @IBAction func githubAction(_ sender: AnyObject) {
+        guard let url = URL(string: "https://github.com/keefo/NeewerLite") else {
+            return
+        }
+        NSWorkspace.shared.open(url)
+    }
+
     @IBAction func showWindowAction(_ sender: AnyObject) {
         NSApp.activate(ignoringOtherApps: true)
         self.window.makeKeyAndOrderFront(nil)
@@ -318,7 +325,6 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     }
 
     @IBAction func switchViewAction(_ sender: NSSegmentedControl) {
-        Logger.info("switchViewAction: \(sender.selectedSegment)")
         guard let contentView = self.window.contentView else {
             return
         }
@@ -445,6 +451,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
             }
             return viewObjects[rowIndex].deviceIdentifier
         }
+
         mylightTableView.reloadData()
         var newIndexSet = IndexSet()
         for (index, item) in viewObjects.enumerated() {
@@ -717,9 +724,7 @@ extension AppDelegate: CBPeripheralDelegate {
                 }
                 return
             }
-
             Logger.info("A Valid Neewer Light Found: \(peripheral) \(services)")
-
             // discover characteristics of services
             peripheral.discoverCharacteristics(nil, for: neewerService)
         }
@@ -830,18 +835,34 @@ extension AppDelegate: NSTableViewDataSource, NSTableViewDelegate {
                 return true
             }
             renameVC?.setCurrentValue(viewObject.device.userLightName.value)
-            renameVC?.popover.show(relativeTo: sender.bounds, of: sender, preferredEdge: .minY)
+            self.window?.beginSheet(renameVC!.sheetWindow, completionHandler: nil)
         }
     }
 
     @IBAction func forgetAction(_ sender: NSButton) {
         let rowIndex = sender.tag
-        Logger.debug("rowIndex: \(rowIndex)")
         // Retrieve the corresponding object from your data source
         if rowIndex >= 0 && rowIndex < viewObjects.count {
             let viewObject = viewObjects[rowIndex]
-            self.forgetLight(viewObject.device)
+            let alert = NSAlert()
+            alert.icon = viewObject.deviceImage
+            alert.messageText = "Remove light \"\(viewObject.deviceName)\""
+            alert.informativeText = "Are you sure you want to remove this light from you library?"
+            alert.alertStyle = .warning
+            alert.addButton(withTitle: "No")
+            alert.addButton(withTitle: "Yes")
+
+            let response = alert.runModal()
+            switch response {
+                case .alertFirstButtonReturn:
+                    // Yes button clicked
+                    Logger.debug("no need to remove light")
+                case .alertSecondButtonReturn:
+                    // No button clicked
+                    self.forgetLight(viewObject.device)
+                default:
+                    break
+            }
         }
     }
-    
 }

@@ -138,7 +138,9 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
         if let dev = device {
             renameVC?.setCurrentValue(dev.userLightName.value)
         }
-        renameVC?.popover.show(relativeTo: nameField.bounds, of: nameField, preferredEdge: .minY)
+
+        self.view.window?.beginSheet(renameVC!.sheetWindow, completionHandler: nil)
+        //renameVC?.popover.show(relativeTo: nameField.bounds, of: nameField, preferredEdge: .minY)
     }
 
     func formatBrrValue(_ val: String, _ ali: NSTextAlignment) -> NSMutableAttributedString {
@@ -747,10 +749,7 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
         guard let safeFx = theFx else {
             return
         }
-        Logger.debug("\(safeFx.name)")
-        Logger.debug("\(safeFx.featureValues)")
         let cctrange = dev.CCTRange()
-        Logger.debug("\(sender.superview)")
         guard let theView = sender.superview else {
             return
         }
@@ -823,6 +822,7 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
             }
             fxsubview.addSubview(slide)
             fxsubview.addSubview(valueField)
+            valueField.stringValue = "\(Int(slide.currentValue))%"
             offsetY -= 30
         }
 
@@ -848,6 +848,7 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
             }
             fxsubview.addSubview(slide)
             fxsubview.addSubview(valueField)
+            valueField.stringValue = "\(Int(slide.currentValue))00k"
             offsetY -= 30
         }
 
@@ -873,12 +874,9 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
             }
             fxsubview.addSubview(slide)
             fxsubview.addSubview(valueField)
+            valueField.stringValue = "\(Int(slide.currentValue))"
             offsetY -= 30
         }
-    }
-
-    @objc func buttonClicked(_ sender: NSButton) {
-        Logger.debug("buttonClicked")
     }
 
     @objc func fxClicked(_ sender: NSPopUpButton) {
@@ -942,19 +940,6 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
             label.font = NSFont.monospacedSystemFont(ofSize: 9, weight: .medium)
             label.tag = tag
             return label
-        }
-
-        let createColorButton: (CGFloat, CGFloat, String) -> NSButton = { offsetX, offsetY, title in
-            let button = NSButton(frame: NSRect(x: offsetX, y: offsetY, width: 50, height: 30))
-            button.autoresizingMask = [.minYMargin, .maxXMargin]
-            button.title = title
-            button.action = #selector(self.buttonClicked(_:))
-            button.target = self
-            button.bezelStyle = .texturedRounded
-            button.font = NSFont.monospacedSystemFont(ofSize: 9, weight: .ultraLight)
-            // Optional: You can customize other button properties here
-            // Define the action handler for the button
-            return button
         }
 
         if safeFx.needBRR {
