@@ -26,6 +26,7 @@ class ColorWheel: NSView {
     var indicatorBorderWidth: CGFloat = 1.0
     var lastHueValue: CGFloat = 0.0
     var point: CGPoint!
+    var mTag = -1
 
     // Retina scaling factor
     lazy var scale: CGFloat = {
@@ -38,6 +39,7 @@ class ColorWheel: NSView {
     }()
 
     weak var delegate: ColorWheelDelegate?
+    var callback: ((_ hue: CGFloat, _ saturation: CGFloat) -> Void)?
 
     required init?(coder aDecoder: NSCoder) {
         super.init(coder: aDecoder)
@@ -47,6 +49,15 @@ class ColorWheel: NSView {
     init(frame: CGRect, color: NSColor!) {
         super.init(frame: frame)
         setupView(color)
+    }
+
+    override var tag: Int {
+        get {
+            return mTag
+        }
+        set {
+            mTag = newValue
+        }
     }
 
     private func setupView(_ color: NSColor!) {
@@ -99,8 +110,14 @@ class ColorWheel: NSView {
 
         self.color = NSColor(hue: color.hue, saturation: color.saturation, brightness: 1.0, alpha: 1.0)
 
-        // Notify delegate of the new Hue and Saturation
-        delegate?.hueAndSaturationSelected(color.hue, saturation: color.saturation)
+        if let safeDelegate = delegate {
+            // Notify delegate of the new Hue and Saturation
+            safeDelegate.hueAndSaturationSelected(color.hue, saturation: color.saturation)
+        }
+
+        if let safeCallback = callback {
+            safeCallback(color.hue, color.saturation)
+        }
 
         // Draw the indicator
         drawIndicator()

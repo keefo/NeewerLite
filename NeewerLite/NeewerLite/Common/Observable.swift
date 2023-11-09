@@ -7,11 +7,13 @@
 
 import Foundation
 
-class Observable<T> {
+class Observable<T: Equatable> {
 
     var value: T {
         didSet {
-            listener?(value)
+            if value != oldValue {
+                listener?(value)
+            }
         }
     }
 
