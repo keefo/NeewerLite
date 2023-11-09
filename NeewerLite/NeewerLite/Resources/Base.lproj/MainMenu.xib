@@ -731,9 +731,8 @@
                     </toolbarItem>
                 </allowedToolbarItems>
                 <defaultToolbarItems>
-                    <toolbarItem reference="kTU-iB-VjP"/>
                     <toolbarItem reference="0dz-tH-pf8"/>
-                    <toolbarItem reference="LpZ-9N-lmq"/>
+                    <toolbarItem reference="kTU-iB-VjP"/>
                 </defaultToolbarItems>
             </toolbar>
             <point key="canvasLocation" x="-329" y="-329"/>
@@ -1064,7 +1063,6 @@
         <stackView distribution="fill" orientation="vertical" alignment="leading" horizontalStackHuggingPriority="249.99998474121094" verticalStackHuggingPriority="249.99998474121094" detachesHiddenViews="YES" id="uCp-Og-Fvg">
             <rect key="frame" x="0.0" y="0.0" width="110" height="200"/>
             <autoresizingMask key="autoresizingMask"/>
-            <nil name="visibilityPriorities"/>
             <point key="canvasLocation" x="-737" y="-1658"/>
         </stackView>
     </objects>

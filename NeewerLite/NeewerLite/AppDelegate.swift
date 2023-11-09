@@ -78,8 +78,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
 
     func applicationDidFinishLaunching(_ aNotification: Notification) {
 
-        NSApp.setActivationPolicy(.regular)
-        //NSApp.setActivationPolicy(.accessory)
+        // NSApp.setActivationPolicy(.regular)
+        NSApp.setActivationPolicy(.accessory)
 
         scanningStatus?.stringValue = ""
         let idx = UserDefaults.standard.value(forKey: "viewIdx") as? Int
