@@ -12,6 +12,13 @@ import IOBluetooth
 protocol ObservableNeewerLightProtocol {
     var isOn: Observable<Bool> { get set }
     var channel: Observable<UInt8> { get set }
+    var userLightName: Observable<String> { get set }
+    var supportGMRange: Observable<Bool> { get set }
+    var brrValue: Observable<Int> { get set }
+    var cctValue: Observable<Int> { get set }
+    var hueValue: Observable<Int> { get set }
+    var satValue: Observable<Int> { get set }
+    var gmmValue: Observable<Int> { get set }
 }
 
 class NeewerLight: NSObject, ObservableNeewerLightProtocol {
@@ -20,25 +27,31 @@ class NeewerLight: NSObject, ObservableNeewerLightProtocol {
         case CCTMode = 1    // Bi-color mode
         case HSIMode        // Color mode
         case SCEMode        // Scene mode, or animation mode or channel mode
+        case SRCMode        // Source mode
     }
 
     struct Constants {
         static let NeewerBleServiceUUID = CBUUID(string: "69400001-B5A3-F393-E0A9-E50E24DCCA99")
         static let NeewerDeviceCtlCharacteristicUUID = CBUUID(string: "69400002-B5A3-F393-E0A9-E50E24DCCA99")
         static let NeewerGattCharacteristicUUID = CBUUID(string: "69400003-B5A3-F393-E0A9-E50E24DCCA99")
-        static let RGBLightTypes: [Int8] = [3, 5, 9, 11, 12, 15, 16, 18, 19, 20, 21, 22]
-        static let ExtendedCCTLightTypes: [Int8] = [6]
+        static let RGBLightTypes: [UInt8] = [3, 5, 9, 11, 12, 15, 16, 18, 19, 20, 21, 22, 26, 29, 32, 40, 42, 56, 59]
     }
 
     struct BleCommand {
         static let prefixTag = 0x78         // 120 Every bluettooth cmd start with 120
-        static let setRGBLightTag = 0x86  // 134 Set RGB Light Mode.
-        static let setCCTLightTag = 0x87  // 135 Set CCT Light Mode.
-
         static let setLongCCTLightBrightnessTag = 0x82  // 130 Set long CCT Light brightness.
         static let setLongCCTLightCCTTag = 0x83         // 131 Set long CCT Light CCT.
 
+        static let setRGBLightTag = 0x86  // 134 Set RGB Light Mode.
+        static let setCCTLightTag = 0x87  // 135 Set CCT Light Mode.
+
         static let setSceneTag = 0x88      // 136 Set Scene Light Mode.
+        static let setSCESubTag =  0x8B  //
+
+        static let setHSVDataTag = 0x89  // 143 Set Continuity RGB Light HSV data.
+        static let setCCTDataTag = 0x90  // 144 Set Continuity RGB Light Mode.
+        static let setSCEDataTag = 0x91  //
+
         static let powerOn = Data([0x78, 0x81, 0x01, 0x01, 0xFB])
         static let powerOff = Data([0x78, 0x81, 0x01, 0x02, 0xFC])
         static let readRequest = Data([0x78, 0x84, 0x00, 0xFC])
@@ -48,158 +61,220 @@ class NeewerLight: NSObject, ObservableNeewerLightProtocol {
         static let channelUpdatePrefix = Data([0x78, 0x01, 0x01])
     }
 
-    private var peripheral: CBPeripheral
-    private var deviceCtlCharacteristic: CBCharacteristic?
-    private var gattCharacteristic: CBCharacteristic?
+    var peripheral: CBPeripheral?
+    var deviceCtlCharacteristic: CBCharacteristic?
+    var gattCharacteristic: CBCharacteristic?
 
     var isOn: Observable<Bool> = Observable(false)
     var channel: Observable<UInt8> = Observable(1) // 1 ~ maxChannel
-    let maxChannel: UInt8 = 9
-    var offCounter: Int = 0     // if this counter is too large which mean this light disappeared from bluetooth fabric.
+    var userLightName: Observable<String> = Observable("")
+    var supportGMRange: Observable<Bool> = Observable(false)
+    var brrValue: Observable<Int> = Observable(+50) // Brightness, range 0~100
+    var cctValue: Observable<Int> = Observable(+53) // CCT - Correlated color temperature, range depents on light type 1800K ~ 5300K
+    var hueValue: Observable<Int> = Observable(+00) // HUE 0~360
+    var satValue: Observable<Int> = Observable(+00) // Saturation range 0~100
+    var gmmValue: Observable<Int> = Observable(-50) // GM, use name gmm for better code alignment, range -50~50
+    var lastTab: String = ""
+
+    var maxChannel: UInt8 {
+        return UInt8(supportedFX.count)
+    }
+
+    var lightType: UInt8 {
+        return _lightType
+    }
+
+    var supportedFX: [NeewerLightFX] = []
+    var supportedSource: [NeewerLightSource] = []
+
+    var connectionBreakCounter: Int = 0  // if connection break too many times which mean this light disappeared from bluetooth fabric.
 
     private var _writeDispatcher: DispatchWorkItem?
+    private var _rawName: String?
+    private var _identifier: String?
     private var _nickName: String?
     private var _projectName: String?
-    private var _lightType: Int8 = -1
+    private var _macAddress: String?
+    private var _lightType: UInt8 = 0 {
+        didSet {
+            let fxs = NeewerLightConstant.getLightFX(lightType: _lightType)
+            if supportedFX.isEmpty {
+                supportedFX = fxs
+            } else {
+                // Assuming both `fxs` and `supportedFX` are of the same type and contain unique ids.
+                supportedFX = fxs.map { fx1 in
+                    let newFx = fx1
+                    if let matchingFx = supportedFX.first(where: { $0.id == fx1.id }) {
+                        newFx.featureValues = matchingFx.featureValues
+                    }
+                    return newFx
+                }
+                Logger.debug("supportedFX: \(supportedFX)")
+            }
 
-    var userLightName: String = "Unknow"
-    var lightMode: NeewerLight.Mode = .CCTMode
-    var cctValue: Int = 0x53  // 5300K
-    var brrValue: Int = 50    // 0~100
-    var hueValue: Int = 0     // 0~360
-    var satruationValue: Int = 0 // 0~100
+            let sources = NeewerLightConstant.getLightSources(lightType: _lightType)
+            if supportedSource.isEmpty {
+                supportedSource = sources
+            } else {
+                // Assuming both `fxs` and `supportedFX` are of the same type and contain unique ids.
+                supportedSource = sources.map { fx2 in
+                    let newFx = fx2
+                    if let matchingFx = supportedSource.first(where: { $0.id == fx2.id }) {
+                        newFx.featureValues = matchingFx.featureValues
+                    }
+                    return newFx
+                }
+                Logger.debug("supportedSource: \(supportedSource)")
+            }
+        }
+    }
+
+    var lightMode: NeewerLight.Mode = .CCTMode {
+        didSet {
+            Logger.debug("lightMode: \(lightMode)")
+        }
+    }
+
+    // var brrValue: Int = 50    // 0~100
+    // var cctValue: Int = 53  // 5300K
+    // var hueValue: Int = 0     // 0~360
+    // var gmValue: Int = -50     // -50~50
+    // var satruationValue: Int = 0 // 0~100
     var followMusic: Bool = false
+    var macCheckCount: Int = 10
 
     // read only properties
     var supportRGB: Bool {
         // some lights are only Bi-Color which does not support RGB.
-        return NeewerLight.Constants.RGBLightTypes.contains(ligthType)
+        return NeewerLight.Constants.RGBLightTypes.contains(_lightType)
     }
 
-    var supportLongCCT: Bool {
+    func CCTRange() -> (minCCT: Int, maxCCT: Int) {
         // Default CCT range from 3200k–5600k
         // some lights support extended CCT range from 3200K–8500K such as
         // https://neewer.com/products/neewer-sl80-10w-rgb-led-video-light-10097903?_pos=1&_sid=dfa97e049&_ss=r&variant=37586440683713
-        return NeewerLight.Constants.ExtendedCCTLightTypes.contains(ligthType)
-    }
-
-    var minCCT: Int {
-        if supportLongCCT {
-            if supportLongCCT && projectName.contains("SL140") {
-                // https://neewer.com/products/neewer-sl-140-rgb-led-light-full-color-rechargeable-pocket-size-10097200?_pos=2&_sid=3ff26da17&_ss=r
-                return 25
-            }
-        }
-        return 32
-    }
-
-    var maxCCT: Int {
-        if supportLongCCT {
+        if ligthType == 6 {
             if projectName.contains("SL140") {
                 // https://neewer.com/products/neewer-sl-140-rgb-led-light-full-color-rechargeable-pocket-size-10097200?_pos=2&_sid=3ff26da17&_ss=r
-                return 90
+                return (minCCT: 25, maxCCT: 90)
+            } else {
+                return (minCCT: 25, maxCCT: 85)
             }
-            return 85
         }
-        return 56
+        if ligthType == 22 {
+            return (minCCT: 27, maxCCT: 65)
+        }
+        return (minCCT: 32, maxCCT: 56)
     }
 
     var deviceName: String {
-        let name = rawName
+        var name = String(rawName)
         if name.hasPrefix("NW") {
             return "NW-\(projectName)"
         }
         return name
     }
 
+    var nickNameSuffix: String {
+        // In andorid app the suffix is MAC address last 3 without :
+        // 00:1A:2B:3C:4D:5E -> 3C4D5E
+        // macOS Bluetooth Frameword does not provide a way to get MAC.
+        if _macAddress != nil {
+            return String(_macAddress?.replacingOccurrences(of: ":", with: "").suffix(6) ?? identifier.suffix(6))
+        }
+        return String(identifier.suffix(6))
+    }
+
     var nickName: String {
         if _nickName == nil {
-            let name = rawName
-
-            let currentTimeMillis: () -> String = {
-                // currentTimeMillis last 3 digits
-                var darwinTime: timeval = timeval(tv_sec: 0, tv_usec: 0)
-                gettimeofday(&darwinTime, nil)
-                let last3digits = ((Int64(darwinTime.tv_sec) * 1000) + Int64(darwinTime.tv_usec / 1000)) % 1000
-                return "\(last3digits)"
-            }
-
-            let str = currentTimeMillis()
-
-            if name.hasPrefix("NW") {
-                _nickName = "\(projectName)-\(str)"
-            } else if name.hasPrefix("NEEWER") || name.hasPrefix("NWR") {
-                _nickName = "\(name.replacingOccurrences(of: "NEEWER-", with: ""))-\(str)"
-            } else {
-                _nickName = name
-            }
+            let name = NeewerLightConstant.getLightNames(rawName: String(rawName), identifier: String(nickNameSuffix))
+            _nickName = name.nickName
         }
         return _nickName!
     }
 
     var projectName: String {
         if _projectName == nil {
-            let name = rawName
-            if name.hasPrefix("NEEWER") || name.hasPrefix("NWR") {
-                if let idx = name.firstIndex(of: "-") {
-                    _projectName = "\(name[name.index(idx, offsetBy: 1)...])"
-                } else if let idx = name.firstIndex(of: "_") {
-                    _projectName = "\(name[name.index(idx, offsetBy: 1)...])"
-                }
-            }
-            if name.hasPrefix("NW") && name.hasPrefix("&") {
-                if let idx = name.firstIndex(of: "-"), let idx2 = name.lastIndex(of: "&") {
-                    _projectName = "\(name[name.index(idx, offsetBy: 1)...idx2])"
-                } else if let idx = name.firstIndex(of: "_"), let idx2 = name.lastIndex(of: "&") {
-                    _projectName = "\(name[name.index(idx, offsetBy: 1)...idx2])"
-                }
-            }
+            let name = NeewerLightConstant.getLightNames(rawName: String(rawName), identifier: String(nickNameSuffix))
+            _projectName = name.projectName
+        }
+        if _projectName == nil {
+            Logger.error("Unable to get projectName")
         }
         return _projectName!
     }
 
     public lazy var identifier: String = {
-        return "\(peripheral.identifier)"
+        if _identifier != nil {
+            return _identifier!
+        }
+        if let sefePeripheral = peripheral {
+            _identifier = "\(sefePeripheral.identifier)"
+        }
+        return "\(_identifier ?? "")"
     }()
 
     public lazy var rawName: String = {
-        guard let name = peripheral.name else { return "" }
-        return name
+        if _rawName != nil {
+            return _rawName!
+        }
+        guard let name = peripheral?.name else { return "" }
+        _rawName = name
+        return _rawName!
     }()
 
-    private lazy var ligthType: Int8 = {
-        if _lightType < 0 {
-            _lightType = 8
-            _lightType = NeewerLight.getLightTypeByName(nickName)
+    private lazy var ligthType: UInt8 = {
+        if _lightType <= 0 {
+            _lightType = NeewerLightConstant.getLightType(nickName: nickName, str: "", projectName: projectName)
         }
         return _lightType
     }()
 
-    private func getConfig() -> [String: String] {
-        var vals: [String: String] = [:]
-        vals["on"] = isOn.value ? "1" : "0"
-        vals["mod"] = "\(lightMode.rawValue)"
-        vals["cct"] = "\(cctValue)"
-        vals["brr"] = "\(brrValue)"
-        vals["chn"] = "\(channel.value)"
-        vals["hue"] = "\(hueValue)"
-        vals["sat"] = "\(satruationValue)"
-        vals["nme"] = userLightName
+    init(_ peripheral: CBPeripheral, _ deviceCtlCharacteristic: CBCharacteristic, _ gattCharacteristic: CBCharacteristic) {
+        super.init()
+        setPeripheral(peripheral, deviceCtlCharacteristic, gattCharacteristic)
+        // Logger.debug("     config: \(getConfig())")
+        Logger.debug("    rawName: \(rawName)")
+        Logger.debug("        MAC: \(_macAddress)")
+        Logger.debug(" identifier: \(identifier)")
+        Logger.debug("projectName: \(projectName)")
+        Logger.debug("   nickName: \(nickName)")
+        Logger.debug("  ligthType: \(ligthType)")
+    }
+
+    func getConfig() -> [String: CodableValue] {
+        var vals: [String: CodableValue] = [:]
+        vals["mac"] = _macAddress.map { CodableValue.stringValue($0) }
+        vals["rawname"] = _rawName.map { CodableValue.stringValue($0) }
+        vals["identifier"] = _identifier.map { CodableValue.stringValue($0) }
+        vals["on"] = CodableValue.boolValue(isOn.value)
+        vals["mod"] = CodableValue.uint8Value(lightMode.rawValue)
+        vals["cct"] = CodableValue.intValue(cctValue.value)
+        vals["brr"] = CodableValue.intValue(brrValue.value)
+        vals["chn"] = CodableValue.uint8Value(channel.value)
+        vals["hue"] = CodableValue.intValue(hueValue.value)
+        vals["sat"] = CodableValue.intValue(satValue.value)
+        vals["gmm"] = CodableValue.intValue(gmmValue.value)
+        if userLightName.value.lengthOfBytes(using: .utf8) > 0 {
+            vals["nme"] = CodableValue.stringValue(userLightName.value)
+        }
+        vals["supportedFX"] = CodableValue.fxsValue(supportedFX)
+        vals["supportedSource"] = CodableValue.sourcesValue(supportedSource)
+        vals["lastTab"] = CodableValue.stringValue(lastTab)
+
         return vals
     }
 
-    func saveToUserDefault() {
-        let vals = getConfig()
-        UserDefaults.standard.set(vals, forKey: "\(self.peripheral.identifier)")
-    }
+    init(_ config: [String: CodableValue]) {
 
-    func readFromUserDefault() {
-        let vals = UserDefaults.standard.object(forKey: "\(self.peripheral.identifier)") as? [String: String] ?? [String: String]()
-        if let val = vals["on"] {
-            isOn.value = val == "1" ? true : false
-        }
+        super.init()
+        lastTab = config["lastTab"]?.stringValue ?? "cctTab"
+        _macAddress = config["mac"]?.stringValue ?? ""
+        _rawName = config["rawname"]?.stringValue ?? ""
+        _identifier = config["identifier"]?.stringValue ?? ""
+        isOn.value = config["on"]?.boolValue ?? false
 
-        if let val = vals["mod"] {
+        if let val = config["mod"]?.uint8Value {
             Logger.debug("load mod \(val)")
             if UInt8(val) == NeewerLight.Mode.CCTMode.rawValue {
                 lightMode = .CCTMode
@@ -210,163 +285,92 @@ class NeewerLight: NSObject, ObservableNeewerLightProtocol {
             }
         }
 
-        if let val = vals["cct"] {
-            Logger.debug("load cct \(val)")
-            cctValue = Int(val) ?? 0
-        }
-        if let val = vals["brr"] {
-            Logger.debug("load brr \(val)")
-            brrValue = Int(val) ?? 0
-        }
-        if let val = vals["chn"] {
-            Logger.debug("load channelValue \(val)")
-            channel.value = UInt8(val) ?? 1
-        }
-        if let val = vals["hue"] {
-            hueValue = Int(val) ?? 1
-            Logger.debug("load hueValue \(hueValue)")
-        }
-        if let val = vals["sat"] {
-            satruationValue = Int(val) ?? 1
-            Logger.debug("load satruationValue \(satruationValue)")
-        }
-        if let val = vals["nme"] {
-            userLightName = val
-        } else {
-            userLightName = peripheral.name ?? "Unknow"
-        }
-    }
+        cctValue.value = config["cct"]?.intValue ?? 0
+        brrValue.value = config["brr"]?.intValue ?? 0
+        channel.value = config["chn"]?.uint8Value ?? 1
+        hueValue.value = config["hue"]?.intValue ?? 1
+        satValue.value = config["sat"]?.intValue ?? 1
+        userLightName.value = config["nme"]?.stringValue ?? ""
 
-    init(_ peripheral: CBPeripheral, _ deviceCtlCharacteristic: CBCharacteristic, _ gattCharacteristic: CBCharacteristic) {
-        self.peripheral = peripheral
-        self.deviceCtlCharacteristic = deviceCtlCharacteristic
-        self.gattCharacteristic = gattCharacteristic
-        super.init()
-        self.peripheral.delegate = self
-        readFromUserDefault()
-        Logger.debug("     config: \(getConfig())")
-        Logger.debug("    rawName: \(rawName)")
-        Logger.debug("projectName: \(projectName)")
-        Logger.debug("   nickName: \(nickName)")
-        Logger.debug("  ligthType: \(ligthType)")
+        if let val = config["supportedFX"]?.fxsValue {
+            supportedFX.removeAll()
+            supportedFX.append(contentsOf: val)
+        }
+
+        if let val = config["supportedSource"]?.sourcesValue {
+            supportedSource.removeAll()
+            supportedSource.append(contentsOf: val)
+        }
+
+        if let safeMac = _macAddress {
+            if (safeMac.lengthOfBytes(using: .utf8)) > 8 && self.ligthType == 22 {
+                supportGMRange.value = true
+            }
+        }
+
+        Logger.debug("        rawName: \(rawName)")
+        Logger.debug("            MAC: \(_macAddress ?? "")")
+        Logger.debug("     identifier: \(identifier)")
+        Logger.debug("    projectName: \(projectName)")
+        Logger.debug("       nickName: \(nickName)")
+        Logger.debug("      ligthType: \(ligthType)")
+        Logger.debug("    supportedFX: \(supportedFX)")
+        Logger.debug("supportedSource: \(supportedSource)")
     }
 
     deinit {
-        self.peripheral.delegate = nil
+        self.peripheral?.delegate = nil
         Logger.debug("deinit: \(self)")
     }
 
-    class func isValidPeripheralName(_ peripheralName: String) -> Bool {
-        if peripheralName.contains("NWR") ||
-            peripheralName.contains("NEEWER") ||
-            peripheralName.contains("SL") ||
-            peripheralName.starts(with: "nw-") || // https://github.com/keefo/NeewerLite/issues/19
-            peripheralName.starts(with: "NEEWER-") ||
-            peripheralName.contains("NEE") // https://github.com/keefo/NeewerLite/issues/15
-        {
-            return true
+    func setPeripheral(_ peripheral: CBPeripheral?, _ deviceCtlCharacteristic: CBCharacteristic?, _ gattCharacteristic: CBCharacteristic?) {
+        self.peripheral = peripheral
+        self.deviceCtlCharacteristic = deviceCtlCharacteristic
+        self.gattCharacteristic = gattCharacteristic
+        self.peripheral?.delegate = self
+        if _macAddress == nil || _macAddress == "" {
+            discoverMAC(self.peripheral!)
+        }
+    }
+
+    func hasMAC() -> Bool {
+        if let mac = _macAddress {
+            if mac.lengthOfBytes(using: .utf8) == 17 {
+                return true
+            }
         }
         return false
     }
 
-    class func getLightTypeByName(_ nickName: String) -> Int8 {
-        // decoded from Android app,
-        // what does these light types means?
-        // Not sure.
-        var lightType: Int8 = 8
-        if nickName.contains("SRP") || nickName.contains("RP18-P") {
-            lightType = 1
-            return lightType
+    func isValid() -> Bool {
+        if _macAddress == nil || _identifier == nil {
+            return false
         }
-        if nickName.contains("SNL") || nickName.contains("NL") {
-            if nickName.contains("SNL") {
-                if nickName.contains("SNL960") || nickName.contains("SNL1320") || nickName.contains("SNL1920") {
-                    lightType = 13
-                    return lightType
-                }
-                lightType = 7
-                return lightType
-            }
-            lightType = 2
-            return lightType
-        }
-        if nickName.contains("GL") {
-            lightType = 4
-            return lightType
-        }
-        if nickName.contains("ZK-RY") {
-            lightType = 17
-            return lightType
-        }
-        if nickName.contains("RGB") || nickName.contains("SL") {
-            if nickName.contains("RGB") {
-                if nickName.lengthOfBytes(using: String.Encoding.utf8) != 8 || !nickName.hasPrefix("RGB1") {
-                    if nickName.contains("RGB176") {
-                        if nickName.contains("RGB176A1") {
-                            lightType = 20
-                        } else {
-                            lightType = 5
-                        }
-                    } else if nickName.contains("RGB18") {
-                        lightType = 9
-                    } else if nickName.contains("RGB190") {
-                        lightType = 11
-                    } else {
-                        if nickName.contains("RGB960") || nickName.contains("RGB1320") || nickName.contains("RGB1920") {
-                            lightType = 12
-                            return lightType
-                        }
-                        if nickName.contains("RGB140") {
-                            lightType = 15
-                        } else if nickName.contains("RGB168") {
-                            lightType = 16
-                        } else if nickName.contains("RGB1200") {
-                            lightType = 18
-                        } else if nickName.contains("CL124-RGB") {
-                            lightType = 19
-                        } else if nickName.contains("RGBC80") {
-                            lightType = 21
-                        } else if nickName.contains("CB60 RGB") {
-                            lightType = 22
-                        } else {
-                            lightType = 3
-                        }
-                    }
-                    return lightType
-                }
-            } else if nickName.contains("SL90") {
-                lightType = 14
-                return lightType
-            } else {
-                lightType = 6
-                return lightType
-            }
-        } else {
-            lightType = 0
-            return lightType
-        }
-        return lightType
+        return _macAddress != "" && _identifier != ""
     }
 
     func sendKeepAlive(_ cbm: CBCentralManager?) {
-        if self.peripheral.state == .connected {
+        guard let peripheral = self.peripheral else {
+            return
+        }
+        if peripheral.state == .connected {
             Logger.debug("sendKeepAlive self.peripheral.state: connected")
-        } else if self.peripheral.state == .disconnected {
+        } else if peripheral.state == .disconnected {
             Logger.debug("sendKeepAlive self.peripheral.state: disconnected")
-        } else if self.peripheral.state == .connecting {
+        } else if peripheral.state == .connecting {
             Logger.debug("sendKeepAlive self.peripheral.state: connecting")
-        } else if self.peripheral.state == .disconnecting {
+        } else if peripheral.state == .disconnecting {
             Logger.debug("sendKeepAlive self.peripheral.state: disconnecting")
         } else {
             Logger.debug("sendKeepAlive self.peripheral.state: unknow")
         }
 
-        if self.peripheral.state == .connected {
-            offCounter = 0
+        if peripheral.state == .connected {
+            connectionBreakCounter = 0
         }
-        if self.peripheral.state != .connected {
-            cbm?.connect(self.peripheral, options: nil)
-            offCounter += 1
+        if peripheral.state != .connected {
+            cbm?.connect(peripheral, options: nil)
+            connectionBreakCounter += 1
         } else {
             if isOn.value {
                 sendPowerOnRequest()
@@ -409,7 +413,7 @@ class NeewerLight: NSObject, ObservableNeewerLightProtocol {
             Logger.debug("gattCharacteristic can not Notify")
             return
         }
-        peripheral.setNotifyValue(true, for: characteristic)
+        peripheral?.setNotifyValue(true, for: characteristic)
     }
 
     func stopLightOnNotify() {
@@ -420,15 +424,18 @@ class NeewerLight: NSObject, ObservableNeewerLightProtocol {
             Logger.debug("gattCharacteristic can not Notify")
             return
         }
-        peripheral.setNotifyValue(false, for: characteristic)
+        peripheral?.setNotifyValue(false, for: characteristic)
     }
 
     // Set correlated color temperature and bulb brightness in CCT Mode
-    public func setCCTLightValues(_ cct: CGFloat, _ brr: CGFloat) {
+    public func setCCTLightValues(brr: CGFloat, cct: CGFloat, gmm: CGFloat) {
         guard let characteristic = deviceCtlCharacteristic else {
             return
         }
-        if supportRGB {
+        if supportGMRange.value {
+            let cmd = getCCTDATALightValue(brightness: brr, correlatedColorTemperature: cct, gmm: gmm)
+            write(data: cmd as Data, to: characteristic)
+        } else if supportRGB {
             let cmd = getCCTLightValue(brightness: brr, correlatedColorTemperature: cct)
             write(data: cmd as Data, to: characteristic)
         } else {
@@ -439,17 +446,7 @@ class NeewerLight: NSObject, ObservableNeewerLightProtocol {
     }
 
     // Set RBG light in HSV Mode
-    public func setRGBLightValues(_ hue: CGFloat, _ sat: CGFloat) {
-        guard let characteristic = deviceCtlCharacteristic else {
-            return
-        }
-        // Logger.debug("hue: \(hue) sat: \(sat)")
-        let cmd = getRGBLightValue(brightness: CGFloat(brrValue) / 100.0, hue: hue, satruation: sat)
-        write(data: cmd as Data, to: characteristic)
-        lightMode = .HSIMode
-    }
-
-    public func setRGBLightValues(_ hue: CGFloat, _ sat: CGFloat, _ brr: CGFloat) {
+    public func setRGBLightValues(brr: CGFloat, hue: CGFloat, sat: CGFloat) {
         guard let characteristic = deviceCtlCharacteristic else {
             return
         }
@@ -466,6 +463,22 @@ class NeewerLight: NSObject, ObservableNeewerLightProtocol {
         }
         let cmd = getSceneValue(scene, brightness: CGFloat(brr))
         write(data: cmd as Data, to: characteristic)
+        lightMode = .SCEMode
+    }
+
+    // Send Scene
+    public func sendSceneCommand(_ fxx: NeewerLightFX) {
+        guard let characteristic = deviceCtlCharacteristic else {
+            return
+        }
+        if _lightType == 22 {
+            let cmd = getSceneCommand(_macAddress ?? "", fxx)
+            channel.value = UInt8(fxx.id)
+            write(data: cmd as Data, to: characteristic)
+        } else {
+            let cmd = getSceneValue(UInt8(fxx.id), brightness: CGFloat(fxx.brrValue))
+            write(data: cmd as Data, to: characteristic)
+        }
         lightMode = .SCEMode
     }
 
@@ -519,6 +532,7 @@ class NeewerLight: NSObject, ObservableNeewerLightProtocol {
         bArr[0] = NeewerLight.BleCommand.prefixTag
         bArr[1] = tag
         bArr[2] = byteCount
+
         var idx = 3
         for val in vals {
             bArr[idx] = val
@@ -527,30 +541,88 @@ class NeewerLight: NSObject, ObservableNeewerLightProtocol {
         return appendCheckSum(bArr)
     }
 
-    private func getCCTLightValue(brightness brr: CGFloat, correlatedColorTemperature cct: CGFloat) -> Data {
+    private func composeSingleCommandWithMac(_ tag: Int, _ mac: String, _ subtag: Int, _ vals: [Int]) -> [UInt8] {
+        let byteCount = vals.count
+        var bArr: [Int] = [Int](repeating: 0, count: byteCount + 11)
+        bArr[0] = NeewerLight.BleCommand.prefixTag
+        bArr[1] = tag
+        bArr[2] = byteCount + 7
+        var intArray = mac.split(separator: ":").compactMap { Int($0, radix: 16) }
+        while intArray.count < 6 {
+            intArray.append(0)
+        }
+        bArr[3] = intArray[0]
+        bArr[4] = intArray[1]
+        bArr[5] = intArray[2]
+        bArr[6] = intArray[3]
+        bArr[7] = intArray[4]
+        bArr[8] = intArray[5]
+        bArr[9] = subtag
+        var idx = 10
+        for val in vals {
+            bArr[idx] = val
+            idx += 1
+        }
+        return appendCheckSum(bArr)
+    }
 
+    private func getCCTDATALightValue(brightness brr: CGFloat, correlatedColorTemperature cct: CGFloat, gmm: CGFloat) -> Data {
+        var ratio = 100.0
+        if brr > 1.0 {
+            ratio = 1.0
+        }
         // cct range from 0x20(32) - 0x38(56) 32 stands for 3200K 65 stands for 5600K
-        let newCctValue: Int = Int(cct).clamped(to: 32...maxCCT)
+        let cctrange = CCTRange()
+        let newCctValue: Int = Int(cct).clamped(to: cctrange.minCCT...cctrange.maxCCT)
         // brr range from 0x00 - 0x64
-        let newBrrValue: Int = Int(brr * 100.0).clamped(to: 0...100)
+        let newBrrValue: Int = Int(brr * ratio).clamped(to: 0...100)
+        let newGmValue: Int = Int(gmm).clamped(to: -50...50)
+
+        gmmValue.value = newGmValue
+        cctValue.value = newCctValue
+        brrValue.value = newBrrValue
+
+        Logger.debug("brrValue.value: \(brrValue.value)")
+        Logger.debug("cctValue.value: \(cctValue.value)")
+        Logger.debug("gmmValue.value: \(gmmValue.value)")
+
+        let dimmingCurveType = 0x04
+        let iArr: [Int] = [brrValue.value, cctValue.value, gmmValue.value+50, dimmingCurveType]
+
+        let bArr1: [UInt8] = composeSingleCommandWithMac(NeewerLight.BleCommand.setCCTDataTag, _macAddress!, NeewerLight.BleCommand.setCCTLightTag, iArr)
+        let data = NSData(bytes: bArr1, length: bArr1.count) as Data
+
+        return data
+    }
+
+    private func getCCTLightValue(brightness brr: CGFloat, correlatedColorTemperature cct: CGFloat) -> Data {
+        var ratio = 100.0
+        if brr > 1.0 {
+            ratio = 1.0
+        }
+        // cct range from 0x20(32) - 0x38(56) 32 stands for 3200K 65 stands for 5600K
+        let cctrange = CCTRange()
+        let newCctValue: Int = Int(cct).clamped(to: cctrange.minCCT...cctrange.maxCCT)
+        // brr range from 0x00 - 0x64
+        let newBrrValue: Int = Int(brr * ratio).clamped(to: 0...100)
 
         if newCctValue == 0 {
             // only adjust the brightness and keep the color temp
-            if brrValue == newBrrValue {
+            if brrValue.value == newBrrValue {
                 return Data()
             }
-            brrValue = newBrrValue
+            brrValue.value = newBrrValue
 
-            let bArr1: [UInt8] = composeSingleCommand(NeewerLight.BleCommand.setCCTLightTag, brrValue)
+            let bArr1: [UInt8] = composeSingleCommand(NeewerLight.BleCommand.setCCTLightTag, brrValue.value)
 
             let data = NSData(bytes: bArr1, length: bArr1.count)
             return data as Data
         }
 
-        cctValue = newCctValue
-        brrValue = newBrrValue
+        cctValue.value = newCctValue
+        brrValue.value = newBrrValue
 
-        let bArr1: [UInt8] = composeSingleCommand(NeewerLight.BleCommand.setCCTLightTag, brrValue, cctValue)
+        let bArr1: [UInt8] = composeSingleCommand(NeewerLight.BleCommand.setCCTLightTag, brrValue.value, cctValue.value)
 
         let data = NSData(bytes: bArr1, length: bArr1.count)
         return data as Data
@@ -559,28 +631,29 @@ class NeewerLight: NSObject, ObservableNeewerLightProtocol {
     // Not sure what is is L stand for.
     private func getCCTOnlyLightValue(brightness brr: CGFloat, correlatedColorTemperature cct: CGFloat) -> Data {
         // cct range from 0x20(32) - 0x38(56) 32 stands for 3200K 65 stands for 5600K
-        let newCctValue: Int = Int(cct).clamped(to: minCCT...maxCCT)
+        let cctrange = CCTRange()
+        let newCctValue: Int = Int(cct).clamped(to: cctrange.minCCT...cctrange.maxCCT)
         // brr range from 0x00 - 0x64
         let newBrrValue: Int = Int(brr).clamped(to: 0...100)
 
         if newCctValue == 0 {
             // only adjust the brightness and keep the color temp
-            if brrValue == newBrrValue {
+            if brrValue.value == newBrrValue {
                 return Data()
             }
-            brrValue = newBrrValue
+            brrValue.value = newBrrValue
 
-            let bArr1: [UInt8] = composeSingleCommand(NeewerLight.BleCommand.setLongCCTLightBrightnessTag, brrValue)
+            let bArr1: [UInt8] = composeSingleCommand(NeewerLight.BleCommand.setLongCCTLightBrightnessTag, brrValue.value)
 
             let data = NSData(bytes: bArr1, length: bArr1.count)
             return data as Data
         }
 
-        cctValue = newCctValue
-        brrValue = newBrrValue
+        cctValue.value = newCctValue
+        brrValue.value = newBrrValue
 
-        let bArr1 = composeSingleCommand(NeewerLight.BleCommand.setLongCCTLightBrightnessTag, brrValue)
-        let bArr2 = composeSingleCommand(NeewerLight.BleCommand.setLongCCTLightCCTTag, cctValue)
+        let bArr1 = composeSingleCommand(NeewerLight.BleCommand.setLongCCTLightBrightnessTag, brrValue.value)
+        let bArr2 = composeSingleCommand(NeewerLight.BleCommand.setLongCCTLightCCTTag, cctValue.value)
         let bArr = bArr1 + bArr2
 
         let data = NSData(bytes: bArr, length: bArr.count)
@@ -593,14 +666,14 @@ class NeewerLight: NSObject, ObservableNeewerLightProtocol {
         }
         if lightMode == .CCTMode {
             if supportRGB {
-                let cmd = getCCTLightValue(brightness: brr, correlatedColorTemperature: CGFloat(cctValue))
+                let cmd = getCCTLightValue(brightness: brr, correlatedColorTemperature: CGFloat(cctValue.value))
                 write(data: cmd as Data, to: characteristic)
             } else {
-                let cmd = getCCTOnlyLightValue(brightness: brr, correlatedColorTemperature: CGFloat(cctValue))
+                let cmd = getCCTOnlyLightValue(brightness: brr, correlatedColorTemperature: CGFloat(cctValue.value))
                 write(data: cmd as Data, to: characteristic)
             }
         } else if lightMode == .HSIMode {
-            let cmd = getRGBLightValue(brightness: brr, hue: CGFloat(hueValue) / 360.0, satruation: CGFloat(satruationValue) / 100.0)
+            let cmd = getRGBLightValue(brightness: brr, hue: CGFloat(hueValue.value) / 360.0, satruation: CGFloat(satValue.value) / 100.0)
             write(data: cmd as Data, to: characteristic)
         } else {
             let cmd = getSceneValue(channel.value, brightness: CGFloat(brr))
@@ -634,9 +707,9 @@ class NeewerLight: NSObject, ObservableNeewerLightProtocol {
         bArr[5] = newSatValue // satruation 0x00 ~ 0x64
         bArr[6] = newBrrValue // brightness
 
-        brrValue = newBrrValue
-        hueValue = newHueValue
-        satruationValue = newSatValue
+        brrValue.value = newBrrValue
+        hueValue.value = newHueValue
+        satValue.value = newSatValue
 
         let bArr1: [UInt8] = appendCheckSum(bArr)
 
@@ -657,7 +730,7 @@ class NeewerLight: NSObject, ObservableNeewerLightProtocol {
 
         // brr range from 0x00 - 0x64
         let newBrrValue: Int = Int(brr).clamped(to: 0...100)
-        brrValue = newBrrValue
+        brrValue.value = newBrrValue
 
         // scene from 1 ~ 9
         channel.value = scene.clamped(to: 1...maxChannel)
@@ -678,7 +751,161 @@ class NeewerLight: NSObject, ObservableNeewerLightProtocol {
         return data as Data
     }
 
+    func getSceneCommand(_ mac: String, _ fxx: NeewerLightFX) -> Data {
+
+        /*
+         Oct 25 01:41:40.143  ATT Send         0x004A  00:00:00:00:00:00  Write Command - Handle:0x000E - Value: 7891 0BDF 243A B446 5D8B 1107 0103 4F  SEND
+         Oct 25 01:41:42.493  ATT Send         0x004A  00:00:00:00:00:00  Write Command - Handle:0x000E - Value: 7891 0BDF 243A B446 5D8B 1107 0101 4D  SEND
+
+         CMD TAG   SIZE       MAC                     SCE_TAG  SCE_ID(01~0C)     (BRR 00~64)    (COLOR 00~02)      (Speed 00~0A)      (checksum)
+         78   91   0B         (DF 24 3A B4 46 5D)     8B       11                 07             01                 03                 4F
+
+         Name               ID
+         Lighting           01             BRR   CTT   SPEED
+         Paparazzi          02             BRR   CTT   GM       SPEED
+         Defective bulb     03             BRR   CTT   GM       SPEED
+         Explosion          04             BRR   CTT   GM       SPEED     Sparks(01~0A)
+         Welding            05             BRR_low   BRR_high     CTT   GM       SPEED
+         CCT flash          06             BRR   CTT   GM       SPEED
+         HUE flash          07             BRR   HUE (2Bytes little Endian 0000~6801)   SAT (00~64)   SPEED
+         CCT pulse          08             BRR   CCT   GM       SPEED
+         HUE pulse          09             BRR   HUE (2Bytes little Endian 0000~6801)   SAT (00~64)   SPEED
+         Cop Car            0A             BRR   RED_AND_BLUE(00~05 Red,Blue, Red and Blue, White and Blue, Red blue  white) SPEED
+         Candlelight        0B             BRR_low   BRR_high   CTT     GM       SPEED     Sparks
+         HUE Loop           0C             BRR   HUE_low  HUE_high      SPEED
+         CCT Loop           0D             BRR   CCT_low  CCT_high      SPEED
+         INT loop           0E             BRR_low   BRR_high   HUE     SPEED
+         TV Screen          0F             BRR   CCT   GM       SPEED
+         Firework           10             BRR   COLOR(00 Single color, 01 Color, 02 Combined)   SPEED   Sparks
+         Party              11             BRR   COLOR(00 Single color, 01 Color, 02 Combined)   SPEED
+         */
+        // scene from 1 ~ 9
+        channel.value = UInt8(fxx.id).clamped(to: 1...maxChannel)
+
+        var byteCount = 8
+        if fxx.needBRR {
+            byteCount += 1
+        }
+        if fxx.needBRRUpperBound {
+            byteCount += 1
+        }
+        if fxx.needHUE {
+            byteCount += 2
+        }
+        if fxx.needHUEUpperBound {
+            byteCount += 2
+        }
+        if fxx.needSAT {
+            byteCount += 1
+        }
+        if fxx.needCCT {
+            byteCount += 1
+        }
+        if fxx.needCCTUpperBound {
+            byteCount += 1
+        }
+        if fxx.needGM {
+            byteCount += 1
+        }
+        if fxx.needColor && fxx.colors.count > 0 {
+            byteCount += 1
+        }
+        if fxx.needSpeed {
+            byteCount += 1
+        }
+        if fxx.needSparks && fxx.sparkLevel.count > 0 {
+            byteCount += 1
+        }
+        var bArr: [Int] = [Int](repeating: 0, count: byteCount + 4)
+        bArr[0] = NeewerLight.BleCommand.prefixTag      // 78
+        bArr[1] = NeewerLight.BleCommand.setSCEDataTag  // 91
+        bArr[2] = byteCount
+        var intArray = mac.split(separator: ":").compactMap { Int($0, radix: 16) }
+        while intArray.count < 6 {
+            intArray.append(0)
+        }
+        bArr[3] = intArray[0]
+        bArr[4] = intArray[1]
+        bArr[5] = intArray[2]
+        bArr[6] = intArray[3]
+        bArr[7] = intArray[4]
+        bArr[8] = intArray[5]
+        bArr[9] = NeewerLight.BleCommand.setSCESubTag
+        bArr[10] = Int(channel.value)
+        var idx = 11
+        if fxx.needBRR {
+            let newBrrValue: Int = Int(fxx.brrValue).clamped(to: 0...100)
+            bArr[idx] = newBrrValue
+            idx += 1
+        }
+        if fxx.needBRRUpperBound {
+            let newBrrValue: Int = Int(fxx.brrUpperValue).clamped(to: 0...100)
+            bArr[idx] = newBrrValue
+            idx += 1
+        }
+        if fxx.needHUE {
+            let newHueValue = Int(fxx.hueValue).clamped(to: 0...360)
+            bArr[idx] = Int(newHueValue & 0xFF)
+            idx += 1
+            bArr[idx] = Int((newHueValue & 0xFF00) >> 8) // callcuated from rgb
+            idx += 1
+        }
+        if fxx.needHUEUpperBound {
+            let newHueValue = Int(fxx.hueUpperValue).clamped(to: 0...360)
+            bArr[idx] = Int(newHueValue & 0xFF)
+            idx += 1
+            bArr[idx] = Int((newHueValue & 0xFF00) >> 8) // callcuated from rgb
+            idx += 1
+        }
+        if fxx.needSAT {
+            let newSatValue: Int = Int(fxx.satValue).clamped(to: 0...100)
+            bArr[idx] = newSatValue
+            idx += 1
+        }
+        if fxx.needCCT {
+            let cctrange = CCTRange()
+            let newCctValue: Int = Int(fxx.cctValue).clamped(to: cctrange.minCCT...cctrange.maxCCT)
+            bArr[idx] = newCctValue
+            idx += 1
+        }
+        if fxx.needCCTUpperBound {
+            let cctrange = CCTRange()
+            let newCctValue: Int = Int(fxx.cctUpperValue).clamped(to: cctrange.minCCT...cctrange.maxCCT)
+            bArr[idx] = newCctValue
+            idx += 1
+        }
+        if fxx.needGM {
+            let newValue: Int = Int(fxx.gmValue).clamped(to: -50...50) + 50
+            bArr[idx] = newValue
+            idx += 1
+        }
+        if fxx.needColor && fxx.colors.count > 0 {
+            let newValue: Int = Int(fxx.colorValue).clamped(to: 0...fxx.colors.count)
+            bArr[idx] = newValue
+            idx += 1
+        }
+        if fxx.needSpeed {
+            let newValue: Int = Int(fxx.speedValue).clamped(to: 1...10)
+            bArr[idx] = newValue
+            idx += 1
+        }
+        if fxx.needSparks && fxx.sparkLevel.count > 0 {
+            let newValue: Int = Int(fxx.sparksValue).clamped(to: 1...fxx.sparkLevel.count)
+            bArr[idx] = newValue
+            idx += 1
+        }
+
+        let bArr1: [UInt8] = appendCheckSum(bArr)
+
+        // Nov 06 23:52:46.851  ATT Send         0x005B  00:00:00:00:00:00  Write Command - Handle:0x000E - Value: 7891 0BDF 243A B446 5D8B 0132 3706 A3  SEND
+        let data = NSData(bytes: bArr1, length: bArr1.count)
+        return data as Data
+    }
+
     private func write(data value: Data, to characteristic: CBCharacteristic) {
+        guard let peripheral = self.peripheral else {
+            return
+        }
         if value.count > 1 {
             if peripheral.state != .connected {
                 Logger.error("peripheral is not connected, can not send command!")
@@ -686,17 +913,41 @@ class NeewerLight: NSObject, ObservableNeewerLightProtocol {
             }
             _writeDispatcher?.cancel()
             let currentWorkItem = DispatchWorkItem {
-                // Logger.debug("write data: \(value.hexEncodedString())")
+                Logger.debug("write data: \(value.hexEncodedString())")
                 if characteristic.properties.contains(CBCharacteristicProperties.writeWithoutResponse) {
-                    self.peripheral.writeValue(value, for: characteristic, type: .withoutResponse)
+                    peripheral.writeValue(value, for: characteristic, type: .withoutResponse)
                 } else if characteristic.properties.contains(CBCharacteristicProperties.write) {
-                    self.peripheral.writeValue(value, for: characteristic, type: .withResponse)
+                    peripheral.writeValue(value, for: characteristic, type: .withResponse)
                 }
             }
             _writeDispatcher = currentWorkItem
             // Writing too fast to the device could lead to BLE jam, slow down the request with 15ms delay.
             DispatchQueue.main.asyncAfter(deadline: .now() + (15.0 / 1000.0), execute: currentWorkItem)
          }
+    }
+
+    private func discoverMAC(_ peripheral: CBPeripheral) {
+        if (_macAddress == nil || _macAddress == "") && macCheckCount > 0 {
+            macCheckCount -= 1
+            let name = peripheral.name
+            if let devices = getConnectedBluetoothDevices() {
+                for dev in devices {
+                    if let devName = dev["name"], let deviceAddress = dev["device_address"] {
+                        if devName == name {
+                            Logger.debug("Found Device: \(devName) MAC: \(deviceAddress)")
+                            _macAddress = deviceAddress
+                            _projectName = nil
+                            _nickName = nil
+                            if let safeMac = _macAddress {
+                                if (safeMac.lengthOfBytes(using: .utf8)) > 8 && _lightType == 22 {
+                                    supportGMRange.value = true
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -779,7 +1030,7 @@ extension NeewerLight: CBPeripheralDelegate {
     }
 
     func peripheralIsReady(toSendWriteWithoutResponse peripheral: CBPeripheral) {
-        // Logger.debug("peripheralIsReady toSendWriteWithoutResponse: \(peripheral)")
+        discoverMAC(peripheral)
     }
 
     func peripheral(_ peripheral: CBPeripheral, didOpen channel: CBL2CAPChannel?, error: Error?) {

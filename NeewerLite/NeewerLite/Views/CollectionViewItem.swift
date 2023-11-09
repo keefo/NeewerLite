@@ -7,92 +7,47 @@
 
 import Cocoa
 
-class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, ColorWheelDelegate, NSTabViewDelegate {
+enum ControlTag: Int {
+    case brr = 10
+    case cct = 11
+    case gmm = 12
+    case hue = 13
+    case sat = 14
+    case wheel = 15
+    case fxsubview = 16
+    case speed = 17
+    case spark = 18
+}
 
-    @IBOutlet var lightModeButton1: NSSegmentedControl!
-    @IBOutlet var lightModeButton: NSSegmentedControl!
+class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDelegate {
+
     @IBOutlet weak var lightModeTabView: NSTabView!
     @IBOutlet weak var nameField: NSTextField!
     @IBOutlet weak var switchButton: NSSwitch!
 
-    // CCT Controls
-    @IBOutlet weak var cctBrrValueField: NSTextField!
-    @IBOutlet weak var cctCctValueField: NSTextField!
-    @IBOutlet weak var cctBrrSlide: NSSlider!
-    @IBOutlet weak var cctCctSlide: NSSlider!
+    @IBOutlet var tabSCE: NSTabViewItem!
+    // @IBOutlet weak var followMusicButton: NSButton!
 
-    // HSI Controls
-    @IBOutlet weak var hsiBrrValueField: NSTextField!
-    @IBOutlet weak var hsiSatValueField: NSTextField!
-    @IBOutlet weak var hsiColorWheel: ColorWheel!
-    @IBOutlet weak var hsiBrrSlide: NSSlider!
-    @IBOutlet weak var hsiSatSlide: NSSlider! // Saturation
-    // @IBOutlet weak var hsi_cctValueField: NSTextField!
-    // @IBOutlet weak var hsi_cctSlide: NSSlider!
+    private var renameVC: RenameViewController?
 
-    // Scene Controls
-    @IBOutlet weak var sceneTabView: NSTabView!
-    @IBOutlet weak var sceneModeButton1: NSButton!
-    @IBOutlet weak var sceneModeButton2: NSButton!
-    @IBOutlet weak var sceneModeButton3: NSButton!
-    @IBOutlet weak var scenebrrSlide: NSSlider!
-    @IBOutlet weak var scenebrrValueField: NSTextField!
-    @IBOutlet weak var followMusicButton: NSButton!
-
-    @IBOutlet weak var scene1Button: NSButton!
-    @IBOutlet weak var scene2Button: NSButton!
-    @IBOutlet weak var scene3Button: NSButton!
-    @IBOutlet weak var scene4Button: NSButton!
-    @IBOutlet weak var scene5Button: NSButton!
-    @IBOutlet weak var scene6Button: NSButton!
-    @IBOutlet weak var scene7Button: NSButton!
-    @IBOutlet weak var scene8Button: NSButton!
-    @IBOutlet weak var scene9Button: NSButton!
-
+    private var buildingView: Bool = false
     private var currentSceneIndex: UInt8 = 0
     private var tabView1: NSTabViewItem?
     private var tabView2: NSTabViewItem?
-
-    var currentScene: UInt8 {
-        get {
-            if currentSceneIndex == 0 {
-                if let dev = device {
-                    currentSceneIndex = dev.channel.value
-                } else {
-                    currentSceneIndex = 1
-                }
-            }
-            return currentSceneIndex
-        }
-        set {
-            if (1...9).contains(newValue) {
-                currentSceneIndex = newValue
-                updateScene(false)
-            }
-        }
-    }
-
-    var nameEditor: NSTextField?
+    var nameObservation: NSKeyValueObservation?
+    private var overlay: BlockingOverlayView?
+    private let valueTextColor: NSColor = NSColor.secondaryLabelColor
 
     var device: NeewerLight? {
         didSet {
-            if let dev = device {
-                lightModeButton1.removeFromSuperview()
-                lightModeButton.removeFromSuperview()
-
-                if dev.supportRGB {
-                    lightModeButton.frame = NSRect(x: 242, y: 240, width: 163, height: 24)
-                    self.view.addSubview(lightModeButton)
-                } else {
-                    lightModeButton1.frame = NSRect(x: 293, y: 240, width: 61, height: 24)
-                    self.view.addSubview(lightModeButton1)
-                }
-
-                self.cctCctSlide.minValue = Double(dev.minCCT)
-                self.cctCctSlide.maxValue = Double(dev.maxCCT)
-
-                updateDeviceColorToWheel()
-            }
+//            if let dev = device {
+//                let cctrange = dev.CCTRange()
+//                self.cctCctSlide.minValue = Double(cctrange.minCCT)
+//                self.cctCctSlide.maxValue = Double(cctrange.maxCCT)
+//                self.cctgmCctSlide.minValue = Double(cctrange.minCCT)
+//                self.cctgmCctSlide.maxValue = Double(cctrange.maxCCT)
+//                updateDeviceColorToWheel()
+//            }
         }
     }
 
@@ -106,11 +61,8 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, ColorWheelD
         didSet {
             guard isViewLoaded else { return }
             if let image = image {
+                imageView?.imageScaling = .scaleProportionallyUpOrDown
                 imageView?.image = image
-                let width: CGFloat = (imageView?.frame.size.height)! * image.size.width / image.size.height
-                var frame = imageView?.frame
-                frame?.size.width = width
-                imageView?.frame = frame!
             } else {
                 imageView?.image = nil
             }
@@ -125,42 +77,7 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, ColorWheelD
         view.layer?.borderWidth = 1.0
         view.layer?.cornerRadius = 10.0
 
-        self.followMusicButton.state = .off
-        self.lightModeButton1.selectedSegment = 0
-        self.lightModeButton.selectedSegment = 0
-        self.lightModeTabView.selectTabViewItem(at: 0)
-
-        // CCT tab
-        self.cctBrrSlide.minValue = 0.0
-        self.cctBrrSlide.maxValue = 100.0 // do not exceed 100.0 here, LED only takes 100.0
-
-        self.cctCctSlide.minValue = 32.0
-        self.cctCctSlide.maxValue = 56.0 // do not exceed 100.0 here
-
-        self.cctCctValueField.stringValue = ""
-        self.cctBrrValueField.stringValue = ""
-
-        // HSI tab
-        self.hsiColorWheel.delegate = self
-        self.hsiBrrSlide.minValue = 0.0
-        self.hsiBrrSlide.maxValue = 100.0 // do not exceed 100.0 here, LED only takes 100.0
-        self.hsiSatSlide.minValue = 0.0
-        self.hsiSatSlide.maxValue = 100.0
-        self.hsiSatValueField.stringValue = ""
-        self.hsiBrrValueField.stringValue = ""
-
-        // Scene tab
-        self.scenebrrSlide.minValue = 0.0
-        self.scenebrrSlide.maxValue = 100.0 // do not exceed 100.0 here, LED only takes 100.0
-        self.scenebrrSlide.allowsTickMarkValuesOnly = true
-
-        resetSceneButtons()
-    }
-
-    @IBAction func modeAction(_ sender: NSSegmentedControl) {
-        if [0, 1, 2].contains(sender.selectedSegment) {
-            lightModeTabView.selectTabViewItem(at: sender.selectedSegment)
-        }
+        // self.followMusicButton.state = .off
     }
 
     @IBAction func toggleFollowMusicAction(_ sender: NSButton) {
@@ -174,6 +91,14 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, ColorWheelD
         }
     }
 
+    @IBAction func forgetAction(_ sender: NSButton) {
+        if let dev = device {
+            if let app = NSApp.delegate as? AppDelegate {
+                app.forgetLight(dev)
+            }
+        }
+    }
+
     @IBAction func moreAction(_ sender: NSButton) {
         let menu = NSMenu(title: "MoreMenu")
         let item = NSMenuItem(title: NSLocalizedString("Rename Light", comment: ""),
@@ -181,108 +106,165 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, ColorWheelD
         item.target = self
         menu.addItem(item)
 
+//        item = NSMenuItem(title: NSLocalizedString("Forget Light", comment: ""),
+//                          action: #selector(forgetAction(_:)), keyEquivalent: "")
+//        item.target = self
+//        menu.addItem(item)
+
         var location = sender.bounds.origin
         location.y += 20
 
         menu.popUp(positioning: menu.item(at: 0), at: location, in: sender)
     }
 
-    func controlTextDidEndEditing(_ obj: Notification) {
-        if self.nameEditor == nil {
-            return
-        }
-        let newName = self.nameEditor!.stringValue
-        self.nameEditor!.removeFromSuperview()
-        self.nameEditor = nil
-        self.nameField.isHidden = false
-        if let dev = device {
-            dev.userLightName = newName
-        }
-        self.nameField.stringValue = newName
-    }
-
     @objc func renameAction(_ sender: Any) {
-        nameEditor = NSTextField(frame: self.nameField.frame)
-        nameEditor!.delegate = self
-
-        if let dev = device {
-            nameEditor!.stringValue = dev.userLightName
+        if renameVC != nil {
+            renameVC = nil
         }
-
-        self.view.addSubview(nameEditor!)
-        self.nameField.isHidden = true
+        renameVC = RenameViewController()
+        renameVC?.onOK = { [weak self] text in
+            guard let safeSelf = self else { return true }
+            if let safeDev = safeSelf.device {
+                if let app = NSApp.delegate as? AppDelegate {
+                    if app.isUserLightNameUsed(text, dev: safeDev) {
+                        return false
+                    }
+                }
+                safeDev.userLightName.value = "\(text)"
+                safeSelf.updateDeviceName()
+            }
+            return true
+        }
+        if let dev = device {
+            renameVC?.setCurrentValue(dev.userLightName.value)
+        }
+        renameVC?.popover.show(relativeTo: nameField.bounds, of: nameField, preferredEdge: .minY)
     }
 
-    func updateCCTValueField() {
-        if let dev = device {
-            let paragraph = NSMutableParagraphStyle()
-            paragraph.alignment = .center
-            let str1 = NSAttributedString(string: "\(dev.cctValue)00",
-                                          attributes: [
-                                                .paragraphStyle: paragraph,
-                                                .font: NSFont.monospacedSystemFont(ofSize: 27, weight: .regular)
-                                            ])
-            let str2 = NSAttributedString(string: "K",
-                                          attributes: [
-                                                .font: NSFont.monospacedSystemFont(ofSize: 13, weight: .medium),
-                                                .paragraphStyle: paragraph
-                                          ])
-            let str = NSMutableAttributedString(attributedString: str1)
-            str.append(str2)
-            cctCctValueField.attributedStringValue = str
+    func formatBrrValue(_ val: String, _ ali: NSTextAlignment) -> NSMutableAttributedString {
+        let paragraph = NSMutableParagraphStyle()
+        paragraph.alignment = ali
+        var font1 = NSFont.monospacedSystemFont(ofSize: 27, weight: .regular)
+        var font2 = NSFont.monospacedSystemFont(ofSize: 13, weight: .medium)
+        if let fontURL = Bundle.main.url(forResource: "digital-7-mono", withExtension: "ttf") {
+            CTFontManagerRegisterFontsForURL(fontURL as CFURL, CTFontManagerScope.process, nil)
+            if let customFont1 = NSFont(name: "Digital-7Mono", size: 45) { // Replace "ActualFontName" with the actual font name.
+                font1 = customFont1
+            }
+            if let customFont2 = NSFont(name: "Digital-7Mono", size: 18) { // Replace "ActualFontName" with the actual font name.
+                font2 = customFont2
+            }
         }
+
+        let str1 = NSAttributedString(string: "\(val)",
+                                      attributes: [
+                                        .font: font1,
+                                        .paragraphStyle: paragraph,
+                                        .foregroundColor: valueTextColor
+                                      ])
+        let str2 = NSAttributedString(string: "%",
+                                      attributes: [
+                                        .font: font2,
+                                        .paragraphStyle: paragraph,
+                                        .foregroundColor: valueTextColor
+                                      ])
+        let str = NSMutableAttributedString(attributedString: str1)
+        str.append(str2)
+        return str
     }
 
-    func updateBRRValueField() {
-        if let dev = device {
-            let paragraph = NSMutableParagraphStyle()
-            paragraph.alignment = .center
-            let str1 = NSAttributedString(string: "\(dev.brrValue)",
-                                          attributes: [
-                                            .font: NSFont.monospacedSystemFont(ofSize: 27, weight: .regular),
-                                            .paragraphStyle: paragraph
-                                          ])
-            let str2 = NSAttributedString(string: "%",
-                                          attributes: [
-                                            .font: NSFont.monospacedSystemFont(ofSize: 13, weight: .medium),
-                                            .paragraphStyle: paragraph
-                                          ])
-            let str = NSMutableAttributedString(attributedString: str1)
-            str.append(str2)
-            cctBrrValueField.attributedStringValue = str
+    func formatHUEValue(_ val: String, _ ali: NSTextAlignment) -> NSMutableAttributedString {
+        let paragraph = NSMutableParagraphStyle()
+        paragraph.alignment = ali
+        var font1 = NSFont.monospacedSystemFont(ofSize: 27, weight: .regular)
+        if let fontURL = Bundle.main.url(forResource: "digital-7-mono", withExtension: "ttf") {
+            CTFontManagerRegisterFontsForURL(fontURL as CFURL, CTFontManagerScope.process, nil)
+            if let customFont1 = NSFont(name: "Digital-7Mono", size: 40) { // Replace "ActualFontName" with the actual font name.
+                font1 = customFont1
+            }
         }
+
+        let str1 = NSAttributedString(string: "\(val)°",
+                                      attributes: [
+                                        .font: font1,
+                                        .paragraphStyle: paragraph,
+                                        .foregroundColor: valueTextColor
+                                      ])
+        let str = NSMutableAttributedString(attributedString: str1)
+        return str
     }
 
-    @IBAction func slideAction(_ sender: NSSlider) {
-        if sender == cctBrrSlide {
-            if let dev = device {
-                dev.setBRRLightValues(CGFloat(cctBrrSlide.doubleValue) / 100.0)
-                scenebrrSlide.doubleValue = Double(dev.brrValue)
-                updateBRRValueField()
-            }
-        } else if sender == cctCctSlide {
-            if let dev = device {
-                dev.setCCTLightValues(CGFloat(cctCctSlide.doubleValue), CGFloat(hsiBrrSlide.doubleValue) / 100.0)
-                updateCCTValueField()
-            }
-        } else if sender == hsiBrrSlide {
-            if let dev = device {
-                dev.setBRRLightValues(CGFloat(hsiBrrSlide.doubleValue) / 100.0)
-                hsiBrrValueField.stringValue = "\(dev.brrValue)"
-                scenebrrSlide.doubleValue = Double(dev.brrValue)
-            }
-        } else if sender == hsiSatSlide {
-            if let dev = device {
-                hsiColorWheel.setSaturation(CGFloat(hsiSatSlide.doubleValue/100.0))
-                dev.setRGBLightValues(hsiColorWheel.color.hueComponent, hsiColorWheel.color.saturationComponent)
-                hsiSatValueField.stringValue = "\(dev.satruationValue)"
-            }
-        } else if sender == scenebrrSlide {
-            if let dev = device {
-                updateScene(false)
-                hsiBrrSlide.doubleValue = Double(dev.brrValue)
+    func formatSATValue(_ val: String, _ ali: NSTextAlignment) -> NSMutableAttributedString {
+        let paragraph = NSMutableParagraphStyle()
+        paragraph.alignment = ali
+        var font1 = NSFont.monospacedSystemFont(ofSize: 27, weight: .regular)
+        if let fontURL = Bundle.main.url(forResource: "digital-7-mono", withExtension: "ttf") {
+            CTFontManagerRegisterFontsForURL(fontURL as CFURL, CTFontManagerScope.process, nil)
+            if let customFont1 = NSFont(name: "Digital-7Mono", size: 40) { // Replace "ActualFontName" with the actual font name.
+                font1 = customFont1
             }
         }
+
+        let str1 = NSAttributedString(string: "\(val)",
+                                      attributes: [
+                                        .font: font1,
+                                        .paragraphStyle: paragraph,
+                                        .foregroundColor: valueTextColor
+                                      ])
+        let str = NSMutableAttributedString(attributedString: str1)
+        return str
+    }
+
+    func formatCCTValue(_ val: String, _ ali: NSTextAlignment) -> NSMutableAttributedString {
+        let paragraph = NSMutableParagraphStyle()
+        paragraph.alignment = ali
+        var font1 = NSFont.monospacedSystemFont(ofSize: 27, weight: .regular)
+        var font2 = NSFont.monospacedSystemFont(ofSize: 13, weight: .medium)
+        if let fontURL = Bundle.main.url(forResource: "digital-7-mono", withExtension: "ttf") {
+            CTFontManagerRegisterFontsForURL(fontURL as CFURL, CTFontManagerScope.process, nil)
+            if let customFont1 = NSFont(name: "Digital-7Mono", size: 45) { // Replace "ActualFontName" with the actual font name.
+                font1 = customFont1
+            }
+            if let customFont2 = NSFont(name: "Digital-7Mono", size: 18) { // Replace "ActualFontName" with the actual font name.
+                font2 = customFont2
+            }
+        }
+
+        let str1 = NSAttributedString(string: "\(val)",
+                                      attributes: [
+                                        .paragraphStyle: paragraph,
+                                        .font: font1,
+                                        .foregroundColor: valueTextColor
+                                      ])
+        let str2 = NSAttributedString(string: "00K",
+                                      attributes: [
+                                        .font: font2,
+                                        .paragraphStyle: paragraph,
+                                        .foregroundColor: valueTextColor
+                                      ])
+        let str = NSMutableAttributedString(attributedString: str1)
+        str.append(str2)
+        return str
+    }
+
+    func formatGMMValue(_ val: String, _ ali: NSTextAlignment) -> NSMutableAttributedString {
+        let paragraph = NSMutableParagraphStyle()
+        paragraph.alignment = ali
+        var font1 = NSFont.monospacedSystemFont(ofSize: 27, weight: .regular)
+        if let fontURL = Bundle.main.url(forResource: "digital-7-mono", withExtension: "ttf") {
+            CTFontManagerRegisterFontsForURL(fontURL as CFURL, CTFontManagerScope.process, nil)
+            if let customFont1 = NSFont(name: "Digital-7Mono", size: 45) { // Replace "ActualFontName" with the actual font name.
+                font1 = customFont1
+            }
+        }
+        let str1 = NSAttributedString(string: "\(val)",
+                                      attributes: [
+                                        .font: font1,
+                                        .paragraphStyle: paragraph,
+                                        .foregroundColor: valueTextColor
+                                      ])
+        let str = NSMutableAttributedString(attributedString: str1)
+        return str
     }
 
     @IBAction func toggleAction(_ sender: Any) {
@@ -295,201 +277,962 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, ColorWheelD
         }
     }
 
-    @IBAction func changeModeAction(_ sender: NSButton) {
-        resetSceneModeButtons()
-        sender.state = .on
-        switch sender.tag {
-            case 0:
-                sceneTabView.selectTabViewItem(at: 0)
-                sceneModeButton1.state = .on
-                sceneModeButton1.alphaValue = 1.0
-            case 1:
-                sceneTabView.selectTabViewItem(at: 1)
-                sceneModeButton2.state = .on
-                sceneModeButton2.alphaValue = 1.0
-            case 2:
-                sceneTabView.selectTabViewItem(at: 2)
-                sceneModeButton3.state = .on
-                sceneModeButton3.alphaValue = 1.0
-            default:
-                sceneTabView.selectTabViewItem(at: 0)
-                sceneModeButton1.state = .on
-                sceneModeButton1.alphaValue = 1.0
-        }
-        updateScene(true)
-    }
-
-    func resetSceneModeButtons() {
-        sceneModeButton1.state = .off
-        sceneModeButton2.state = .off
-        sceneModeButton3.state = .off
-        sceneModeButton1.alphaValue = 0.4
-        sceneModeButton2.alphaValue = 0.4
-        sceneModeButton3.alphaValue = 0.4
-    }
-
-    func resetSceneButtons() {
-        resetSceneModeButtons()
-
-        scene1Button.state = .off
-        scene2Button.state = .off
-        scene3Button.state = .off
-        scene4Button.state = .off
-        scene5Button.state = .off
-        scene6Button.state = .off
-        scene7Button.state = .off
-        scene8Button.state = .off
-        scene9Button.state = .off
-
-        scene1Button.alphaValue = 0.4
-        scene2Button.alphaValue = 0.4
-        scene3Button.alphaValue = 0.4
-        scene4Button.alphaValue = 0.4
-        scene5Button.alphaValue = 0.4
-        scene6Button.alphaValue = 0.4
-        scene7Button.alphaValue = 0.4
-        scene8Button.alphaValue = 0.4
-        scene9Button.alphaValue = 0.4
-    }
-
-    @IBAction func channelAction(_ sender: NSButton) {
-        resetSceneButtons()
-        sender.state = .on
-        sender.alphaValue = 1
-        currentScene = UInt8(sender.tag)
-    }
-
-    func updateScene(_ changeModeOnly: Bool) {
-        if lightModeTabView.selectedTabViewItem != lightModeTabView.tabViewItem(at: 2) {
+    func updateDeviceName() {
+        guard let dev = device else {
+            self.nameField.stringValue = ""
             return
         }
-        if let dev = device {
-            if dev.supportRGB {
-                if changeModeOnly {
-                    if dev.lightMode != .SCEMode {
-                        dev.setScene(currentScene, brightness: CGFloat(scenebrrSlide.doubleValue))
-                        scenebrrValueField.stringValue = "\(dev.brrValue)"
-                    }
-                } else {
-                    dev.setScene(currentScene, brightness: CGFloat(scenebrrSlide.doubleValue))
-                    scenebrrValueField.stringValue = "\(dev.brrValue)"
-                }
+        let paragraphStyle = NSMutableParagraphStyle()
+        paragraphStyle.paragraphSpacing = 5.0 // Adjust the spacing to your needs
 
-            }
-        }
+        // Attributes for the first line
+        let firstLineAttributes: [NSAttributedString.Key: Any] = [
+            .font: NSFont.systemFont(ofSize: 13, weight: .regular), // Large font size
+            .foregroundColor: NSColor.gray, // Light gray color
+            .paragraphStyle: paragraphStyle
+        ]
+
+        // Attributes for the second line
+        let secondLineAttributes: [NSAttributedString.Key: Any] = [
+            .font: NSFont.systemFont(ofSize: 10, weight: .regular), // Smaller font size
+            .foregroundColor: NSColor.darkGray, // Light gray color
+            .paragraphStyle: paragraphStyle
+        ]
+
+        // Create the attributed string for the first line
+        let firstLine = NSAttributedString(string: "\(dev.nickName)\n", attributes: firstLineAttributes)
+
+        // Create the attributed string for the second line
+        let secondLine = NSAttributedString(string: "\(dev.userLightName.value)", attributes: secondLineAttributes)
+
+        // Combine the attributed strings
+        let finalString = NSMutableAttributedString()
+        finalString.append(firstLine)
+        finalString.append(secondLine)
+
+        // Set the attributed string to the NSTextField
+        self.nameField.attributedStringValue = finalString
     }
 
-    func updateDeviceColorToWheel() {
-        if let dev = device {
-            if dev.supportRGB {
-                // colorWheel does not need to consider brightness. Alway pass in 1.0
-                self.hsiColorWheel.setViewColor(NSColor(calibratedHue: CGFloat(dev.hueValue) / 360.0,
-                                                        saturation: CGFloat(dev.satruationValue) / 100.0,
-                                                        brightness: 1.0,
-                                                        alpha: 1.0))
-            }
+    func selectTabViewItemSafely(withIdentifier identifier: Any) {
+        guard let tabView = self.lightModeTabView else {
+            return
         }
+        guard tabView.tabViewItems.contains(where: { $0.identifier as? String == identifier as? String }) else {
+            Logger.error("Tab item with identifier \(identifier) does not exist!")
+            if tabView.tabViewItems.count > 0 {
+                tabView.selectTabViewItem(at: 0)
+            }
+            return
+        }
+        tabView.selectTabViewItem(withIdentifier: identifier)
     }
 
     func updateDeviceStatus() {
         guard let dev = device else {
-            self.cctCctValueField.stringValue = ""
-            self.cctBrrValueField.stringValue = ""
-            self.hsiBrrValueField.stringValue = ""
-            self.lightModeTabView.selectTabViewItem(at: 0)
-            self.lightModeButton!.selectedSegment = 0
-            resetSceneButtons()
             return
         }
 
-        if dev.isOn.value {
-            self.switchButton.state = .on
-        } else {
-            self.switchButton.state = .off
-        }
+        self.switchButton.state = dev.isOn.value ? .on : .off
 
         // Mode tab updates
-        if dev.supportRGB {
-            if dev.lightMode == .CCTMode {
-                lightModeTabView.selectTabViewItem(at: 0)
-                lightModeButton.selectedSegment = 0
-            } else if dev.lightMode == .HSIMode {
-                lightModeTabView.selectTabViewItem(at: 1)
-                lightModeButton.selectedSegment = 1
-            } else {
-                lightModeTabView.selectTabViewItem(at: 2)
-                lightModeButton.selectedSegment = 2
+        if !buildingView {
+            self.selectTabViewItemSafely(withIdentifier: dev.lastTab)
+        }
+    }
+
+    func buildView() {
+        if let dev = device {
+            buildingView = true
+
+            let removeTabItem: (String) -> Void = { idf in
+                if let tabviewitem = self.lightModeTabView.tabViewItems.first(where: { $0.identifier as? String == idf }) {
+                    self.lightModeTabView.removeTabViewItem(tabviewitem)
+                }
             }
-        } else {
-            lightModeTabView.selectTabViewItem(at: 0)
-            lightModeButton1.selectedSegment = 0
+
+            removeTabItem("cctTab")
+            removeTabItem("sourceTab")
+            removeTabItem("hsiTab")
+            removeTabItem("sceTab")
+
+            if true {
+                let view = buildCCTView(device: dev)
+                let tab = NSTabViewItem(identifier: "cctTab")
+                tab.view = view
+                tab.label = "CCT"
+                self.lightModeTabView.addTabViewItem(tab)
+            }
+
+            if dev.supportRGB {
+                let view = buildHSIView(device: dev)
+                let tab = NSTabViewItem(identifier: "hsiTab")
+                tab.view = view
+                tab.label = "HSI"
+                self.lightModeTabView.addTabViewItem(tab)
+            }
+
+            if true {
+                let view = buildLightSourceView(device: dev)
+                let tab = NSTabViewItem(identifier: "sourceTab")
+                tab.view = view
+                tab.label = "Light Source"
+                self.lightModeTabView.addTabViewItem(tab)
+            }
+
+            if dev.maxChannel > 0 {
+                let view = buildFXView(device: dev)
+                let tab = NSTabViewItem(identifier: "sceTab")
+                tab.view = view
+                tab.label = "FX"
+                self.lightModeTabView.addTabViewItem(tab)
+            }
+
+            buildingView = false
+        }
+    }
+
+    func buildHSIView(device dev: NeewerLight) -> NSView {
+        let viewWidth = self.lightModeTabView.bounds.width
+        let viewHeigth = self.lightModeTabView.bounds.height - 46
+        let view = NSView(frame: NSRect(x: 0, y: 0, width: viewWidth, height: viewHeigth))
+        view.autoresizingMask = [.width, .height]
+
+        let valueWidth = 80.0
+        let wheelWidth = 150.0
+        let wheelX = (view.bounds.width - wheelWidth) / 2.0 + 10.0
+        let offsetX = 50.0
+        var offsetY = 20.0
+        var topY = 30.0
+        var topX = wheelX - valueWidth
+        let topDX = valueWidth + wheelWidth + 50.0
+
+        let color = NSColor(calibratedHue: CGFloat(dev.hueValue.value) / 360.0,
+                            saturation: CGFloat(dev.satValue.value) / 100.0,
+                            brightness: 1.0,
+                            alpha: 1.0)
+
+        let wheel = ColorWheel(frame: NSRect(x: wheelX, y: 40, width: wheelWidth, height: wheelWidth), color: color)
+        wheel.autoresizingMask = [.minXMargin, .maxYMargin]
+        wheel.tag = ControlTag.wheel.rawValue
+        wheel.callback = { [weak self] hue, sat in
+            guard let safeSelf = self else { return }
+            if let safeDev = safeSelf.device {
+                if safeDev.supportRGB {
+                    safeDev.setRGBLightValues(brr: CGFloat(safeDev.brrValue.value) / 100.0, hue: hue, sat: sat)
+                }
+            }
         }
 
-        // CCT updates
-        updateCCTValueField()
-        updateBRRValueField()
-        cctCctSlide.doubleValue = Double(dev.cctValue)
-        cctBrrSlide.doubleValue = Double(dev.brrValue)
+        view.addSubview(wheel)
 
-        if dev.supportRGB {
-            // HSI updates
-            hsiBrrSlide.doubleValue = Double(dev.brrValue)
-            hsiBrrValueField.stringValue = "\(dev.brrValue)"
-            hsiSatSlide.doubleValue = Double(dev.satruationValue)
-            hsiSatValueField.stringValue = "\(dev.satruationValue)"
+        let createLabel: (String) -> NSTextField = { stringValue in
+            let label = NSTextField(frame: NSRect(x: offsetX - 40, y: offsetY - 4, width: 30, height: 18))
+            label.autoresizingMask = [.minYMargin, .maxXMargin]
+            label.stringValue = stringValue
+            label.alignment = .right
+            label.isEditable = false
+            label.isSelectable = false
+            label.isBordered = false
+            label.drawsBackground = false
+            label.font = NSFont.labelFont(ofSize: 9)
+            return label
+        }
 
-            updateDeviceColorToWheel()
+        let createValueField: (ControlTag, NSAttributedString) -> NSTextField = { tag, stringValue in
+            let label = NSTextField(frame: NSRect(x: topX, y: topY+15, width: valueWidth, height: 37))
+            label.autoresizingMask = [.minYMargin, .maxXMargin, .minXMargin]
+            label.attributedStringValue = stringValue
+            label.tag = tag.rawValue
+            label.alignment = .center
+            label.isEditable = false
+            label.isSelectable = false
+            label.isBordered = false
+            label.drawsBackground = false
+            topX += topDX
+            return label
+        }
 
-            // Scene updates
-            scenebrrSlide.doubleValue = Double(dev.brrValue)
+        let createValueLabel: (String) -> NSTextField = { stringValue in
+            let label = NSTextField(frame: NSRect(x: topX, y: topY + 55, width: valueWidth, height: 19))
+            label.autoresizingMask = [.minYMargin, .maxXMargin, .minXMargin]
+            label.stringValue = stringValue
+            label.alignment = .center
+            label.isEditable = false
+            label.isSelectable = false
+            label.isBordered = false
+            label.drawsBackground = false
+            label.font = NSFont.systemFont(ofSize: 11)
+            return label
+        }
 
-            resetSceneButtons()
-
-            if dev.channel.value >= 1 && dev.channel.value <= 3 {
-                sceneModeButton1.state = .on
-                sceneModeButton1.alphaValue = 1.0
-                sceneTabView.selectTabViewItem(at: 0)
-            } else if dev.channel.value >= 4 && dev.channel.value <= 6 {
-                sceneModeButton2.state = .on
-                sceneModeButton2.alphaValue = 1.0
-                sceneTabView.selectTabViewItem(at: 1)
-            } else if dev.channel.value >= 7 && dev.channel.value <= 9 {
-                sceneModeButton3.state = .on
-                sceneModeButton3.alphaValue = 1.0
-                sceneTabView.selectTabViewItem(at: 2)
+        offsetY = 13.0
+        view.addSubview(createLabel("BRR"))
+        let brrSlide = NLSlider(frame: NSRect(x: offsetX, y: offsetY, width: view.bounds.width - 80, height: 20))
+        brrSlide.autoresizingMask = [.width, .maxYMargin]
+        brrSlide.tag = ControlTag.brr.rawValue
+        brrSlide.type = .brr
+        brrSlide.minValue = 0.0
+        brrSlide.maxValue = 100.0
+        brrSlide.currentValue = CGFloat(dev.brrValue.value)
+        brrSlide.customBarDrawing = NLSlider.brightnessBar()
+        brrSlide.callback = { [weak self] val in
+            guard let safeSelf = self else { return }
+            if let safeDev = safeSelf.device {
+                safeDev.setBRRLightValues(CGFloat(val))
             }
+        }
+        view.addSubview(brrSlide)
 
-            switch dev.channel.value {
-                case 1:
-                    scene1Button.state = .on
-                    scene1Button.alphaValue = 1
-                case 2:
-                    scene2Button.state = .on
-                    scene2Button.alphaValue = 1
-                case 3:
-                    scene3Button.state = .on
-                    scene3Button.alphaValue = 1
-                case 4:
-                    scene4Button.state = .on
-                    scene4Button.alphaValue = 1
-                case 5:
-                    scene5Button.state = .on
-                    scene5Button.alphaValue = 1
-                case 6:
-                    scene6Button.state = .on
-                    scene6Button.alphaValue = 1
-                case 7:
-                    scene7Button.state = .on
-                    scene7Button.alphaValue = 1
-                case 8:
-                    scene8Button.state = .on
-                    scene8Button.alphaValue = 1
-                case 9:
-                    scene9Button.state = .on
-                    scene9Button.alphaValue = 1
-                default:
-                    scene1Button.state = .off
-                    scene1Button.alphaValue = 0.4
+        view.addSubview(createValueLabel("Brightness"))
+        view.addSubview(createValueField(ControlTag.brr, formatBrrValue("\(dev.brrValue.value)", .center)))
+
+        topX = wheelX - valueWidth
+        topY = 120
+        view.addSubview(createValueLabel("HUE"))
+        view.addSubview(createValueField(ControlTag.hue, formatHUEValue("\(dev.hueValue.value)", .center)))
+
+        topX = wheel.frame.maxX - 20.0
+        view.addSubview(createValueLabel("Saturation"))
+        view.addSubview(createValueField(ControlTag.sat, formatSATValue("\(dev.satValue.value)", .center)))
+
+        return view
+    }
+
+    func buildCCTView(device dev: NeewerLight) -> NSView {
+        let viewWidth = self.lightModeTabView.bounds.width
+        let viewHeight = self.lightModeTabView.bounds.height - 46
+        let view = NSView(frame: NSRect(x: 0, y: 0, width: viewWidth, height: viewHeight))
+        view.autoresizingMask = [.width, .height]
+
+        let cctrange = dev.CCTRange()
+
+        let valueItem = dev.supportGMRange.value ? 3 : 2
+        var topY = 100.0
+        let valueItemWidth = 80.0
+        // Define the gap between subviews
+        let gap: CGFloat = 10
+
+        // Calculate the total width needed for all three subviews and two gaps
+        let totalWidth = (valueItemWidth * Double(valueItem)) + (gap * 2.0)
+
+        // Calculate the x-coordinate for the leftmost subview to center them
+        var topX = (view.frame.size.width - totalWidth) / 2.0
+        let topDX = valueItemWidth + gap
+
+        let offsetX = 50.0
+        var offsetY = 50.0
+        if dev.supportGMRange.value {
+            offsetY = 70.0
+            topY = 110
+        }
+
+        let createLabel: (String) -> NSTextField = { stringValue in
+            let label = NSTextField(frame: NSRect(x: offsetX - 40, y: offsetY - 4, width: 30, height: 18))
+            label.autoresizingMask = [.minYMargin, .maxXMargin]
+            label.stringValue = stringValue
+            label.alignment = .right
+            label.isEditable = false
+            label.isSelectable = false
+            label.isBordered = false
+            label.drawsBackground = false
+            label.font = NSFont.labelFont(ofSize: 9)
+            return label
+        }
+
+        let createValueField: (ControlTag, NSAttributedString) -> NSTextField = { tag, stringValue in
+            let label = NSTextField(frame: NSRect(x: topX, y: topY, width: valueItemWidth, height: 50))
+            label.autoresizingMask = [.minYMargin, .maxXMargin, .minXMargin]
+            label.attributedStringValue = stringValue
+            label.tag = tag.rawValue
+            label.alignment = .center
+            label.isEditable = false
+            label.isSelectable = false
+            label.isBordered = false
+            label.drawsBackground = false
+            topX += topDX
+            return label
+        }
+
+        let createValueLabel: (String) -> NSTextField = { stringValue in
+            let label = NSTextField(frame: NSRect(x: topX, y: topY + 55, width: valueItemWidth, height: 19))
+            label.autoresizingMask = [.minYMargin, .maxXMargin, .minXMargin]
+            label.stringValue = stringValue
+            label.alignment = .center
+            label.isEditable = false
+            label.isSelectable = false
+            label.isBordered = false
+            label.drawsBackground = false
+            label.font = NSFont.systemFont(ofSize: 11)
+            return label
+        }
+
+        view.addSubview(createLabel("BRR"))
+        let brrSlide = NLSlider(frame: NSRect(x: offsetX, y: offsetY, width: view.bounds.width - 80, height: 20))
+        brrSlide.autoresizingMask = [.width, .maxYMargin]
+        brrSlide.tag = ControlTag.brr.rawValue
+        brrSlide.type = .brr
+        brrSlide.minValue = 0.0
+        brrSlide.maxValue = 100.0
+        brrSlide.currentValue = CGFloat(dev.brrValue.value)
+        brrSlide.customBarDrawing = NLSlider.brightnessBar()
+        brrSlide.callback = { [weak self] val in
+            guard let safeSelf = self else { return }
+            if let safeDev = safeSelf.device {
+                safeDev.setCCTLightValues(brr: CGFloat(val), cct: CGFloat(dev.cctValue.value), gmm: CGFloat(dev.gmmValue.value))
+            }
+        }
+        view.addSubview(brrSlide)
+
+        view.addSubview(createValueLabel("Brightness"))
+        view.addSubview(createValueField(ControlTag.brr, formatBrrValue("\(dev.brrValue.value)", .center)))
+
+        offsetY -= 30
+
+        view.addSubview(createLabel("CCT"))
+        let cctSlide = NLSlider(frame: NSRect(x: offsetX, y: offsetY, width: view.bounds.width - 80, height: 20))
+        cctSlide.autoresizingMask = [.width, .maxYMargin]
+        cctSlide.tag = ControlTag.cct.rawValue
+        cctSlide.type = .cct
+        cctSlide.minValue = Double(cctrange.minCCT)
+        cctSlide.maxValue = Double(cctrange.maxCCT)
+        cctSlide.currentValue = CGFloat(dev.cctValue.value)
+        cctSlide.customBarDrawing = NLSlider.cttBar()
+        cctSlide.callback = { val in
+            dev.setCCTLightValues(brr: CGFloat(dev.brrValue.value) / 100.0, cct: CGFloat(val), gmm: CGFloat(dev.gmmValue.value))
+        }
+        view.addSubview(cctSlide)
+        view.addSubview(createValueLabel("CCT"))
+        view.addSubview(createValueField(ControlTag.cct, formatCCTValue("\(dev.cctValue.value)", .center)))
+
+        offsetY -= 30
+
+        if dev.supportGMRange.value {
+            view.addSubview(createLabel("GM"))
+            let gmmSlide = NLSlider(frame: NSRect(x: offsetX, y: offsetY, width: view.bounds.width - 80, height: 20))
+            gmmSlide.autoresizingMask = [.width, .maxYMargin]
+            gmmSlide.tag = ControlTag.gmm.rawValue
+            gmmSlide.type = .gmm
+            gmmSlide.customBarDrawing = NLSlider.gmBar()
+            gmmSlide.minValue = -50.0
+            gmmSlide.maxValue = 50.0
+            gmmSlide.currentValue = CGFloat(dev.gmmValue.value)
+            gmmSlide.callback = { [weak self] val in
+                guard let safeSelf = self else { return }
+                if let safeDev = safeSelf.device {
+                    safeDev.setCCTLightValues(brr: CGFloat(safeDev.brrValue.value) / 100.0, cct: CGFloat(safeDev.cctValue.value), gmm: CGFloat(val))
+                }
+            }
+            view.addSubview(gmmSlide)
+            view.addSubview(createValueLabel("GM"))
+            view.addSubview(createValueField(ControlTag.gmm, formatGMMValue("\(dev.gmmValue.value)", .center)))
+        }
+        return view
+    }
+
+    func buildFXView(device dev: NeewerLight) -> NSView {
+        let viewWidth = self.lightModeTabView.bounds.width
+        let viewHeight = self.lightModeTabView.bounds.height - 46
+        let view = NSView(frame: NSRect(x: 0, y: 0, width: viewWidth, height: viewHeight))
+        view.autoresizingMask = [.width, .height]
+        //view.wantsLayer = true
+        //view.layer?.backgroundColor = NSColor.yellow.cgColor
+
+        let cctrange = dev.CCTRange()
+
+        let createLabel: (CGFloat, String) -> NSTextField = { offsetY, stringValue in
+            let label = NSTextField(frame: NSRect(x: 15, y: offsetY, width: 35, height: 20))
+            label.autoresizingMask = [.minYMargin, .maxXMargin]
+            label.stringValue = stringValue
+            label.alignment = .right
+            label.isEditable = false
+            label.isSelectable = false
+            label.isBordered = false
+            label.drawsBackground = false
+            label.font = NSFont.labelFont(ofSize: 9)
+            return label
+        }
+
+        let fxs = dev.supportedFX
+
+        view.addSubview(createLabel(viewHeight - 30, "Scene"))
+
+        // Create an NSPopUpButton and set its frame
+        let popUpButton = NSPopUpButton(frame: NSRect(x: 60, y: viewHeight - 28, width: viewWidth - 120, height: 20), pullsDown: false)
+        popUpButton.autoresizingMask = [.minYMargin, .width]
+        popUpButton.controlSize = .small
+        popUpButton.target = self
+        popUpButton.action = #selector(fxClicked(_:))
+        let menu = NSMenu()
+        // Populate the menu with menu items
+        for scene in fxs {
+            let menuItem = NSMenuItem(title: "\(scene.id) - \(scene.name)", action: nil, keyEquivalent: "")
+            menuItem.tag = Int(scene.id)
+            menuItem.target = self // Set the target to your desired target
+            menu.addItem(menuItem)
+        }
+        popUpButton.menu = menu
+        view.addSubview(popUpButton)
+
+        popUpButton.selectItem(withTag: Int(dev.channel.value))
+        if let selectedItem = popUpButton.selectedItem {
+            fxClicked(popUpButton)
+        }
+        return view
+    }
+
+    func buildLightSourceView(device dev: NeewerLight) -> NSView {
+        let viewWidth = self.lightModeTabView.bounds.width
+        let viewHeight = self.lightModeTabView.bounds.height - 46
+        let view = NSView(frame: NSRect(x: 0, y: 0, width: viewWidth, height: viewHeight))
+        view.autoresizingMask = [.width, .height]
+        //view.wantsLayer = true
+        //view.layer?.backgroundColor = NSColor.yellow.cgColor
+
+        let cctrange = dev.CCTRange()
+
+        let createLabel: (CGFloat, String) -> NSTextField = { offsetY, stringValue in
+            let label = NSTextField(frame: NSRect(x: 15, y: offsetY, width: 35, height: 20))
+            label.autoresizingMask = [.minYMargin, .maxXMargin]
+            label.stringValue = stringValue
+            label.alignment = .right
+            label.isEditable = false
+            label.isSelectable = false
+            label.isBordered = false
+            label.drawsBackground = false
+            label.font = NSFont.labelFont(ofSize: 9)
+            return label
+        }
+
+        let fxs = dev.supportedSource
+
+        view.addSubview(createLabel(viewHeight - 30, "Source"))
+
+        // Create an NSPopUpButton and set its frame
+        let popUpButton = NSPopUpButton(frame: NSRect(x: 60, y: viewHeight - 28, width: viewWidth - 120, height: 20), pullsDown: false)
+        popUpButton.autoresizingMask = [.minYMargin, .width]
+        popUpButton.controlSize = .small
+        popUpButton.target = self
+        popUpButton.action = #selector(sourceClicked(_:))
+        let menu = NSMenu()
+        // Populate the menu with menu items
+        for scene in fxs {
+            let menuItem = NSMenuItem(title: "\(scene.id) - \(scene.name)", action: nil, keyEquivalent: "")
+            menuItem.tag = Int(scene.id)
+            menuItem.target = self // Set the target to your desired target
+            menu.addItem(menuItem)
+        }
+        popUpButton.menu = menu
+        view.addSubview(popUpButton)
+
+        popUpButton.selectItem(withTag: 0)
+        if let selectedItem = popUpButton.selectedItem {
+            sourceClicked(popUpButton)
+        }
+        return view
+    }
+
+    @objc func sourceClicked(_ sender: NSPopUpButton) {
+        guard let dev = device else {
+            return
+        }
+        guard let selectedItem = sender.selectedItem else {
+            return
+        }
+        let fxid = selectedItem.tag
+        let fxs = dev.supportedSource
+        let theFx = fxs.first { (fxItem) -> Bool in
+            return fxItem.id == fxid
+        }
+        guard let safeFx = theFx else {
+            return
+        }
+        Logger.debug("\(safeFx.name)")
+        Logger.debug("\(safeFx.featureValues)")
+        let cctrange = dev.CCTRange()
+        Logger.debug("\(sender.superview)")
+        guard let theView = sender.superview else {
+            return
+        }
+        for subview in theView.subviews {
+            if subview is FXView {
+                subview.removeFromSuperview()
+            }
+        }
+
+        let fxsubview = FXView(frame: NSRect(x: 0, y: 0, width: theView.bounds.width, height: theView.bounds.height - 35))
+        fxsubview.autoresizingMask = [.width, .height]
+        //fxsubview.wantsLayer = true
+        //fxsubview.layer?.backgroundColor = NSColor.green.cgColor
+        theView.addSubview(fxsubview)
+
+        let offsetX = 55.0
+        var offsetY = fxsubview.bounds.height - 26
+        let slideW = fxsubview.bounds.width - 110
+
+        let createLabel: (CGFloat, String) -> NSTextField = { offsetY, stringValue in
+            let label = NSTextField(frame: NSRect(x: 15, y: offsetY, width: 35, height: 20))
+            label.autoresizingMask = [.minYMargin, .maxXMargin]
+            label.stringValue = stringValue
+            label.alignment = .right
+            label.isEditable = false
+            label.isSelectable = false
+            label.isBordered = false
+            label.drawsBackground = false
+            label.font = NSFont.labelFont(ofSize: 9)
+            return label
+        }
+
+        let createValueLabel: (CGFloat, String, Int) -> NSTextField = { offsetY, stringValue, tag in
+            let label = NSTextField(frame: NSRect(x: offsetX + slideW + 5, y: offsetY + 4, width: 50, height: 18))
+            label.autoresizingMask = [.maxYMargin, .minXMargin]
+            label.stringValue = stringValue
+            label.alignment = .left
+            label.isEditable = false
+            label.isSelectable = false
+            label.isBordered = false
+            label.drawsBackground = false
+            label.font = NSFont.monospacedSystemFont(ofSize: 9, weight: .medium)
+            label.tag = tag
+            return label
+        }
+
+        if safeFx.needBRR {
+            fxsubview.addSubview(createLabel(offsetY-4, "BRR"))
+            let slide = NLSlider(frame: NSRect(x: offsetX, y: offsetY, width: slideW, height: 20))
+            slide.autoresizingMask = [.width, .maxYMargin]
+            slide.tag = ControlTag.brr.rawValue
+            slide.type = .brr
+            slide.minValue = 0.0
+            slide.maxValue = 100.0
+            slide.currentValue = CGFloat(safeFx.brrValue)
+            slide.customBarDrawing = NLSlider.brightnessBar()
+            let valueField = createValueLabel(offsetY-4, "", slide.tag)
+            slide.callback = { [weak self] val in
+                guard let safeSelf = self else { return }
+                if let safeDev = safeSelf.device {
+                    safeFx.brrValue = val
+                    valueField.stringValue = "\(Int(val))%"
+                    Logger.debug("safeFx: \(safeFx.brrValue)")
+                    safeDev.setCCTLightValues(brr: safeFx.brrValue, cct: CGFloat(safeFx.cctValue), gmm: CGFloat(safeFx.gmValue))
+
+                    for sss in safeDev.supportedSource {
+                        Logger.debug("\(sss.name) \(sss.featureValues)")
+                    }
+                }
+            }
+            fxsubview.addSubview(slide)
+            fxsubview.addSubview(valueField)
+            offsetY -= 30
+        }
+
+        if safeFx.needCCT {
+            fxsubview.addSubview(createLabel(offsetY-4, "CCT"))
+            let slide = NLSlider(frame: NSRect(x: offsetX, y: offsetY, width: slideW, height: 20))
+            slide.autoresizingMask = [.width, .maxYMargin]
+            slide.tag = ControlTag.cct.rawValue
+            slide.type = .cct
+            slide.minValue = Double(cctrange.minCCT)
+            slide.maxValue = Double(cctrange.maxCCT)
+            slide.currentValue = CGFloat(safeFx.cctValue)
+            slide.customBarDrawing = NLSlider.cttBar()
+            let valueField = createValueLabel(offsetY-4, "", slide.tag)
+            slide.callback = { [weak self] val in
+                guard let safeSelf = self else { return }
+                if let safeDev = safeSelf.device {
+                    safeFx.cctValue = val
+                    valueField.stringValue = "\(Int(val))00k"
+                    Logger.debug("safeFx: \(safeFx)")
+                    safeDev.setCCTLightValues(brr: safeFx.brrValue, cct: CGFloat(safeFx.cctValue), gmm: CGFloat(safeFx.gmValue))
+                }
+            }
+            fxsubview.addSubview(slide)
+            fxsubview.addSubview(valueField)
+            offsetY -= 30
+        }
+
+        if safeFx.needGM  && dev.supportGMRange.value {
+            fxsubview.addSubview(createLabel(offsetY-4, "GM"))
+            let slide = NLSlider(frame: NSRect(x: offsetX, y: offsetY, width: slideW, height: 20))
+            slide.autoresizingMask = [.width, .maxYMargin]
+            slide.tag = ControlTag.gmm.rawValue
+            slide.type = .gmm
+            slide.minValue = -50.0
+            slide.maxValue = 50.0
+            slide.currentValue = CGFloat(safeFx.gmValue)
+            slide.customBarDrawing = NLSlider.gmBar()
+            let valueField = createValueLabel(offsetY-4, "", slide.tag)
+            slide.callback = { [weak self] val in
+                guard let safeSelf = self else { return }
+                if let safeDev = safeSelf.device {
+                    safeFx.gmValue = val
+                    valueField.stringValue = "\(Int(val))"
+                    Logger.debug("safeFx: \(safeFx)")
+                    safeDev.setCCTLightValues(brr: safeFx.brrValue, cct: CGFloat(safeFx.cctValue), gmm: CGFloat(safeFx.gmValue))
+                }
+            }
+            fxsubview.addSubview(slide)
+            fxsubview.addSubview(valueField)
+            offsetY -= 30
+        }
+    }
+
+    @objc func buttonClicked(_ sender: NSButton) {
+        Logger.debug("buttonClicked")
+    }
+
+    @objc func fxClicked(_ sender: NSPopUpButton) {
+        guard let dev = device else {
+            return
+        }
+        guard let selectedItem = sender.selectedItem else {
+            return
+        }
+        let fxid = selectedItem.tag
+        let fxs = dev.supportedFX
+        let theFx = fxs.first { (fxItem) -> Bool in
+            return fxItem.id == fxid
+        }
+        guard let safeFx = theFx else {
+            return
+        }
+        let cctrange = dev.CCTRange()
+        Logger.debug("\(sender.superview)")
+        guard let theView = sender.superview else {
+            return
+        }
+        for subview in theView.subviews {
+            if subview is FXView {
+                subview.removeFromSuperview()
+            }
+        }
+
+        let fxsubview = FXView(frame: NSRect(x: 0, y: 0, width: theView.bounds.width, height: theView.bounds.height - 35))
+        fxsubview.autoresizingMask = [.width, .height]
+        //fxsubview.wantsLayer = true
+        //fxsubview.layer?.backgroundColor = NSColor.green.cgColor
+        theView.addSubview(fxsubview)
+
+        let offsetX = 55.0
+        var offsetY = fxsubview.bounds.height - 26
+        let slideW = fxsubview.bounds.width - 110
+
+        let createLabel: (CGFloat, String) -> NSTextField = { offsetY, stringValue in
+            let label = NSTextField(frame: NSRect(x: 15, y: offsetY, width: 35, height: 20))
+            label.autoresizingMask = [.minYMargin, .maxXMargin]
+            label.stringValue = stringValue
+            label.alignment = .right
+            label.isEditable = false
+            label.isSelectable = false
+            label.isBordered = false
+            label.drawsBackground = false
+            label.font = NSFont.labelFont(ofSize: 9)
+            return label
+        }
+
+        let createValeLabel: (CGFloat, String, Int) -> NSTextField = { offsetY, stringValue, tag in
+            let label = NSTextField(frame: NSRect(x: offsetX + slideW + 5, y: offsetY + 4, width: 50, height: 18))
+            label.autoresizingMask = [.maxYMargin, .minXMargin]
+            label.stringValue = stringValue
+            label.alignment = .left
+            label.isEditable = false
+            label.isSelectable = false
+            label.isBordered = false
+            label.drawsBackground = false
+            label.font = NSFont.monospacedSystemFont(ofSize: 9, weight: .medium)
+            label.tag = tag
+            return label
+        }
+
+        let createColorButton: (CGFloat, CGFloat, String) -> NSButton = { offsetX, offsetY, title in
+            let button = NSButton(frame: NSRect(x: offsetX, y: offsetY, width: 50, height: 30))
+            button.autoresizingMask = [.minYMargin, .maxXMargin]
+            button.title = title
+            button.action = #selector(self.buttonClicked(_:))
+            button.target = self
+            button.bezelStyle = .texturedRounded
+            button.font = NSFont.monospacedSystemFont(ofSize: 9, weight: .ultraLight)
+            // Optional: You can customize other button properties here
+            // Define the action handler for the button
+            return button
+        }
+
+        if safeFx.needBRR {
+            fxsubview.addSubview(createLabel(offsetY-4, "BRR"))
+            let slide = NLSlider(frame: NSRect(x: offsetX, y: offsetY, width: slideW, height: 20))
+            slide.autoresizingMask = [.width, .maxYMargin]
+            slide.tag = ControlTag.brr.rawValue
+            slide.type = .brr
+            slide.minValue = 0.0
+            slide.maxValue = 100.0
+            slide.currentValue = CGFloat(safeFx.brrValue)
+            slide.customBarDrawing = NLSlider.brightnessBar()
+            if safeFx.needBRRUpperBound {
+                slide.needUpperBound = true
+                slide.currentUpperValue = CGFloat(safeFx.brrUpperValue)
+            }
+            let valueField = createValeLabel(offsetY-4, "", slide.tag)
+            slide.callback = { [weak self] val in
+                guard let safeSelf = self else { return }
+                if let safeDev = safeSelf.device {
+                    safeFx.brrValue = val
+                    if safeFx.needBRRUpperBound {
+                        safeFx.brrUpperValue = slide.currentUpperValue
+                        valueField.stringValue = "\(Int(val))%~\(Int(safeFx.brrUpperValue))%"
+                    } else {
+                        valueField.stringValue = "\(Int(val))%"
+                    }
+                    safeDev.sendSceneCommand(safeFx)
+                }
+            }
+            fxsubview.addSubview(slide)
+            fxsubview.addSubview(valueField)
+            offsetY -= 30
+        }
+
+        if safeFx.needColor {
+            fxsubview.addSubview(createLabel(offsetY-4, "Color"))
+
+            let popUpButton = NSPopUpButton(frame: NSRect(x: 60, y: offsetY-1, width: fxsubview.bounds.width - 120, height: 20), pullsDown: false)
+            popUpButton.autoresizingMask = [.minYMargin, .width]
+            popUpButton.controlSize = .small
+            popUpButton.target = self
+            popUpButton.action = #selector(fxColorClicked(_:))
+            let menu = NSMenu()
+
+            var btnoffsetX = offsetX
+            for color in safeFx.colors {
+                let menuItem = NSMenuItem(title: "\(color.key)", action: nil, keyEquivalent: "")
+                menuItem.tag = Int(color.value)
+                menu.addItem(menuItem)
+            }
+            popUpButton.menu = menu
+            fxsubview.addSubview(popUpButton)
+
+            popUpButton.selectItem(withTag: safeFx.colorValue)
+
+            offsetY -= 30
+        }
+
+        if safeFx.needCCT {
+            fxsubview.addSubview(createLabel(offsetY-4, "CCT"))
+            let slide = NLSlider(frame: NSRect(x: offsetX, y: offsetY, width: slideW, height: 20))
+            slide.autoresizingMask = [.width, .maxYMargin]
+            slide.tag = ControlTag.cct.rawValue
+            slide.type = .cct
+            slide.minValue = Double(cctrange.minCCT)
+            slide.maxValue = Double(cctrange.maxCCT)
+            slide.currentValue = CGFloat(safeFx.cctValue)
+            slide.customBarDrawing = NLSlider.cttBar()
+            if safeFx.needCCTUpperBound {
+                slide.needUpperBound = true
+                slide.currentUpperValue = CGFloat(safeFx.cctUpperValue)
+            }
+            let valueField = createValeLabel(offsetY-4, "", slide.tag)
+            slide.callback = { [weak self] val in
+                guard let safeSelf = self else { return }
+                if let safeDev = safeSelf.device {
+                    safeFx.cctValue = val
+                    if safeFx.needCCTUpperBound {
+                        safeFx.cctUpperValue = slide.currentUpperValue
+                        valueField.stringValue = "\(Int(val))00k~\(Int(safeFx.cctUpperValue))00k"
+                    } else {
+                        valueField.stringValue = "\(Int(val))00k"
+                    }
+                    safeDev.sendSceneCommand(safeFx)
+                }
+            }
+            fxsubview.addSubview(slide)
+            fxsubview.addSubview(valueField)
+            offsetY -= 30
+        }
+
+        if safeFx.needGM {
+            fxsubview.addSubview(createLabel(offsetY-4, "GM"))
+            let slide = NLSlider(frame: NSRect(x: offsetX, y: offsetY, width: slideW, height: 20))
+            slide.autoresizingMask = [.width, .maxYMargin]
+            slide.tag = ControlTag.gmm.rawValue
+            slide.type = .gmm
+            slide.minValue = -50.0
+            slide.maxValue = 50.0
+            slide.currentValue = CGFloat(safeFx.gmValue)
+            slide.customBarDrawing = NLSlider.gmBar()
+            let valueField = createValeLabel(offsetY-4, "", slide.tag)
+            slide.callback = { [weak self] val in
+                guard let safeSelf = self else { return }
+                if let safeDev = safeSelf.device {
+                    valueField.stringValue = "\(Int(val))"
+                    safeFx.gmValue = val
+                    safeDev.sendSceneCommand(safeFx)
+                }
+            }
+            fxsubview.addSubview(slide)
+            fxsubview.addSubview(valueField)
+            offsetY -= 30
+        }
+
+        if safeFx.needHUE {
+            fxsubview.addSubview(createLabel(offsetY-4, "HUE"))
+            let slide = NLSlider(frame: NSRect(x: offsetX, y: offsetY, width: slideW, height: 20))
+            slide.autoresizingMask = [.width, .maxYMargin]
+            slide.tag = ControlTag.hue.rawValue
+            slide.type = .hue
+            slide.minValue = 0
+            slide.maxValue = 360
+            slide.currentValue = CGFloat(safeFx.hueValue)
+            if safeFx.needHUEUpperBound {
+                slide.needUpperBound = true
+                slide.currentUpperValue = CGFloat(safeFx.hueUpperValue)
+            }
+            slide.customBarDrawing = NLSlider.hueBar()
+            let valueField = createValeLabel(offsetY-4, "", slide.tag)
+            slide.callback = { [weak self] val in
+                guard let safeSelf = self else { return }
+                if let safeDev = safeSelf.device {
+                    safeFx.hueValue = val
+                    if safeFx.needHUEUpperBound {
+                        safeFx.hueUpperValue = slide.currentUpperValue
+                        valueField.stringValue = "\(Int(val))~\(Int(safeFx.hueUpperValue))"
+                    } else {
+                        valueField.stringValue = "\(Int(val))°"
+                    }
+                    safeDev.sendSceneCommand(safeFx)
+                }
+            }
+            fxsubview.addSubview(slide)
+            fxsubview.addSubview(valueField)
+            offsetY -= 30
+        }
+
+        if safeFx.needSAT {
+            fxsubview.addSubview(createLabel(offsetY-4, "SAT"))
+            let slide = NLSlider(frame: NSRect(x: offsetX, y: offsetY, width: slideW, height: 20))
+            slide.autoresizingMask = [.width, .maxYMargin]
+            slide.tag = ControlTag.sat.rawValue
+            slide.type = .sat
+            slide.minValue = 0
+            slide.maxValue = 100
+            slide.currentValue = CGFloat(safeFx.satValue) // TODO: get spark from dev
+            slide.customBarDrawing = NLSlider.satBar()
+            let valueField = createValeLabel(offsetY-4, "", slide.tag)
+            slide.callback = { [weak self] val in
+                guard let safeSelf = self else { return }
+                if let safeDev = safeSelf.device {
+                    valueField.stringValue = "\(Int(val))%"
+                    safeFx.satValue = val
+                    safeDev.sendSceneCommand(safeFx)
+                }
+            }
+            fxsubview.addSubview(slide)
+            fxsubview.addSubview(valueField)
+            offsetY -= 30
+        }
+
+        if safeFx.needSpeed {
+            fxsubview.addSubview(createLabel(offsetY-4, "Speed"))
+            let slide = NLSlider(frame: NSRect(x: offsetX, y: offsetY, width: slideW, height: 20))
+            slide.autoresizingMask = [.width, .maxYMargin]
+            slide.tag = ControlTag.speed.rawValue
+            slide.type = .speed
+            slide.minValue = 1
+            slide.maxValue = 10
+            slide.currentValue = CGFloat(safeFx.speedValue) // TODO: get speeed from dev
+            slide.customBarDrawing = NLSlider.speedBar()
+            slide.steps = 10
+            let valueField = createValeLabel(offsetY-4, "", slide.tag)
+            slide.callback = { [weak self] val in
+                guard let safeSelf = self else { return }
+                if let safeDev = safeSelf.device {
+                    valueField.stringValue = "\(Int(val+1))"
+                    safeFx.speedValue = Int(val+1)
+                    safeDev.sendSceneCommand(safeFx)
+                }
+            }
+            fxsubview.addSubview(slide)
+            fxsubview.addSubview(valueField)
+            offsetY -= 30
+        }
+
+        if safeFx.needSparks {
+            fxsubview.addSubview(createLabel(offsetY-4, "Sparks"))
+            let slide = NLSlider(frame: NSRect(x: offsetX, y: offsetY, width: slideW, height: 20))
+            slide.autoresizingMask = [.width, .maxYMargin]
+            slide.tag = ControlTag.spark.rawValue
+            slide.type = .spark
+            slide.minValue = 1
+            slide.maxValue = 10
+            slide.currentValue = CGFloat(safeFx.sparksValue) // TODO: get spark from dev
+            slide.customBarDrawing = NLSlider.sparkBar()
+            slide.steps = 10
+            let valueField = createValeLabel(offsetY-4, "", slide.tag)
+            slide.callback = { [weak self] val in
+                guard let safeSelf = self else { return }
+                if let safeDev = safeSelf.device {
+                    valueField.stringValue = "\(Int(val))"
+                    safeFx.sparksValue = Int(val)
+                    safeDev.sendSceneCommand(safeFx)
+                }
+            }
+            fxsubview.addSubview(slide)
+            fxsubview.addSubview(valueField)
+            offsetY -= 30
+        }
+
+        dev.sendSceneCommand(safeFx)
+    }
+
+    @objc func fxColorClicked(_ sender: NSPopUpButton) {
+        guard let dev = device else {
+            return
+        }
+        guard let selectedItem = sender.selectedItem else {
+            return
+        }
+        let fxid = dev.channel.value
+        let fxs = dev.supportedFX
+        let theFx = fxs.first { (fxItem) -> Bool in
+            return fxItem.id == fxid
+        }
+        guard let safeFx = theFx else {
+            return
+        }
+        safeFx.colorValue = selectedItem.tag
+        dev.sendSceneCommand(safeFx)
+        Logger.debug("\(selectedItem.tag)-\(selectedItem.title)")
+    }
+
+    func updateDeviceValueField(type: ControlTag, value: Any) {
+        guard let item = self.lightModeTabView.selectedTabViewItem else {
+            return
+        }
+        guard let view = item.view else {
+            return
+        }
+        view.subviews.forEach { subview in
+            if subview.tag == type.rawValue {
+                if let field = subview as? NSTextField {
+                    if type == ControlTag.brr {
+                        field.attributedStringValue = formatBrrValue("\(value)", .center)
+                    } else if type == ControlTag.cct {
+                        field.attributedStringValue = formatCCTValue("\(value)", .center)
+                    } else if type == ControlTag.gmm {
+                        field.attributedStringValue = formatGMMValue("\(value)", .center)
+                    } else if type == ControlTag.hue {
+                        field.attributedStringValue = formatHUEValue("\(value)", .center)
+                    } else if type == ControlTag.sat {
+                        field.attributedStringValue = formatSATValue("\(value)", .center)
+                    }
+                } else if let slider = subview as? NLSlider {
+                    if let dev = self.device {
+                        if type == ControlTag.brr {
+                            slider.currentValue = CGFloat(dev.brrValue.value)
+                        } else if type == ControlTag.cct {
+                            slider.currentValue = CGFloat(dev.cctValue.value)
+                        } else if type == ControlTag.gmm {
+                            slider.currentValue = CGFloat(dev.gmmValue.value)
+                        }
+                    }
+                }
             }
         }
     }
@@ -497,49 +1240,143 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, ColorWheelD
     func updateWithViewObject(_ viewObj: DeviceViewObject) {
         device = viewObj.device
         self.image = viewObj.deviceImage
-        self.nameField.stringValue = viewObj.device.userLightName
-        self.nameField.toolTip = "\(viewObj.device.rawName)\n\(viewObj.deviceIdentifier)"
-        updateDeviceStatus()
-    }
-
-    func updateHueAndSaturationAndBrightness(_ hue: CGFloat,
-                                             saturation: CGFloat,
-                                             brightness: CGFloat,
-                                             updateWheel: Bool) {
         if let dev = device {
-            if dev.supportRGB {
-                dev.setRGBLightValues(hue, saturation, brightness)
-                self.hsiSatSlide.doubleValue = Double(saturation * 100.0)
-                self.hsiSatValueField.stringValue = "\(dev.satruationValue)"
-                self.hsiBrrSlide.doubleValue =  Double(brightness * 100.0)
-                if updateWheel {
-                    updateDeviceColorToWheel()
-                }
-            }
+            updateDeviceName()
+            self.nameField.toolTip = "\(dev.rawName)\n\(viewObj.deviceIdentifier)"
+        }
+        buildView()
+
+        updateDeviceStatus()
+
+        if device?.peripheral == nil {
+            grayOut()
+        } else {
+            removeGrayOut()
         }
     }
 
-    func hueAndSaturationSelected(_ hue: CGFloat, saturation: CGFloat) {
-        updateHueAndSaturationAndBrightness(hue,
-                                            saturation: saturation,
-                                            brightness: hsiBrrSlide.doubleValue / 100.0,
-                                            updateWheel: false)
+    func grayOut() {
+        if overlay == nil {
+            overlay = BlockingOverlayView(frame: self.view.bounds)
+            overlay?.wantsLayer = true
+            overlay?.layer?.backgroundColor = NSColor(white: 0.5, alpha: 0.5).cgColor
+            overlay?.autoresizingMask = [.width, .height]
+
+            // Label setup
+            let label = NSTextField(labelWithString: "Light is not connected")
+            label.frame = NSRect(x: 0, y: 5, width: self.view.bounds.width, height: 20)
+            label.isEditable = false
+            label.isSelectable = false
+            label.isBordered = false
+            label.drawsBackground = false
+            label.textColor = NSColor.white
+            label.alignment = .center
+            view.addSubview(label)
+            overlay?.addSubview(label)
+
+        }
+        if let safeView = overlay {
+            safeView.frame = view.bounds
+            self.view.addSubview(safeView, positioned: .above, relativeTo: nil)
+        }
+    }
+
+    func removeGrayOut() {
+        if overlay != nil {
+            overlay?.removeFromSuperview()
+            overlay = nil
+        }
+    }
+
+    func getCCTValuesFromView() -> (brr: CGFloat, cct: CGFloat, gmm: CGFloat) {
+        var brr = 0.0
+        var cct = 0.0
+        var gmm = 0.0
+
+        if let dev = device {
+            brr = CGFloat(dev.brrValue.value)
+            cct = CGFloat(dev.cctValue.value)
+            gmm = CGFloat(dev.gmmValue.value)
+        }
+
+        guard let item = self.lightModeTabView.selectedTabViewItem else {
+            return (brr, cct, gmm)
+        }
+        guard let view = item.view else {
+            return (brr, cct, gmm)
+        }
+        view.subviews.forEach { subview in
+            if let slider = subview as? NLSlider {
+                if slider.tag == ControlTag.cct.rawValue {
+                    cct = slider.currentValue
+                } else if slider.tag == ControlTag.brr.rawValue {
+                    brr = slider.currentValue
+                } else if slider.tag == ControlTag.gmm.rawValue {
+                    gmm = slider.currentValue
+                }
+            }
+        }
+        return (brr, cct, gmm)
+    }
+
+    func getHSIValuesFromView() -> (brr: CGFloat, hue: CGFloat, sat: CGFloat) {
+        var hue = 0.0
+        var sat = 0.0
+        var brr = 0.0
+
+        if let dev = device {
+            hue = CGFloat(dev.hueValue.value)
+            sat = CGFloat(dev.satValue.value)
+            brr = CGFloat(dev.brrValue.value)
+        }
+
+        guard let item = self.lightModeTabView.selectedTabViewItem else {
+            return (brr, hue, sat)
+        }
+        guard let view = item.view else {
+            return (brr, hue, sat)
+        }
+        view.subviews.forEach { subview in
+            if let slider = subview as? NLSlider {
+                if slider.tag == ControlTag.brr.rawValue {
+                    brr = slider.currentValue
+                }
+            } else if let wheel = subview as? ColorWheel {
+                if wheel.tag == ControlTag.wheel.rawValue {
+                    hue = wheel.color.hueComponent
+                    sat = wheel.color.saturationComponent
+                }
+            }
+        }
+        return (brr, hue, sat)
     }
 
     func tabView(_ tabView: NSTabView, didSelect tabViewItem: NSTabViewItem?) {
         if tabView == lightModeTabView {
+            if buildingView {
+                return
+            }
             if let dev = device {
-                if tabViewItem == tabView.tabViewItem(at: 0) {
-                    // CCT mode
-                    dev.setCCTLightValues(CGFloat(dev.cctValue) / 100.0, CGFloat(dev.brrValue) / 100.0)
-                } else if tabViewItem == tabView.tabViewItem(at: 1) {
-                    // HSI mode
-                    if dev.supportRGB {
-                        dev.setRGBLightValues(hsiColorWheel.color.hueComponent, hsiColorWheel.color.saturationComponent)
+                if let idf = tabViewItem?.identifier as? String {
+                    if idf == "cctTab" || tabViewItem?.label == "CCT" {
+                        // CCT mode
+                        let val = getCCTValuesFromView()
+                        dev.setCCTLightValues(brr: CGFloat(val.brr) / 100.0, cct: CGFloat(val.cct), gmm: CGFloat(val.gmm))
+                    } else if idf == "sourceTab" || tabViewItem?.label == "Light Source" {
+                        // CCT mode
+                        let val = getCCTValuesFromView()
+                        dev.setCCTLightValues(brr: CGFloat(val.brr) / 100.0, cct: CGFloat(val.cct), gmm: CGFloat(val.gmm))
+                    } else if idf == "hsiTab" || tabViewItem?.label == "HSI" {
+                        // HSI mode
+                        if dev.supportRGB {
+                            let val = getHSIValuesFromView()
+                            dev.setRGBLightValues(brr: CGFloat(val.brr) / 100.0, hue: val.hue, sat: val.sat)
+                        }
+                    } else {
+                        // scene mode
+                        dev.lightMode = .SCEMode
                     }
-                } else {
-                    // scene mode
-                    updateScene(true)
+                    dev.lastTab = idf
                 }
             }
         }

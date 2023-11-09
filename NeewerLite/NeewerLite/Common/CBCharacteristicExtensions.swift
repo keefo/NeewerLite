@@ -27,3 +27,53 @@ extension CBCharacteristic {
     }
 
 }
+
+func getConnectedBluetoothDevices() -> [[String: String]]? {
+    // Run the system_profiler command
+
+    let task = Process()
+    task.launchPath = "/usr/sbin/system_profiler"
+    task.arguments = ["-xml", "SPBluetoothDataType"]
+
+    let pipe = Pipe()
+    task.standardOutput = pipe
+    task.launch()
+
+    let data = pipe.fileHandleForReading.readDataToEndOfFile()
+    guard let plist = try? PropertyListSerialization.propertyList(from: data, options: [], format: nil) as? [[String: Any]] else {
+        print("Failed to deserialize plist")
+        return nil
+    }
+
+    var result : [[String: String]] = []
+    for dict in plist {
+        if let items = dict["_items"] as? [[String: Any]] {
+            for item in items {
+                for subitem in item {
+                    if subitem.key == "device_connected" {
+                        if let devices = subitem.value as? [Any] {
+                            for dev in devices {
+                                if let devdict = dev as? [String: Any] {
+                                    for (key, value) in devdict {
+                                        if let keyStr = key as? String, let valueDict = value as? [String: Any] {
+                                            if var newDict = valueDict as? [String: String] {
+                                                newDict["name"] = keyStr
+                                                result.append(newDict)
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            return result
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    return result
+}
+
+
+
