@@ -7,20 +7,21 @@
 
 import Cocoa
 
-class DeviceViewObject {
+class DeviceViewObject: NSObject {
     private var syncLifetime: Timer?
-    private var doNotUpdateUI: Bool = false
 
     var device: NeewerLight
     var view: CollectionViewItem?
 
     init(_ device: NeewerLight) {
         self.device = device
+
+        super.init()
+
         self.syncLifetime = Timer.scheduledTimer(withTimeInterval: 10.0, repeats: true) { _ in
-            self.doNotUpdateUI = true
-            device.sendReadRequest()
-            device.saveToUserDefault()
+            //device.sendReadRequest()
         }
+
         self.device.isOn.bind { (_) in
             DispatchQueue.main.async {
                 if let theView = self.view {
@@ -29,15 +30,73 @@ class DeviceViewObject {
             }
         }
         self.device.channel.bind { (channel) in
-            if self.doNotUpdateUI {
-                Logger.debug("Device channel update: \(channel) doNotUpdateUI")
-                self.doNotUpdateUI = false
-                return
-            }
             Logger.debug("Device channel update: \(channel)")
             DispatchQueue.main.async {
                 if let theView = self.view {
                     theView.updateDeviceStatus()
+                }
+            }
+        }
+        self.device.userLightName.bind { (name) in
+            Logger.debug("Device name update: \(name)")
+            DispatchQueue.main.async {
+                if let theView = self.view {
+                    theView.updateDeviceName()
+                }
+            }
+        }
+
+        self.device.brrValue.bind { (val) in
+            Logger.debug("Device brightness update: \(val)")
+            DispatchQueue.main.async {
+                if let theView = self.view {
+                    theView.updateDeviceValueField(type: ControlTag.brr, value: val)
+                }
+            }
+        }
+
+        self.device.cctValue.bind { (val) in
+            Logger.debug("Device CCT update: \(val)")
+            DispatchQueue.main.async {
+                if let theView = self.view {
+                    theView.updateDeviceValueField(type: ControlTag.cct, value: val)
+                }
+            }
+        }
+
+        self.device.gmmValue.bind { (val) in
+            Logger.debug("Device GM update: \(val)")
+            DispatchQueue.main.async {
+                if let theView = self.view {
+                    theView.updateDeviceValueField(type: ControlTag.gmm, value: val)
+                }
+            }
+        }
+
+        self.device.hueValue.bind { (val) in
+            Logger.debug("Device HUE update: \(val)")
+            DispatchQueue.main.async {
+                if let theView = self.view {
+                    theView.updateDeviceValueField(type: ControlTag.hue, value: val)
+                }
+            }
+        }
+
+        self.device.satValue.bind { (val) in
+            Logger.debug("Device HUE update: \(val)")
+            DispatchQueue.main.async {
+                if let theView = self.view {
+                    theView.updateDeviceValueField(type: ControlTag.sat, value: val)
+                }
+            }
+        }
+
+        self.device.supportGMRange.bind { support in
+            Logger.debug("Device supportGMRange update: \(support)")
+            DispatchQueue.main.async {
+                if let theView = self.view {
+                    // need to rebuild view
+                    theView.buildView()
                 }
             }
         }
@@ -64,12 +123,15 @@ class DeviceViewObject {
 
     public lazy var deviceImage: NSImage = {
         var img = NSImage(named: "defaultLightImage")
-        if device.rawName.contains("RGB660") || device.rawName.contains("RGB480") {
+        let nickName = device.nickName
+        if nickName.contains("RGB660") || nickName.contains("RGB480") {
             img = NSImage(named: "light-rgb660-pro")
-        } else if device.rawName.contains("RGB176") {
+        } else if nickName.contains("RGB176") {
             img = NSImage(named: "light-rgb176")
-        } else if device.rawName.contains("SNL660") {
+        } else if nickName.contains("SNL660") {
             img = NSImage(named: "light-rgb660-pro")
+        } else if nickName.contains("CB60 RGB") {
+            img = NSImage(named: "light-cb60-rgb")
         }
         if img == nil {
             img = NSImage(named: "defaultLightImage")
@@ -79,6 +141,14 @@ class DeviceViewObject {
 
     public var followMusic: Bool {
         return device.followMusic
+    }
+
+    public var deviceConnected: Bool {
+        return device.peripheral != nil
+    }
+
+    public var hasMAC: Bool {
+        return device.hasMAC()
     }
 
     public var isON: Bool {
@@ -99,8 +169,9 @@ class DeviceViewObject {
 
     public func changeToMode(_ mode: Int) {
         if let theView = view {
-            theView.lightModeButton.selectedSegment = mode
-            theView.lightModeButton.performClick(nil)
+            theView.lightModeTabView.selectTabViewItem(at: mode)
+            //theView.lightModeButton.selectedSegment = mode
+            //theView.lightModeButton.performClick(nil)
         }
     }
 
@@ -124,35 +195,31 @@ class DeviceViewObject {
 
     public func changeToSCE(_ val: Int) {
         if let theView = view {
-            let btn = NSButton()
-            btn.tag = val
-            theView.channelAction(btn)
-            theView.updateScene(true)
+            // TODO: make this pass to view
+//            let btn = NSButton()
+//            btn.tag = val
+//            theView.channelAction(btn)
+//            theView.updateScene(true)
         }
     }
 
     public func updateCCT(_ cct: Int, _ bri: Double) {
         if let theView = view {
             var cttVal = Double(cct)
-            if device.supportLongCCT {
-                if cttVal < 3200 {
-                    cttVal = 3200
-                }
-                if cttVal > 8500 {
-                    cttVal = 8500
-                }
-            } else {
-                if cttVal < 3200 {
-                    cttVal = 3200
-                }
-                if cttVal > 5600 {
-                    cttVal = 5600
-                }
+            let cctrange = device.CCTRange()
+
+            if cttVal < Double(cctrange.minCCT) {
+                cttVal = Double(cctrange.minCCT)
             }
-            theView.cctCctSlide.doubleValue = Double(cttVal/100.0)
-            theView.cctBrrSlide.doubleValue = bri
-            theView.slideAction(theView.cctCctSlide)
-            theView.slideAction(theView.cctBrrSlide)
+            if cttVal > Double(cctrange.maxCCT) {
+                cttVal = Double(cctrange.maxCCT)
+            }
+
+            // TODO: update UI CCT values
+            //            theView.cctCctSlide.doubleValue = Double(cttVal/100.0)
+            //            theView.cctBrrSlide.doubleValue = bri
+            //            theView.slideAction(theView.cctCctSlide)
+            //            theView.slideAction(theView.cctBrrSlide)
         }
     }
 
@@ -163,10 +230,8 @@ class DeviceViewObject {
         }
         set {
             if let theView = view {
-                theView.updateHueAndSaturationAndBrightness(newValue.hue,
-                                                            saturation: newValue.saturation,
-                                                            brightness: newValue.brightness,
-                                                            updateWheel: true)
+                // TODO: Need to PASS HSB into dev
+                Logger.debug("Need to PASS HSB into dev \(newValue)")
             }
         }
     }
