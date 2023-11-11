@@ -1,6 +1,6 @@
 #!/bin/bash
 
-BUILD_DIR="$1"
+BUILD_DIR="./build/NeewerLite.xcarchive/Products/Applications/"
 DMG_FILENAME=NeewerLite
 
 if [ -z "$NEEWERLITE_REMOTE_FOLDER" ]

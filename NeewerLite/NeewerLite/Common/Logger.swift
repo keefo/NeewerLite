@@ -51,7 +51,7 @@ public class Logger {
 
     private static var logBuffer: LogBuffer = LogBuffer(version: bundleVersion, osversion: osVersionString, logs: [])
     private static let logThreshold = 50 // Number of logs to collect before sending
-    private static let batchingInterval = 1.0 // Time interval in seconds
+    private static let batchingInterval = 60.0 // Time interval in seconds
     private static var timer: Timer?
     private static var networkDown: Bool = false
 
