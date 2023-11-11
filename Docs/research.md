@@ -1,10 +1,25 @@
-# How to research Neewer phone app
+- How to research Neewer phone app
 
-Download a latest apk package from apkcombo website. https://apkcombo.com/neewer/neewer.nginx.annularlight/download/apk
+0. Download a latest apk package from apkcombo website. 
+https://apkcombo.com/neewer/neewer.nginx.annularlight/download/apk
 
+1. Unpack apk file.
+```
+unzip Neewer_5.0.5_Apkpure.apk
+```
+
+2. Unpack dex files.
 Then use [jadx](brew install jadx) to get java code from dex file in the apk.
 
 `brew install jadx`
+
+```
+jadx classes.dex
+jadx classes2.dex
+jadx classes3.dex
+jadx classes4.dex
+jadx classes5.dex
+```
 
 # How to do bluetooth packet logging on Neewer iOS app
 
@@ -75,3 +90,5 @@ Color 01
 Nov 07 00:58:30.744  ATT Send         0x0040  DF:24:3A:B4:46:5D  Write Command - Handle:0x000E - Value: 7891 0BDF 243A B446 5D8B 0A32 0105 75  SEND  
 ```
 
+CB60 RGB
+NW-20210012&FFFFFFFF
