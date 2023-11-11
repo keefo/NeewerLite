@@ -18,6 +18,10 @@
             "image": "https://github.com/keefo/NeewerLite/blob/main/Database/light_images/rgb1-stick.png?raw=true"
         },
         {
+            "type": 16,
+            "image": "https://github.com/keefo/NeewerLite/blob/main/Database/light_images/rgb168.png?raw=true"
+        },
+        {
             "type": 20,
             "image": "https://github.com/keefo/NeewerLite/blob/main/Database/light_images/rgb176-a1.png?raw=true"
         },
