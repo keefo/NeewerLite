@@ -8,7 +8,7 @@
 import Foundation
 
 // Create an enum that can represent any Codable value
-enum CodableValue: Codable {
+enum CodableValue: Codable, CustomStringConvertible {
     case intValue(Int)
     case stringValue(String)
     case boolValue(Bool)
@@ -66,6 +66,29 @@ enum CodableValue: Codable {
                 try container.encode(sourceValue)
             case .sourcesValue(let sourcesValue):
                 try container.encode(sourcesValue)
+        }
+    }
+
+    var description: String {
+        switch self {
+            case .intValue(let value):
+                return "\(value)"
+            case .stringValue(let value):
+                return value
+            case .boolValue(let value):
+                return "\(value)"
+            case .int8Value(let value):
+                return "\(value)"
+            case .uint8Value(let value):
+                return "\(value)"
+            case .fxValue(let value):
+                return "\(value)"
+            case .fxsValue(let value):
+                return "\(value)"
+            case .sourceValue(let value):
+                return "\(value)"
+            case .sourcesValue(let value):
+                return "\(value)"
         }
     }
 

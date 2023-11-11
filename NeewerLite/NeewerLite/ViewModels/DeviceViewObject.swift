@@ -120,24 +120,23 @@ class DeviceViewObject: NSObject {
     public lazy var deviceIdentifier: String = {
         return "\(device.identifier)"
     }()
-
-    public lazy var deviceImage: NSImage = {
-        var img = NSImage(named: "defaultLightImage")
-        let nickName = device.nickName
-        if nickName.contains("RGB660") || nickName.contains("RGB480") {
-            img = NSImage(named: "light-rgb660-pro")
-        } else if nickName.contains("RGB176") {
-            img = NSImage(named: "light-rgb176")
-        } else if nickName.contains("SNL660") {
-            img = NSImage(named: "light-rgb660-pro")
-        } else if nickName.contains("CB60 RGB") {
-            img = NSImage(named: "light-cb60-rgb")
-        }
-        if img == nil {
-            img = NSImage(named: "defaultLightImage")
-        }
-        return img!
-    }()
+    
+//    public var deviceImage: NSImage?
+//
+//    public func setDeviceImage(_ img: NSImage) {
+//        deviceImage = img
+//    }
+//
+//    public lazy var deviceImage: NSImage = {
+//        var img = NSImage(named: "defaultLightImage")
+//        let type = device.lightType
+//        let name = NeewerLightConstant.getLightImageName()[type] ?? "defaultLightImage"
+//        img = NSImage(named: name)
+//        if img == nil {
+//            img = NSImage(named: "defaultLightImage")
+//        }
+//        return img!
+//    }()
 
     public var followMusic: Bool {
         return device.followMusic

@@ -34,7 +34,6 @@ class NeewerLight: NSObject, ObservableNeewerLightProtocol {
         static let NeewerBleServiceUUID = CBUUID(string: "69400001-B5A3-F393-E0A9-E50E24DCCA99")
         static let NeewerDeviceCtlCharacteristicUUID = CBUUID(string: "69400002-B5A3-F393-E0A9-E50E24DCCA99")
         static let NeewerGattCharacteristicUUID = CBUUID(string: "69400003-B5A3-F393-E0A9-E50E24DCCA99")
-        static let RGBLightTypes: [UInt8] = [3, 5, 9, 11, 12, 15, 16, 18, 19, 20, 21, 22, 26, 29, 32, 40, 42, 56, 59]
     }
 
     struct BleCommand {
@@ -65,6 +64,7 @@ class NeewerLight: NSObject, ObservableNeewerLightProtocol {
     var deviceCtlCharacteristic: CBCharacteristic?
     var gattCharacteristic: CBCharacteristic?
 
+    var fake: Bool = false // this is for debugging purpose
     var isOn: Observable<Bool> = Observable(false)
     var channel: Observable<UInt8> = Observable(1) // 1 ~ maxChannel
     var userLightName: Observable<String> = Observable("")
@@ -146,7 +146,7 @@ class NeewerLight: NSObject, ObservableNeewerLightProtocol {
     // read only properties
     var supportRGB: Bool {
         // some lights are only Bi-Color which does not support RGB.
-        return NeewerLight.Constants.RGBLightTypes.contains(_lightType)
+        return NeewerLightConstant.getRGBLightTypes().contains(_lightType)
     }
 
     func CCTRange() -> (minCCT: Int, maxCCT: Int) {
@@ -223,6 +223,10 @@ class NeewerLight: NSObject, ObservableNeewerLightProtocol {
         return _rawName!
     }()
 
+    public func getMAC() ->  String {
+        return _macAddress ?? ""
+    }
+
     private lazy var ligthType: UInt8 = {
         if _lightType <= 0 {
             _lightType = NeewerLightConstant.getLightType(nickName: nickName, str: "", projectName: projectName)
@@ -242,32 +246,38 @@ class NeewerLight: NSObject, ObservableNeewerLightProtocol {
         Logger.debug("  ligthType: \(ligthType)")
     }
 
-    func getConfig() -> [String: CodableValue] {
+    func getConfig(_ intrinsicOnly: Bool = false) -> [String: CodableValue] {
         var vals: [String: CodableValue] = [:]
         vals["mac"] = _macAddress.map { CodableValue.stringValue($0) }
         vals["rawname"] = _rawName.map { CodableValue.stringValue($0) }
         vals["identifier"] = _identifier.map { CodableValue.stringValue($0) }
-        vals["on"] = CodableValue.boolValue(isOn.value)
-        vals["mod"] = CodableValue.uint8Value(lightMode.rawValue)
-        vals["cct"] = CodableValue.intValue(cctValue.value)
-        vals["brr"] = CodableValue.intValue(brrValue.value)
-        vals["chn"] = CodableValue.uint8Value(channel.value)
-        vals["hue"] = CodableValue.intValue(hueValue.value)
-        vals["sat"] = CodableValue.intValue(satValue.value)
-        vals["gmm"] = CodableValue.intValue(gmmValue.value)
-        if userLightName.value.lengthOfBytes(using: .utf8) > 0 {
-            vals["nme"] = CodableValue.stringValue(userLightName.value)
+        if !intrinsicOnly {
+            vals["on"] = CodableValue.boolValue(isOn.value)
+            vals["mod"] = CodableValue.uint8Value(lightMode.rawValue)
+            vals["cct"] = CodableValue.intValue(cctValue.value)
+            vals["brr"] = CodableValue.intValue(brrValue.value)
+            vals["chn"] = CodableValue.uint8Value(channel.value)
+            vals["hue"] = CodableValue.intValue(hueValue.value)
+            vals["sat"] = CodableValue.intValue(satValue.value)
+            vals["gmm"] = CodableValue.intValue(gmmValue.value)
+            if userLightName.value.lengthOfBytes(using: .utf8) > 0 {
+                vals["nme"] = CodableValue.stringValue(userLightName.value)
+            }
+            vals["supportedFX"] = CodableValue.fxsValue(supportedFX)
+            vals["supportedSource"] = CodableValue.sourcesValue(supportedSource)
+            vals["lastTab"] = CodableValue.stringValue(lastTab)
+        } else {
+            vals["type"] = CodableValue.uint8Value(_lightType)
+            vals["nickname"] = CodableValue.stringValue(nickName)
+            vals["projectname"] = CodableValue.stringValue(projectName)
         }
-        vals["supportedFX"] = CodableValue.fxsValue(supportedFX)
-        vals["supportedSource"] = CodableValue.sourcesValue(supportedSource)
-        vals["lastTab"] = CodableValue.stringValue(lastTab)
-
         return vals
     }
 
     init(_ config: [String: CodableValue]) {
 
         super.init()
+        fake = config["fake"]?.boolValue ?? false
         lastTab = config["lastTab"]?.stringValue ?? "cctTab"
         _macAddress = config["mac"]?.stringValue ?? ""
         _rawName = config["rawname"]?.stringValue ?? ""
@@ -381,21 +391,21 @@ class NeewerLight: NSObject, ObservableNeewerLightProtocol {
     }
 
     func sendPowerOnRequest() {
+        Logger.debug("send powerOn")
+        isOn.value = true
         guard let characteristic = deviceCtlCharacteristic else {
             return
         }
-        Logger.debug("send powerOn")
         self.write(data: NeewerLight.BleCommand.powerOn as Data, to: characteristic)
-        isOn.value = true
     }
 
     func sendPowerOffRequest() {
+        Logger.debug("send powerOff")
+        isOn.value = false
         guard let characteristic = deviceCtlCharacteristic else {
             return
         }
-        Logger.debug("send powerOff")
         self.write(data: NeewerLight.BleCommand.powerOff as Data, to: characteristic)
-        isOn.value = false
     }
 
     func sendReadRequest() {
@@ -429,57 +439,65 @@ class NeewerLight: NSObject, ObservableNeewerLightProtocol {
 
     // Set correlated color temperature and bulb brightness in CCT Mode
     public func setCCTLightValues(brr: CGFloat, cct: CGFloat, gmm: CGFloat) {
+        var cmd: Data = Data()
+
+        if supportGMRange.value {
+            cmd = getCCTDATALightValue(brightness: brr, correlatedColorTemperature: cct, gmm: gmm)
+        } else if supportRGB {
+            cmd = getCCTLightValue(brightness: brr, correlatedColorTemperature: cct)
+        } else {
+            cmd = getCCTOnlyLightValue(brightness: brr, correlatedColorTemperature: cct)
+        }
+        lightMode = .CCTMode
+
         guard let characteristic = deviceCtlCharacteristic else {
             return
         }
-        if supportGMRange.value {
-            let cmd = getCCTDATALightValue(brightness: brr, correlatedColorTemperature: cct, gmm: gmm)
-            write(data: cmd as Data, to: characteristic)
-        } else if supportRGB {
-            let cmd = getCCTLightValue(brightness: brr, correlatedColorTemperature: cct)
-            write(data: cmd as Data, to: characteristic)
-        } else {
-            let cmd = getCCTOnlyLightValue(brightness: brr, correlatedColorTemperature: cct)
-            write(data: cmd as Data, to: characteristic)
-        }
-        lightMode = .CCTMode
+        write(data: cmd as Data, to: characteristic)
     }
 
     // Set RBG light in HSV Mode
     public func setRGBLightValues(brr: CGFloat, hue: CGFloat, sat: CGFloat) {
+        var cmd: Data = Data()
+        // Logger.debug("hue: \(hue) sat: \(sat)")
+        cmd = getRGBLightValue(brightness: brr, hue: hue, satruation: sat)
+
+        lightMode = .HSIMode
+
         guard let characteristic = deviceCtlCharacteristic else {
             return
         }
-        // Logger.debug("hue: \(hue) sat: \(sat)")
-        let cmd = getRGBLightValue(brightness: brr, hue: hue, satruation: sat)
         write(data: cmd as Data, to: characteristic)
-        lightMode = .HSIMode
     }
 
     // Set Scene
     public func setScene(_ scene: UInt8, brightness brr: CGFloat) {
+        var cmd: Data = Data()
+        cmd = getSceneValue(scene, brightness: CGFloat(brr))
+        lightMode = .SCEMode
+
         guard let characteristic = deviceCtlCharacteristic else {
             return
         }
-        let cmd = getSceneValue(scene, brightness: CGFloat(brr))
         write(data: cmd as Data, to: characteristic)
-        lightMode = .SCEMode
     }
 
     // Send Scene
     public func sendSceneCommand(_ fxx: NeewerLightFX) {
+        var cmd: Data = Data()
+
+        if NeewerLightConstant.getRGBLightTypesThatSupport17FX().contains(_lightType) {
+            cmd = getSceneCommand(_macAddress ?? "", fxx)
+            channel.value = UInt8(fxx.id)
+        } else {
+            cmd = getSceneValue(UInt8(fxx.id), brightness: CGFloat(fxx.brrValue))
+        }
+        lightMode = .SCEMode
+
         guard let characteristic = deviceCtlCharacteristic else {
             return
         }
-        if _lightType == 22 {
-            let cmd = getSceneCommand(_macAddress ?? "", fxx)
-            channel.value = UInt8(fxx.id)
-            write(data: cmd as Data, to: characteristic)
-        } else {
-            let cmd = getSceneValue(UInt8(fxx.id), brightness: CGFloat(fxx.brrValue))
-            write(data: cmd as Data, to: characteristic)
-        }
-        lightMode = .SCEMode
+        write(data: cmd as Data, to: characteristic)
     }
 
     private func handleNotifyValueUpdate(_ data: Data) {
@@ -661,30 +679,31 @@ class NeewerLight: NSObject, ObservableNeewerLightProtocol {
     }
 
     public func setBRRLightValues(_ brr: CGFloat) {
+        var cmd: Data = Data()
+        if lightMode == .CCTMode {
+            if supportRGB {
+                cmd = getCCTLightValue(brightness: brr, correlatedColorTemperature: CGFloat(cctValue.value))
+            } else {
+                cmd = getCCTOnlyLightValue(brightness: brr, correlatedColorTemperature: CGFloat(cctValue.value))
+            }
+        } else if lightMode == .HSIMode {
+            cmd = getRGBLightValue(brightness: brr, hue: CGFloat(hueValue.value) / 360.0, satruation: CGFloat(satValue.value) / 100.0)
+        } else {
+            cmd = getSceneValue(channel.value, brightness: CGFloat(brr))
+        }
         guard let characteristic = deviceCtlCharacteristic else {
             return
         }
-        if lightMode == .CCTMode {
-            if supportRGB {
-                let cmd = getCCTLightValue(brightness: brr, correlatedColorTemperature: CGFloat(cctValue.value))
-                write(data: cmd as Data, to: characteristic)
-            } else {
-                let cmd = getCCTOnlyLightValue(brightness: brr, correlatedColorTemperature: CGFloat(cctValue.value))
-                write(data: cmd as Data, to: characteristic)
-            }
-        } else if lightMode == .HSIMode {
-            let cmd = getRGBLightValue(brightness: brr, hue: CGFloat(hueValue.value) / 360.0, satruation: CGFloat(satValue.value) / 100.0)
-            write(data: cmd as Data, to: characteristic)
-        } else {
-            let cmd = getSceneValue(channel.value, brightness: CGFloat(brr))
-            write(data: cmd as Data, to: characteristic)
-        }
+        write(data: cmd as Data, to: characteristic)
     }
 
     private func getRGBLightValue(brightness brr: CGFloat, hue theHue: CGFloat, satruation sat: CGFloat ) -> Data {
-
+        var ratio = 100.0
+        if brr > 1.0 {
+            ratio = 1.0
+        }
         // brr range from 0x00 - 0x64
-        let newBrrValue: Int = Int(brr * 100.0).clamped(to: 0...100)
+        let newBrrValue: Int = Int(brr * ratio).clamped(to: 0...100)
         let newSatValue: Int = Int(sat * 100.0).clamped(to: 0...100)
         let newHueValue = Int(theHue * 360.0).clamped(to: 0...360)
 
@@ -987,8 +1006,8 @@ extension NeewerLight: CBPeripheralDelegate {
         }
         Logger.debug("didUpdateNotificationStateFor characteristic: \(characteristic)")
         let properties: CBCharacteristicProperties = characteristic.properties
-        Logger.info("properties: \(properties)")
-        Logger.info("properties.rawValue: \(properties.rawValue)")
+        Logger.debug("properties: \(properties)")
+        Logger.debug("properties.rawValue: \(properties.rawValue)")
         // self.write(data: cmd_check_power as Data, to: characteristic)
         sendReadRequest()
     }

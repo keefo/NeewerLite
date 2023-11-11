@@ -51,6 +51,10 @@ class NeewerLightFX: NSObject, Codable {
         super.init()
     }
 
+    override var description: String {
+        return "[\(self.id), \(self.name), \(featureValues)]"
+    }
+
     // Computed properties to access specific features' CGFloat values conveniently
     var brrValue: CGFloat {
         get { featureValues["brrValue"] ?? 50.0 }

@@ -9,6 +9,7 @@ import Foundation
 import Cocoa
 
 class MyLightTableCellView: NSTableCellView {
+    var imageFetchOperation: ImageFetchOperation?
 
     @IBOutlet var iconImageView: NSImageView!
     @IBOutlet var titleLabel: NSTextField!
@@ -16,13 +17,26 @@ class MyLightTableCellView: NSTableCellView {
     @IBOutlet var button: NSButton!
     @IBOutlet var button2: NSButton!
 
+    var light: NeewerLight? {
+        didSet {
+            if let safeLight = light {
+                imageFetchOperation?.cancel() // Cancel any ongoing operation
+                let operation = ImageFetchOperation(light: safeLight) { [weak self] image in
+                    self?.iconImageView?.image = image
+                }
+                ContentManager.shared.operationQueue.addOperation(operation)
+                imageFetchOperation = operation
+            }
+        }
+    }
+
     // NSTrackingArea to track the mouse hover event
     private var trackingArea: NSTrackingArea?
     var isConnected: Bool = false {
         didSet {
             if isConnected {
-                titleLabel.textColor = NSColor.textColor
-                subtitleLabel.textColor = NSColor.textColor
+                titleLabel.textColor = NSColor.labelColor
+                subtitleLabel.textColor = NSColor.secondaryLabelColor
             } else {
                 titleLabel.textColor = NSColor.disabledControlTextColor
                 subtitleLabel.textColor = NSColor.disabledControlTextColor
@@ -36,6 +50,7 @@ class MyLightTableCellView: NSTableCellView {
         // Customize the appearance and behavior of your elements here
         titleLabel?.font = NSFont.systemFont(ofSize: 14)
         subtitleLabel?.font = NSFont.systemFont(ofSize: 12)
+        titleLabel?.isSelectable = true
 
         button?.isHidden = true
         button2?.isHidden = true
