@@ -7,6 +7,7 @@
 
 import Foundation
 import Network
+import Cocoa
 
 public enum LogTag: Int, Codable {
     case none = 0
@@ -111,6 +112,40 @@ public class Logger {
         }
 
         logBuffer.logs.removeAll()
+    }
+
+    public typealias FlushCompletion = () -> Void
+
+    public class func flush(completion: @escaping FlushCompletion) {
+
+        if logBuffer.logs.count < 0 {
+            completion()
+            return
+        }
+        var request = URLRequest(url: logUrl)
+        request.httpMethod = "POST"
+        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.timeoutInterval = 3 
+        do {
+            let jsonData = try JSONEncoder().encode(logBuffer)
+            request.httpBody = jsonData
+            let task = URLSession.shared.dataTask(with: request) { data, response, error in
+                // Handle response here (e.g., check for success or failure)
+                if let error = error {
+                    print("Error sending log entry: \(error)")
+                    completion()
+                    return
+                }
+                if let httpResponse = response as? HTTPURLResponse, !(200...299).contains(httpResponse.statusCode) {
+                    print("Server responded with status code: \(httpResponse.statusCode)")
+                }
+                completion()
+            }
+            task.resume()
+            logBuffer.logs.removeAll()
+        } catch {
+            completion()
+        }
     }
 
     public class func debug(_ message: String? = nil, function: String = #function, file: String = #file, line: Int = #line) {

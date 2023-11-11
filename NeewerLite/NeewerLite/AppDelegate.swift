@@ -136,8 +136,16 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     }
 
     func applicationWillTerminate(_ aNotification: Notification) {
-        // Store all Lights values
+    }
+
+    func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
         saveLightsToDisk()
+        Logger.info(LogTag.app, "App Quit")
+        Logger.flush {
+            // Inform the application that it can now terminate
+            NSApp.reply(toApplicationShouldTerminate: true)
+        }
+        return .terminateLater
     }
 
     func applicationDidBecomeActive(_ notification: Notification) {
@@ -534,7 +542,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
             }
 
             var update = updateUI
-            Logger.info("advance peripheral to device \(peripheral) \(service)")
+            // Logger.info("advance peripheral to device \(peripheral) \(service)")
             let light: NeewerLight = NeewerLight(peripheral, characteristic1, characteristic2)
             var found = false
             for viewObj in viewObjects {
@@ -880,6 +888,7 @@ extension AppDelegate: NSTableViewDataSource, NSTableViewDelegate {
             renameVC?.onOK = { [weak self] text in
                 guard let safeSelf = self else { return true }
                 if safeSelf.isUserLightNameUsed(text, dev: viewObject.device) {
+                    Logger.info(LogTag.click, "rename light, name conflict.")
                     return false
                 }
                 viewObject.device.userLightName.value = "\(text)"
