@@ -22,7 +22,6 @@
 		A731DD9D25A5A01300302E25 /* DeviceViewObject.swift in Sources */ = {isa = PBXBuildFile; fileRef = A731DD9C25A5A01300302E25 /* DeviceViewObject.swift */; };
 		A733AE47292DF05F00F37DDD /* SpectrogramViewObject.swift in Sources */ = {isa = PBXBuildFile; fileRef = A733AE46292DF05F00F37DDD /* SpectrogramViewObject.swift */; };
 		A733AEC22933185900F37DDD /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = A733AEC12933185900F37DDD /* AppDelegate.swift */; };
-		A744CD412AF36143007E919A /* ViewObjectTransformers.swift in Sources */ = {isa = PBXBuildFile; fileRef = A744CD402AF36143007E919A /* ViewObjectTransformers.swift */; };
 		A744CD432AF36BA1007E919A /* MyLightTableCellView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A744CD422AF36BA1007E919A /* MyLightTableCellView.swift */; };
 		A749F6FA25B3AE7E0066EB06 /* DataExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = A749F6F925B3AE7E0066EB06 /* DataExtensions.swift */; };
 		A749F70225B3AE9A0066EB06 /* Observable.swift in Sources */ = {isa = PBXBuildFile; fileRef = A749F70125B3AE9A0066EB06 /* Observable.swift */; };
@@ -32,6 +31,7 @@
 		A749F72225B3DFB30066EB06 /* ColorUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = A749F72125B3DFB30066EB06 /* ColorUtils.swift */; };
 		A753109D2AFC996F009F533C /* StorageManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A753109C2AFC996F009F533C /* StorageManager.swift */; };
 		A753109F2AFCAA25009F533C /* NeewerLightSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = A753109E2AFCAA25009F533C /* NeewerLightSource.swift */; };
+		A75310A12AFF2A19009F533C /* ContentManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A75310A02AFF2A19009F533C /* ContentManager.swift */; };
 		A76C4B6D275474FA00D2F145 /* AudioSpectrogram.swift in Sources */ = {isa = PBXBuildFile; fileRef = A76C4B6C275474FA00D2F145 /* AudioSpectrogram.swift */; };
 		A76E1F21266496FC00E5788B /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = A76E1F20266496FC00E5788B /* Sparkle */; };
 		A76E1F2326649F2A00E5788B /* Credits.rtf in Resources */ = {isa = PBXBuildFile; fileRef = A76E1F2226649F2A00E5788B /* Credits.rtf */; };
@@ -75,7 +75,6 @@
 		A731DD9C25A5A01300302E25 /* DeviceViewObject.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceViewObject.swift; sourceTree = "<group>"; };
 		A733AE46292DF05F00F37DDD /* SpectrogramViewObject.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpectrogramViewObject.swift; sourceTree = "<group>"; };
 		A733AEC12933185900F37DDD /* AppDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
-		A744CD402AF36143007E919A /* ViewObjectTransformers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewObjectTransformers.swift; sourceTree = "<group>"; };
 		A744CD422AF36BA1007E919A /* MyLightTableCellView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MyLightTableCellView.swift; sourceTree = "<group>"; };
 		A749F6F925B3AE7E0066EB06 /* DataExtensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataExtensions.swift; sourceTree = "<group>"; };
 		A749F70125B3AE9A0066EB06 /* Observable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Observable.swift; sourceTree = "<group>"; };
@@ -85,6 +84,7 @@
 		A749F72125B3DFB30066EB06 /* ColorUtils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorUtils.swift; sourceTree = "<group>"; };
 		A753109C2AFC996F009F533C /* StorageManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StorageManager.swift; sourceTree = "<group>"; };
 		A753109E2AFCAA25009F533C /* NeewerLightSource.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NeewerLightSource.swift; sourceTree = "<group>"; };
+		A75310A02AFF2A19009F533C /* ContentManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentManager.swift; sourceTree = "<group>"; };
 		A76C4B6C275474FA00D2F145 /* AudioSpectrogram.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioSpectrogram.swift; sourceTree = "<group>"; };
 		A76E1F2226649F2A00E5788B /* Credits.rtf */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.rtf; path = Credits.rtf; sourceTree = "<group>"; };
 		A77414D12AEA2C8D0085F149 /* BlockingOverlayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlockingOverlayView.swift; sourceTree = "<group>"; };
@@ -147,6 +147,7 @@
 				A731DDA525A5A04000302E25 /* ViewModels */,
 				A731DDAC25A5A13000302E25 /* Resources */,
 				A733AEC12933185900F37DDD /* AppDelegate.swift */,
+				A75310A02AFF2A19009F533C /* ContentManager.swift */,
 			);
 			path = NeewerLite;
 			sourceTree = "<group>";
@@ -208,7 +209,6 @@
 			children = (
 				A731DD9C25A5A01300302E25 /* DeviceViewObject.swift */,
 				A733AE46292DF05F00F37DDD /* SpectrogramViewObject.swift */,
-				A744CD402AF36143007E919A /* ViewObjectTransformers.swift */,
 			);
 			path = ViewModels;
 			sourceTree = "<group>";
@@ -380,7 +380,6 @@
 				A749F71A25B3DF4F0066EB06 /* NSBezierPathExtensions.swift in Sources */,
 				A7770BF22AF6EEB30046E571 /* RenameViewController.swift in Sources */,
 				A7311C4629A0BD5E009C03D8 /* Command.swift in Sources */,
-				A744CD412AF36143007E919A /* ViewObjectTransformers.swift in Sources */,
 				A77414D72AEB637D0085F149 /* NLSlider.swift in Sources */,
 				A731DD8125A5922A00302E25 /* CollectionViewItem.swift in Sources */,
 				A731DD7425A5896B00302E25 /* NeewerLight.swift in Sources */,
@@ -389,6 +388,7 @@
 				A744CD432AF36BA1007E919A /* MyLightTableCellView.swift in Sources */,
 				A730F7FE2AE79173009CA529 /* NeewerLightConstant.swift in Sources */,
 				A77414F82AF0E7890085F149 /* FXView.swift in Sources */,
+				A75310A12AFF2A19009F533C /* ContentManager.swift in Sources */,
 				A733AE47292DF05F00F37DDD /* SpectrogramViewObject.swift in Sources */,
 				A749F71525B3DE9B0066EB06 /* ColorWheel.swift in Sources */,
 				A76C4B6D275474FA00D2F145 /* AudioSpectrogram.swift in Sources */,
