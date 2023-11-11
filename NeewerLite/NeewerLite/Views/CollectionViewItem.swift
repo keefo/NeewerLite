@@ -29,6 +29,7 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
     // @IBOutlet weak var followMusicButton: NSButton!
 
     private var renameVC: RenameViewController?
+    private var imageFetchOperation: ImageFetchOperation?
 
     private var buildingView: Bool = false
     private var currentSceneIndex: UInt8 = 0
@@ -38,18 +39,7 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
     private var overlay: BlockingOverlayView?
     private let valueTextColor: NSColor = NSColor.secondaryLabelColor
 
-    var device: NeewerLight? {
-        didSet {
-//            if let dev = device {
-//                let cctrange = dev.CCTRange()
-//                self.cctCctSlide.minValue = Double(cctrange.minCCT)
-//                self.cctCctSlide.maxValue = Double(cctrange.maxCCT)
-//                self.cctgmCctSlide.minValue = Double(cctrange.minCCT)
-//                self.cctgmCctSlide.maxValue = Double(cctrange.maxCCT)
-//                updateDeviceColorToWheel()
-//            }
-        }
-    }
+    var device: NeewerLight?
 
     override var isSelected: Bool {
         didSet {
@@ -64,7 +54,10 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
                 imageView?.imageScaling = .scaleProportionallyUpOrDown
                 imageView?.image = image
             } else {
-                imageView?.image = nil
+                if let dev = device {
+                    Logger.debug("missing image for lightType \(dev.lightType)")
+                }
+                imageView?.image = NSImage(named: "defaultLightImage")
             }
         }
     }
@@ -1224,19 +1217,30 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
 
     func updateWithViewObject(_ viewObj: DeviceViewObject) {
         device = viewObj.device
-        self.image = viewObj.deviceImage
         if let dev = device {
+            self.image = ContentManager.shared.fetchCachedLightImage(lightType: dev.lightType)
             updateDeviceName()
             self.nameField.toolTip = "\(dev.rawName)\n\(viewObj.deviceIdentifier)"
+            imageFetchOperation?.cancel() // Cancel any ongoing operation
+            let operation = ImageFetchOperation(light: dev) { [weak self] image in
+                self?.image = image
+            }
+            ContentManager.shared.operationQueue.addOperation(operation)
+            imageFetchOperation = operation
         }
+
         buildView()
 
         updateDeviceStatus()
 
-        if device?.peripheral == nil {
-            grayOut()
-        } else {
+        if debugFakeLights {
             removeGrayOut()
+        } else {
+            if device?.peripheral == nil {
+                grayOut()
+            } else {
+                removeGrayOut()
+            }
         }
     }
 

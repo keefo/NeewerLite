@@ -13,6 +13,12 @@ import Accelerate
 import SwiftUI
 import Sparkle
 
+#if DEBUG
+let debugFakeLights = false
+#else
+let debugFakeLights = false
+#endif
+
 @NSApplicationMain
 class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
 
@@ -62,6 +68,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         }
     }
     var scanningTimer: Timer?
+    var launching: Bool = true
 
     var statusItemIcon: ButtonState = .off {
         didSet {
@@ -78,8 +85,12 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
 
     func applicationDidFinishLaunching(_ aNotification: Notification) {
 
+        Logger.initializeTimer()
+
         NSApp.setActivationPolicy(.regular)
         // NSApp.setActivationPolicy(.accessory)
+
+        Logger.info(LogTag.app, "App launch")
 
         scanningStatus?.stringValue = ""
         let idx = UserDefaults.standard.value(forKey: "viewIdx") as? Int
@@ -111,6 +122,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         cbCentralManager = CBCentralManager(delegate: self, queue: nil)
 
         self.switchViewAction(self.viewsButton)
+
+        launching = false
     }
 
     func applicationShouldHandleReopen(_ sender: NSApplication,
@@ -133,6 +146,16 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     }
 
     func loadLightsFromDisk() {
+
+        if debugFakeLights {
+            let cfgs = NeewerLightConstant.getFakeLightConfigs()
+            for cfg in cfgs {
+                let dev = NeewerLight(cfg)
+                viewObjects.append(DeviceViewObject(dev))
+            }
+            return
+        }
+
         let storageManager = StorageManager()
         if let loadedData = storageManager?.load(from: "MyLights.dat") {
             Logger.debug("Loaded data: \(loadedData)")
@@ -145,12 +168,15 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
                     viewObjects.append(DeviceViewObject(dev))
                 }
             } catch {
-                Logger.error("Error encoding JSON: \(error)")
+                Logger.error("Load Lights Error encoding JSON: \(error)")
             }
         }
     }
 
     func saveLightsToDisk() {
+        if debugFakeLights {
+            return
+        }
         Logger.debug("saveLightsToDisk")
         let encoder = JSONEncoder()
         do {
@@ -162,7 +188,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
             let storageManager = StorageManager()
             _ = storageManager?.save(data: jsonData, to: "MyLights.dat")
         } catch {
-            Logger.error("Error encoding JSON: \(error)")
+            Logger.error("Save Lights Error encoding JSON: \(error)")
         }
     }
 
@@ -309,6 +335,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         NSApp.orderFrontStandardAboutPanel(options: [
             NSApplication.AboutPanelOptionKey(rawValue: "Copyright"): "Copyright © \(Calendar.current.component(.year, from: Date())) Keefo"
         ])
+        Logger.info(LogTag.click, "open about")
     }
 
     @IBAction func githubAction(_ sender: AnyObject) {
@@ -316,6 +343,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
             return
         }
         NSWorkspace.shared.open(url)
+        Logger.info(LogTag.click, "open github")
     }
 
     @IBAction func showWindowAction(_ sender: AnyObject) {
@@ -337,6 +365,17 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
             UserDefaults.standard.setValue(sender.selectedSegment, forKey: "viewIdx")
 
             if let selectedView = views[sender.selectedSegment] {
+                if selectedView == self.view0 {
+                    window.title = "NeewerLite - Scan View"
+                    if !launching {
+                        Logger.info(LogTag.click, "Scan View")
+                    }
+                } else if selectedView == self.view1 {
+                    window.title = "NeewerLite - Control View"
+                    if !launching {
+                        Logger.info(LogTag.click, "Control View")
+                    }
+                }
                 selectedView.frame = contentView.bounds
                 selectedView.autoresizingMask = [.width, .height]
                 contentView.addSubview(selectedView)
@@ -353,10 +392,12 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
             scanTableView.reloadData()
             scanAction(sender)
             sender.title = "Stop"
+            Logger.info(LogTag.click, "Scan")
         } else {
             scanningNewLightMode = false
             scanningStatus?.stringValue = ""
             sender.title = "Scan"
+            Logger.info(LogTag.click, "Stop")
         }
     }
 
@@ -370,7 +411,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
             cbCentralManager?.scanForPeripherals(withServices: nil, options: nil)
             // scanAction(self)
             scanning = true
-            Logger.info("scanForPeripherals...")
+            Logger.debug("scanForPeripherals...")
         }
 
         Logger.debug("\(peripheralCache)")
@@ -467,8 +508,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     }
 
     func forgetLight(_ light: NeewerLight) {
-        Logger.debug("forgetLight: \(light)")
-
+        Logger.info(LogTag.click, "do forget light \(light.getConfig(true))")
         var found = false
         for (index, viewObj) in viewObjects.enumerated() where viewObj.device.identifier == light.identifier {
             viewObjects.remove(at: index)
@@ -484,12 +524,12 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     func advancePeripheralToDevice(peripheral: CBPeripheral, service: CBService, updateUI: Bool, addNew: Bool) {
         if let characteristics = service.characteristics {
             guard let characteristic1: CBCharacteristic = characteristics.first(where: {$0.uuid == NeewerLight.Constants.NeewerDeviceCtlCharacteristicUUID}) else {
-                Logger.info("NeewerGattCharacteristicUUID not found")
+                Logger.debug("NeewerGattCharacteristicUUID not found")
                 return
             }
 
             guard let characteristic2: CBCharacteristic = characteristics.first(where: {$0.uuid == NeewerLight.Constants.NeewerGattCharacteristicUUID}) else {
-                Logger.info("NeewerGattCharacteristicUUID not found")
+                Logger.debug("NeewerGattCharacteristicUUID not found")
                 return
             }
 
@@ -638,6 +678,7 @@ extension AppDelegate: CBCentralManagerDelegate {
 
         switch central.state {
             case .unauthorized:
+                Logger.info(LogTag.bluetooth, "authorization: \(central.authorization)")
                 switch central.authorization {
                     case .allowedAlways: break
                     case .denied: break
@@ -649,14 +690,16 @@ extension AppDelegate: CBCentralManagerDelegate {
             case .unknown: break
             case .unsupported: break
             case .poweredOn:
-                Logger.info("scanForPeripherals...")
+                Logger.info(LogTag.bluetooth, "powered on")
                 central.scanForPeripherals(withServices: nil, options: nil)
                 // scanAction(self)
                 self.scanning = true
             case .poweredOff:
                 central.stopScan()
+                Logger.info(LogTag.bluetooth, "powered off")
                 self.scanning = false
             case .resetting: break
+                Logger.info(LogTag.bluetooth, "resetting")
             @unknown default: break
         }
     }
@@ -686,6 +729,7 @@ extension AppDelegate: CBCentralManagerDelegate {
     }
 
     func centralManager(_ central: CBCentralManager, didFailToConnect peripheral: CBPeripheral, error: Error?) {
+        Logger.info(LogTag.bluetooth, "didFailToConnect peripheral \(peripheral) error \(String(describing: error))")
         if peripheralCache[peripheral.identifier] != nil {
             peripheral.delegate = nil
             peripheralCache.removeValue(forKey: peripheral.identifier)
@@ -694,13 +738,14 @@ extension AppDelegate: CBCentralManagerDelegate {
     }
 
     func centralManager(_ central: CBCentralManager, didDisconnectPeripheral peripheral: CBPeripheral, error: Error?) {
+        Logger.info(LogTag.bluetooth, "didDisconnectPeripheral peripheral \(peripheral) error \(String(describing: error))")
         if peripheralCache[peripheral.identifier] != nil {
             peripheral.delegate = nil
             peripheralCache.removeValue(forKey: peripheral.identifier)
         }
         if viewObjects.contains(where: { $0.deviceIdentifier == "\(peripheral.identifier)" }) {
-            Logger.info("didDisconnectPeripheral: \(peripheral) \(String(describing: error))")
-            Logger.info("try to connect to \(peripheral.identifier)")
+            Logger.debug("didDisconnectPeripheral: \(peripheral) \(String(describing: error))")
+            Logger.debug("try to connect to \(peripheral.identifier)")
             cbCentralManager?.connect(peripheral, options: nil)
             // grayoutLightViewObject(peripheral.identifier)
         }
@@ -741,7 +786,6 @@ extension AppDelegate: NSTableViewDataSource, NSTableViewDelegate {
     func numberOfRows(in tableView: NSTableView) -> Int {
         // Return the number of rows based on your data source count.
         if tableView == mylightTableView {
-            Logger.info("viewObjects.count: \(viewObjects.count)")
             return viewObjects.count
         } else if tableView == scanTableView {
             return scanningViewObjects.count
@@ -757,19 +801,24 @@ extension AppDelegate: NSTableViewDataSource, NSTableViewDelegate {
             if let cellView = tableView.makeView(withIdentifier: cellIdentifier, owner: nil) as? MyLightTableCellView {
                 // Assuming "YourModel" has a property named "name" to display
                 let viewObj = viewObjects[row]
-                cellView.iconImageView?.image = viewObj.deviceImage
-                cellView.titleLabel?.stringValue = viewObj.device.nickName
+                cellView.titleLabel?.stringValue = "\(viewObj.device.nickName) (\(viewObj.device.rawName))"
                 cellView.subtitleLabel?.stringValue = viewObj.device.userLightName.value
+                cellView.iconImageView?.image = ContentManager.shared.fetchCachedLightImage(lightType: viewObj.device.lightType) ?? NSImage(named: "defaultLightImage")
                 cellView.button?.tag = row
                 cellView.button?.action = #selector(forgetAction(_:))
                 cellView.button?.target = self
                 cellView.button2?.tag = row
                 cellView.button2?.action = #selector(renameAction(_:))
                 cellView.button2?.target = self
-                cellView.isConnected = viewObj.deviceConnected
+                if debugFakeLights {
+                    cellView.isConnected = true
+                } else {
+                    cellView.isConnected = viewObj.deviceConnected
+                }
                 if !viewObj.hasMAC {
                     cellView.titleLabel?.stringValue = "\(viewObj.device.nickName) (missing MAC❗️)"
                 }
+                cellView.light = viewObj.device
                 return cellView
             }
         } else if tableView == scanTableView {
@@ -778,12 +827,13 @@ extension AppDelegate: NSTableViewDataSource, NSTableViewDelegate {
             if let cellView = tableView.makeView(withIdentifier: cellIdentifier, owner: nil) as? MyLightTableCellView {
                 // Assuming "YourModel" has a property named "name" to display
                 let viewObj = scanningViewObjects[row]
-                cellView.iconImageView?.image = viewObj.deviceImage
+                cellView.iconImageView?.image = ContentManager.shared.fetchCachedLightImage(lightType: viewObj.device.lightType) ?? NSImage(named: "defaultLightImage")
                 cellView.titleLabel?.stringValue = viewObj.device.rawName
                 cellView.subtitleLabel?.stringValue = viewObj.device.nickName
                 cellView.button?.tag = row
                 cellView.button?.action = #selector(connnectNewLightAction(_:))
                 cellView.button?.target = self
+                cellView.light = viewObj.device
                 return cellView
             }
         }
@@ -791,13 +841,15 @@ extension AppDelegate: NSTableViewDataSource, NSTableViewDelegate {
     }
 
     func tableView(_ tableView: NSTableView, shouldSelectRow row: Int) -> Bool {
-        return false
+        return tableView == mylightTableView
     }
 
     @IBAction func connnectNewLightAction(_ sender: NSButton) {
         let rowIndex = sender.tag
         if rowIndex >= 0 && rowIndex < scanningViewObjects.count {
-            viewObjects.append(scanningViewObjects.remove(at: rowIndex))
+            let viewObj = scanningViewObjects.remove(at: rowIndex)
+            Logger.info(LogTag.click, "connect a new light \(viewObj.device.getConfig())")
+            viewObjects.append(viewObj)
             self.updateUI()
             self.saveLightsToDisk()
         }
@@ -819,6 +871,7 @@ extension AppDelegate: NSTableViewDataSource, NSTableViewDelegate {
         let rowIndex = sender.tag
         // Retrieve the corresponding object from your data source
         if rowIndex >= 0 && rowIndex < viewObjects.count {
+            Logger.info(LogTag.click, "rename light")
             let viewObject = viewObjects[rowIndex]
             if renameVC != nil {
                 renameVC = nil
@@ -843,9 +896,10 @@ extension AppDelegate: NSTableViewDataSource, NSTableViewDelegate {
         let rowIndex = sender.tag
         // Retrieve the corresponding object from your data source
         if rowIndex >= 0 && rowIndex < viewObjects.count {
+            Logger.info(LogTag.click, "forget light")
             let viewObject = viewObjects[rowIndex]
             let alert = NSAlert()
-            alert.icon = viewObject.deviceImage
+            alert.icon = ContentManager.shared.fetchCachedLightImage(lightType: viewObject.device.lightType) ?? NSImage(named: "defaultLightImage")
             alert.messageText = "Remove light \"\(viewObject.deviceName)\""
             alert.informativeText = "Are you sure you want to remove this light from you library?"
             alert.alertStyle = .warning
@@ -855,10 +909,8 @@ extension AppDelegate: NSTableViewDataSource, NSTableViewDelegate {
             let response = alert.runModal()
             switch response {
                 case .alertFirstButtonReturn:
-                    // Yes button clicked
-                    Logger.debug("no need to remove light")
+                    Logger.info(LogTag.click, "forget light, cancel")
                 case .alertSecondButtonReturn:
-                    // No button clicked
                     self.forgetLight(viewObject.device)
                 default:
                     break

@@ -848,7 +848,7 @@
                                         <rect key="frame" x="0.0" y="0.0" width="388" height="377"/>
                                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                         <subviews>
-                                            <tableView verticalHuggingPriority="750" allowsExpansionToolTips="YES" columnAutoresizingStyle="lastColumnOnly" multipleSelection="NO" autosaveColumns="NO" rowHeight="57" rowSizeStyle="automatic" viewBased="YES" id="Vxv-wz-mUA">
+                                            <tableView verticalHuggingPriority="750" allowsExpansionToolTips="YES" columnAutoresizingStyle="lastColumnOnly" autosaveColumns="NO" rowHeight="57" rowSizeStyle="automatic" viewBased="YES" id="Vxv-wz-mUA">
                                                 <rect key="frame" x="0.0" y="0.0" width="388" height="377"/>
                                                 <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                                 <size key="intercellSpacing" width="17" height="0.0"/>
