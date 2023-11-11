@@ -1,0 +1,45 @@
+{
+    "version": 1,
+    "lights": [
+        {
+            "type": 3,
+            "image": "https://github.com/keefo/NeewerLite/blob/main/Database/light_images/rgb660-pro.png?raw=true "
+        },
+        {
+            "type": 4,
+            "image": "https://github.com/keefo/NeewerLite/blob/main/Database/light_images/gl1.png?raw=true"
+        },
+        {
+            "type": 7,
+            "image": "https://github.com/keefo/NeewerLite/blob/main/Database/light_images/snl530.png?raw=true"
+        },
+        {
+            "type": 8,
+            "image": "https://github.com/keefo/NeewerLite/blob/main/Database/light_images/rgb1-stick.png?raw=true"
+        },
+        {
+            "type": 20,
+            "image": "https://github.com/keefo/NeewerLite/blob/main/Database/light_images/rgb176-a1.png?raw=true"
+        },
+        {
+            "type": 22,
+            "image": "https://github.com/keefo/NeewerLite/blob/main/Database/light_images/cb60-rgb.png?raw=true"
+        },
+        {
+            "type": 33,
+            "image": "https://github.com/keefo/NeewerLite/blob/main/Database/light_images/gl1-pro.png?raw=true"
+        },
+        {
+            "type": 34,
+            "image": "https://github.com/keefo/NeewerLite/blob/main/Database/light_images/sl90-pro.png?raw=true"
+        },
+        {
+            "type": 39,
+            "image": "https://github.com/keefo/NeewerLite/blob/main/Database/light_images/gl1.png?raw=true"
+        },
+        {
+            "type": 40,
+            "image": "https://github.com/keefo/NeewerLite/blob/main/Database/light_images/rgb62.png?raw=true"
+        }
+    ]
+}
