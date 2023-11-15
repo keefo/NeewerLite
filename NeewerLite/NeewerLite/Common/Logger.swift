@@ -87,6 +87,11 @@ public class Logger {
     }
 
     private static func sendBatchedLogs() {
+#if DEBUG
+        return
+#else
+#endif
+
         guard !logBuffer.logs.isEmpty else { return }
         guard !networkDown else { return }
 
@@ -117,7 +122,11 @@ public class Logger {
     public typealias FlushCompletion = () -> Void
 
     public class func flush(completion: @escaping FlushCompletion) {
-
+#if DEBUG
+        completion()
+        return
+#else
+#endif
         if logBuffer.logs.count < 0 {
             completion()
             return

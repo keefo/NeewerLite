@@ -12,17 +12,22 @@ class DeviceViewObject: NSObject {
 
     var device: NeewerLight
     var view: CollectionViewItem?
+    var initing: Bool = false
 
     init(_ device: NeewerLight) {
         self.device = device
 
         super.init()
+        initing = true
 
         self.syncLifetime = Timer.scheduledTimer(withTimeInterval: 10.0, repeats: true) { _ in
             //device.sendReadRequest()
         }
 
         self.device.isOn.bind { (_) in
+            guard !self.initing else {
+                return
+            }
             DispatchQueue.main.async {
                 if let theView = self.view {
                     theView.updateDeviceStatus()
@@ -30,6 +35,9 @@ class DeviceViewObject: NSObject {
             }
         }
         self.device.channel.bind { (channel) in
+            guard !self.initing else {
+                return
+            }
             Logger.debug("Device channel update: \(channel)")
             DispatchQueue.main.async {
                 if let theView = self.view {
@@ -38,6 +46,9 @@ class DeviceViewObject: NSObject {
             }
         }
         self.device.userLightName.bind { (name) in
+            guard !self.initing else {
+                return
+            }
             Logger.debug("Device name update: \(name)")
             DispatchQueue.main.async {
                 if let theView = self.view {
@@ -47,6 +58,9 @@ class DeviceViewObject: NSObject {
         }
 
         self.device.brrValue.bind { (val) in
+            guard !self.initing else {
+                return
+            }
             Logger.debug("Device brightness update: \(val)")
             DispatchQueue.main.async {
                 if let theView = self.view {
@@ -56,6 +70,9 @@ class DeviceViewObject: NSObject {
         }
 
         self.device.cctValue.bind { (val) in
+            guard !self.initing else {
+                return
+            }
             Logger.debug("Device CCT update: \(val)")
             DispatchQueue.main.async {
                 if let theView = self.view {
@@ -65,6 +82,9 @@ class DeviceViewObject: NSObject {
         }
 
         self.device.gmmValue.bind { (val) in
+            guard !self.initing else {
+                return
+            }
             Logger.debug("Device GM update: \(val)")
             DispatchQueue.main.async {
                 if let theView = self.view {
@@ -74,6 +94,9 @@ class DeviceViewObject: NSObject {
         }
 
         self.device.hueValue.bind { (val) in
+            guard !self.initing else {
+                return
+            }
             Logger.debug("Device HUE update: \(val)")
             DispatchQueue.main.async {
                 if let theView = self.view {
@@ -83,6 +106,9 @@ class DeviceViewObject: NSObject {
         }
 
         self.device.satValue.bind { (val) in
+            guard !self.initing else {
+                return
+            }
             Logger.debug("Device HUE update: \(val)")
             DispatchQueue.main.async {
                 if let theView = self.view {
@@ -92,6 +118,9 @@ class DeviceViewObject: NSObject {
         }
 
         self.device.supportGMRange.bind { support in
+            guard !self.initing else {
+                return
+            }
             Logger.debug("Device supportGMRange update: \(support)")
             DispatchQueue.main.async {
                 if let theView = self.view {
@@ -100,6 +129,8 @@ class DeviceViewObject: NSObject {
                 }
             }
         }
+
+        initing = false
     }
 
     deinit {
@@ -120,23 +151,6 @@ class DeviceViewObject: NSObject {
     public lazy var deviceIdentifier: String = {
         return "\(device.identifier)"
     }()
-    
-//    public var deviceImage: NSImage?
-//
-//    public func setDeviceImage(_ img: NSImage) {
-//        deviceImage = img
-//    }
-//
-//    public lazy var deviceImage: NSImage = {
-//        var img = NSImage(named: "defaultLightImage")
-//        let type = device.lightType
-//        let name = NeewerLightConstant.getLightImageName()[type] ?? "defaultLightImage"
-//        img = NSImage(named: name)
-//        if img == nil {
-//            img = NSImage(named: "defaultLightImage")
-//        }
-//        return img!
-//    }()
 
     public var followMusic: Bool {
         return device.followMusic
@@ -193,6 +207,9 @@ class DeviceViewObject: NSObject {
     }
 
     public func changeToSCE(_ val: Int) {
+        guard !self.initing else {
+            return
+        }
         if let theView = view {
             // TODO: make this pass to view
 //            let btn = NSButton()
@@ -203,6 +220,9 @@ class DeviceViewObject: NSObject {
     }
 
     public func updateCCT(_ cct: Int, _ bri: Double) {
+        guard !self.initing else {
+            return
+        }
         if let theView = view {
             var cttVal = Double(cct)
             let cctrange = device.CCTRange()
@@ -213,7 +233,6 @@ class DeviceViewObject: NSObject {
             if cttVal > Double(cctrange.maxCCT) {
                 cttVal = Double(cctrange.maxCCT)
             }
-
             // TODO: update UI CCT values
             //            theView.cctCctSlide.doubleValue = Double(cttVal/100.0)
             //            theView.cctBrrSlide.doubleValue = bri
@@ -222,16 +241,12 @@ class DeviceViewObject: NSObject {
         }
     }
 
-    public var HSB: HSB {
-        @available(*, unavailable)
-        get {
-            fatalError("You cannot read from this object.")
+    public func updateHSI(hue: CGFloat, sat: CGFloat, brr: CGFloat) {
+        guard !self.initing else {
+            return
         }
-        set {
-            if let theView = view {
-                // TODO: Need to PASS HSB into dev
-                Logger.debug("Need to PASS HSB into dev \(newValue)")
-            }
+        if let theView = view {
+            theView.updateHSI(hue: hue, sat: sat, brr: brr)
         }
     }
 

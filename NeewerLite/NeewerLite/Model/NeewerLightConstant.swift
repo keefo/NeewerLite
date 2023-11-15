@@ -6,8 +6,36 @@
 //
 
 import Foundation
+import CoreBluetooth
+import IOBluetooth
 
 class NeewerLightConstant {
+
+    struct Constants {
+        static let NeewerBleServiceUUID = CBUUID(string: "69400001-B5A3-F393-E0A9-E50E24DCCA99")
+        static let NeewerDeviceCtlCharacteristicUUID = CBUUID(string: "69400002-B5A3-F393-E0A9-E50E24DCCA99")
+        static let NeewerGattCharacteristicUUID = CBUUID(string: "69400003-B5A3-F393-E0A9-E50E24DCCA99")
+    }
+
+    struct BleCommand {
+        static let prefixTag = 0x78         // 120 Every bluettooth cmd start with 120
+        static let setLongCCTLightBrightnessTag = 0x82  // 130 Set long CCT Light brightness.
+        static let setLongCCTLightCCTTag = 0x83         // 131 Set long CCT Light CCT.
+
+        static let setRGBLightTag = 0x86  // 134 Set RGB Light Mode.
+        static let setCCTLightTag = 0x87  // 135 Set CCT Light Mode.
+
+        static let setSceneTag = 0x88      // 136 Set Scene Light Mode.
+        static let setSCESubTag =  0x8B  //
+
+        static let setHSVDataTag = 0x89  // 143 Set Continuity RGB Light HSV data.
+        static let setCCTDataTag = 0x90  // 144 Set Continuity RGB Light Mode.
+        static let setSCEDataTag = 0x91  //
+
+        static let powerOn = Data([0x78, 0x81, 0x01, 0x01, 0xFB])
+        static let powerOff = Data([0x78, 0x81, 0x01, 0x02, 0xFC])
+        static let readRequest = Data([0x78, 0x84, 0x00, 0xFC])
+    }
 
     class func getRGBLightTypes() -> [UInt8] {
         return [3, 5, 8, 9, 11, 12, 15, 16, 18, 19, 20, 21, 22, 26, 29, 32, 34, 39, 40, 42, 43, 56, 57, 59]
@@ -605,6 +633,7 @@ class NeewerLightConstant {
             cfg["identifier"] = CodableValue.stringValue("FAE0BA8C-ABCD-B7DB-012C-7A8DDEE0BAFA")
             lights.append(cfg)
         }
+
         return lights
     }
 }

@@ -69,20 +69,9 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
         view.layer?.borderColor = NSColor.lightGray.withAlphaComponent(0.6).cgColor
         view.layer?.borderWidth = 1.0
         view.layer?.cornerRadius = 10.0
-
         // self.followMusicButton.state = .off
     }
 
-    @IBAction func toggleFollowMusicAction(_ sender: NSButton) {
-        if let dev = device {
-            Logger.debug("sender.state= \(sender.state)")
-            dev.followMusic = sender.state == .on
-            Logger.debug("dev.followMusic= \(dev.followMusic)")
-            if let app = NSApp.delegate as? AppDelegate {
-                app.updateAudioDriver()
-            }
-        }
-    }
 
     @IBAction func forgetAction(_ sender: NSButton) {
         if let dev = device {
@@ -491,6 +480,13 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
         view.addSubview(createValueLabel("Saturation"))
         view.addSubview(createValueField(ControlTag.sat, formatSATValue("\(dev.satValue.value)", .center)))
 
+//        let checkbox = NSButton(checkboxWithTitle: "Music", target: self, action: #selector(fllowMusicClicked))
+//        checkbox.state = .off // Or .on if you want it checked initially
+//        // Set the frame of the checkbox (position and size)
+//        checkbox.frame = NSRect(x: 230, y: 40, width: 110, height: 30)
+//        // Add the checkbox to the view
+//        view.addSubview(checkbox)
+
         return view
     }
 
@@ -727,6 +723,17 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
         return view
     }
 
+    @objc func fllowMusicClicked(_ sender: NSButton) {
+        if let dev = device {
+            let isChecked = sender.state == .on
+            dev.followMusic = isChecked
+            Logger.debug("dev.followMusic= \(dev.followMusic)")
+            if let app = NSApp.delegate as? AppDelegate {
+                app.checkAudioDriver()
+            }
+        }
+    }
+
     @objc func sourceClicked(_ sender: NSPopUpButton) {
         guard let dev = device else {
             return
@@ -873,6 +880,9 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
     }
 
     @objc func fxClicked(_ sender: NSPopUpButton) {
+        if buildingView {
+            return
+        }
         guard let dev = device else {
             return
         }
@@ -1090,7 +1100,7 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
             slide.type = .sat
             slide.minValue = 0
             slide.maxValue = 100
-            slide.currentValue = CGFloat(safeFx.satValue) // TODO: get spark from dev
+            slide.currentValue = CGFloat(safeFx.satValue)
             slide.customBarDrawing = NLSlider.satBar()
             let valueField = createValeLabel(offsetY-4, "", slide.tag)
             slide.callback = { [weak self] val in
@@ -1114,7 +1124,7 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
             slide.type = .speed
             slide.minValue = 1
             slide.maxValue = 10
-            slide.currentValue = CGFloat(safeFx.speedValue) // TODO: get speeed from dev
+            slide.currentValue = CGFloat(safeFx.speedValue)
             slide.customBarDrawing = NLSlider.speedBar()
             slide.steps = 10
             let valueField = createValeLabel(offsetY-4, "", slide.tag)
@@ -1139,7 +1149,7 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
             slide.type = .spark
             slide.minValue = 1
             slide.maxValue = 10
-            slide.currentValue = CGFloat(safeFx.sparksValue) // TODO: get spark from dev
+            slide.currentValue = CGFloat(safeFx.sparksValue)
             slide.customBarDrawing = NLSlider.sparkBar()
             slide.steps = 10
             let valueField = createValeLabel(offsetY-4, "", slide.tag)
@@ -1180,6 +1190,9 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
     }
 
     func updateDeviceValueField(type: ControlTag, value: Any) {
+        guard !buildingView else {
+            return
+        }
         guard let item = self.lightModeTabView.selectedTabViewItem else {
             return
         }
@@ -1308,6 +1321,36 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
         return (brr, cct, gmm)
     }
 
+    func getHSIWheelFromView() -> ColorWheel? {
+        guard let item = self.lightModeTabView.selectedTabViewItem else {
+            return nil
+        }
+        guard let view = item.view else {
+            return nil
+        }
+        if let btn = view.subviews.first(where: { $0.isKind(of: ColorWheel.self) }) {
+            return btn as? ColorWheel
+        }
+        return nil
+    }
+
+    func getHSIBrrSlideFromView() -> NLSlider? {
+        guard let item = self.lightModeTabView.selectedTabViewItem else {
+            return nil
+        }
+        guard let view = item.view else {
+            return nil
+        }
+        if let idf = item.identifier as? String {
+            if idf == "hsiTab" || item.label == "HSI" {
+                if let btn = view.subviews.first(where: { $0.isKind(of: NLSlider.self) && $0.tag == ControlTag.brr.rawValue }) {
+                    return btn as? NLSlider
+                }
+            }
+        }
+        return nil
+    }
+
     func getHSIValuesFromView() -> (brr: CGFloat, hue: CGFloat, sat: CGFloat) {
         var hue = 0.0
         var sat = 0.0
@@ -1340,6 +1383,35 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
         return (brr, hue, sat)
     }
 
+    func getFXListButtonFromView() -> NSPopUpButton? {
+        guard let item = self.lightModeTabView.selectedTabViewItem else {
+            return nil
+        }
+        guard let view = item.view else {
+            return nil
+        }
+        if let btn = view.subviews.first(where: { $0.isKind(of: NSPopUpButton.self) }) {
+            return btn as? NSPopUpButton
+        }
+        return nil
+    }
+
+    func updateHSI(hue: CGFloat, sat: CGFloat, brr: CGFloat) {
+        if let dev = device {
+            if dev.supportRGB {
+                Logger.debug("brr: \(brr) hue: \(hue) sat: \(sat)")
+                if let wheel = getHSIWheelFromView() {
+                    let color = NSColor(calibratedHue: CGFloat(hue) / 360.0, saturation: sat, brightness: brr, alpha: 1)
+                    wheel.setViewColor(color)
+                }
+                if let brrSlide = getHSIBrrSlideFromView() {
+                    brrSlide.currentValue = brr * brrSlide.maxValue
+                }
+                // dev.setRGBLightValues(brr: brr, hue: hue, sat: sat)
+            }
+        }
+    }
+
     func tabView(_ tabView: NSTabView, didSelect tabViewItem: NSTabViewItem?) {
         if tabView == lightModeTabView {
             if buildingView {
@@ -1361,9 +1433,14 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
                             let val = getHSIValuesFromView()
                             dev.setRGBLightValues(brr: CGFloat(val.brr) / 100.0, hue: val.hue, sat: val.sat)
                         }
-                    } else {
+                    } else if idf == "sceTab" || tabViewItem?.label == "FX" {
                         // scene mode
-                        dev.lightMode = .SCEMode
+                        if let btn = getFXListButtonFromView() {
+                            btn.selectItem(withTag: Int(dev.channel.value))
+                            fxClicked(btn)
+                        }
+                    } else {
+                        // unknow view
                     }
                     dev.lastTab = idf
                 }
