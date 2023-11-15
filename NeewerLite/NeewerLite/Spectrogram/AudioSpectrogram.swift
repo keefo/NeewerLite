@@ -8,27 +8,38 @@
 import Foundation
 import AVFoundation
 import Accelerate
+import AppKit
 
-protocol AudioSpectrogramDelegate: AnyObject {
-    func updateFrequency(frequency: [Float])
-}
+// Define the callback type
+typealias FrequencyUpdateCallback = ([Float]) -> Void
+typealias VolumeUpdateCallback = (Float) -> Void
+typealias AmplitudeUpdateCallback = (Float) -> Void
+typealias AudioSpectrogramImageUpdateCallback = (CGImage) -> Void
 
 public class AudioSpectrogram: NSObject {
 
-    var delegate: AudioSpectrogramDelegate?
+    // Replace the delegate with a callback
+    var frequencyUpdateCallback: FrequencyUpdateCallback?
+    var volumeUpdateCallback: VolumeUpdateCallback?
+    var amplitudeUpdateCallback: AmplitudeUpdateCallback?
+    var audioSpectrogramImageUpdateCallback: AudioSpectrogramImageUpdateCallback?
 
     // MARK: Properties
-    /// The number of audio samples per frame.
+    // The number of audio samples per frame.
     static let sampleCount = 1024
 
-    /// Determines the overlap between frames.
+    // Determines the overlap between frames.
     static let hopCount = sampleCount / 2
 
-    /// Number of samping buffers — the width of the spectrogram.
+    // Number of samping buffers — the width of the spectrogram.
     static let bufferCount = 32
 
-    /// The number of mel filter banks  — the height of the spectrogram.
-    static let filterBankCount = 20
+    // The number of mel filter banks  — the height of the spectrogram.
+    static let filterBankCount = 60
+
+    static let melSpectrumValueGain: Float = 50.0
+
+    static let frequencyRange: ClosedRange<Float> = 20...20_000
 
     let captureSession = AVCaptureSession()
     let audioOutput = AVCaptureAudioDataOutput()
@@ -40,102 +51,174 @@ public class AudioSpectrogram: NSObject {
                                      attributes: [],
                                      autoreleaseFrequency: .workItem)
 
+    let volumeListenerCallback: AudioObjectPropertyListenerProc = { audioObjectId, _, _, selfPointer in
+        guard let pointer = selfPointer else { return kAudioHardwareNoError }
+        let mySelf = Unmanaged<AudioSpectrogram>.fromOpaque(pointer).takeUnretainedValue()
+        var volume = Float32(0.0)
+        var size = UInt32(MemoryLayout.size(ofValue: volume))
+
+        var element: AudioObjectPropertyElement
+        if #available(macOS 12.0, *) {
+            element = kAudioObjectPropertyElementMain
+        } else {
+            element = kAudioObjectPropertyElementMaster
+        }
+
+        var volumePropertyAddress = AudioObjectPropertyAddress(
+            mSelector: kAudioHardwareServiceDeviceProperty_VirtualMainVolume,
+            mScope: kAudioDevicePropertyScopeOutput,
+            mElement: element
+        )
+
+        let status = AudioObjectGetPropertyData(
+            audioObjectId,
+            &volumePropertyAddress,
+            0,
+            nil,
+            &size,
+            &volume
+        )
+
+        if status == noErr {
+            if let safeCallback = mySelf.volumeUpdateCallback {
+                safeCallback(volume)
+            }
+        } else {
+            print("Error getting volume in callback")
+        }
+        return kAudioHardwareNoError
+    }
+
     override init() {
         super.init()
         configureCaptureSession()
-        audioOutput.setSampleBufferDelegate(self, queue: captureQueue)
     }
 
-    /// Temporary buffers that the FFT operation uses for storing interim results.
-    static var fftRealBuffer = [Float](repeating: 0, count: sampleCount / 2)
-    static var fftImagBuffer = [Float](repeating: 0, count: sampleCount / 2)
+    let forwardDCT = vDSP.DCT(count: sampleCount,
+                              transformType: .II)!
 
-    /// The forward fast Fourier transform object.
-    static let fft: FFTSetup = {
-        let log2n = vDSP_Length(log2(Float(sampleCount)))
-
-        guard let fft = vDSP_create_fftsetup(log2n,
-                                             FFTRadix(kFFTRadix2)) else {
-            fatalError("Unable to create FFT.")
-        }
-
-        return fft
-    }()
-
-    /// The window sequence used to reduce spectral leakage.
-    static let hanningWindow = vDSP.window(ofType: Float.self,
+    // The window sequence used to reduce spectral leakage.
+    let hanningWindow = vDSP.window(ofType: Float.self,
                                            usingSequence: .hanningDenormalized,
                                            count: sampleCount,
                                            isHalfWindow: false)
 
     let dispatchSemaphore = DispatchSemaphore(value: 1)
 
-    /// A buffer that contains the raw audio data from AVFoundation.
+    // A buffer that contains the raw audio data from AVFoundation.
     var rawAudioData = [Int16]()
 
-    /// An array that contains the entire spectrogram.
+    // An array that contains the entire spectrogram.
     var melSpectrumValues = [Float](repeating: 0, count: bufferCount * filterBankCount)
+
+    /// Raw frequency-domain values.
+    var frequencyDomainValues = [Float](repeating: 0,
+                                        count: bufferCount * sampleCount)
+
+    var rgbImageFormat = vImage_CGImageFormat(
+        bitsPerComponent: 32,
+        bitsPerPixel: 32 * 3,
+        colorSpace: CGColorSpaceCreateDeviceRGB(),
+        bitmapInfo: CGBitmapInfo(
+            rawValue: kCGBitmapByteOrder32Host.rawValue |
+            CGBitmapInfo.floatComponents.rawValue |
+            CGImageAlphaInfo.none.rawValue))!
+
+    /// RGB vImage buffer that contains a vertical representation of the audio spectrogram.
+
+    let redBuffer = vImage.PixelBuffer<vImage.PlanarF>(
+        width: AudioSpectrogram.sampleCount,
+        height: AudioSpectrogram.bufferCount)
+
+    let greenBuffer = vImage.PixelBuffer<vImage.PlanarF>(
+        width: AudioSpectrogram.sampleCount,
+        height: AudioSpectrogram.bufferCount)
+
+    let blueBuffer = vImage.PixelBuffer<vImage.PlanarF>(
+        width: AudioSpectrogram.sampleCount,
+        height: AudioSpectrogram.bufferCount)
+
+    let rgbImageBuffer = vImage.PixelBuffer<vImage.InterleavedFx3>(
+        width: AudioSpectrogram.sampleCount,
+        height: AudioSpectrogram.bufferCount)
 
     deinit {
     }
 
-    /// A reusable array that contains the current frame of time domain audio data as single-precision
-    /// values.
+    // A reusable array that contains the current frame of time domain audio data as single-precision
+    // values.
     var timeDomainBuffer = [Float](repeating: 0, count: sampleCount)
 
-    /// A resuable array that contains the frequency domain representation of the current frame of
-    /// audio data.
+    // A resuable array that contains the frequency domain representation of the current frame of
+    // audio data.
     var frequencyDomainBuffer = [Float](repeating: 0, count: sampleCount)
 
-    /// A matrix of `filterBankCount` rows and `sampleCount` that contains the triangular overlapping
-    /// windows for each mel frequency.
-    let filterBank = AudioSpectrogram.makeFilterBank(withFrequencyRange: 20 ... 20_000,
+    // A matrix of `filterBankCount` rows and `sampleCount` that contains the triangular overlapping
+    // windows for each mel frequency.
+    let filterBank = AudioSpectrogram.makeFilterBank(withFrequencyRange: AudioSpectrogram.frequencyRange,
                                                    sampleCount: AudioSpectrogram.sampleCount,
                                                    filterBankCount: AudioSpectrogram.filterBankCount)
 
     static let signalCount = 1
-    /// A buffer that contains the matrix multiply result of the current frame of frequency domain values in
-    /// `frequencyDomainBuffer` multiplied by the `filterBank` matrix.
+    // A buffer that contains the matrix multiply result of the current frame of frequency domain values in
+    // `frequencyDomainBuffer` multiplied by the `filterBank` matrix.
     let sgemmResult = UnsafeMutableBufferPointer<Float>
         .allocate(capacity: AudioSpectrogram.signalCount * Int(AudioSpectrogram.filterBankCount))
 
-    /// Process a frame of raw audio data:
-    ///
-    /// 1. Convert the `Int16` time-domain audio values to `Float`.
-    /// 2. Perform a forward DFT on the time-domain values.
-    /// 3. Multiply the `frequencyDomainBuffer` vector by the `filterBank` matrix
-    /// to generate `sgemmResult` product.
-    /// 4. Convert the matrix multiply results to decibels.
-    ///
-    /// The matrix multiply effectively creates a  vector of `filterBankCount` elements that summarises
-    /// the `sampleCount` frequency-domain values.  For example, given a vector of four frequency-domain
-    /// values:
-    /// ```
-    ///  [ 1, 2, 3, 4 ]
-    /// ```
-    /// And a filter bank of three filters with the following values:
-    /// ```
-    ///  [ 0.5, 0.5, 0.0, 0.0,
-    ///    0.0, 0.5, 0.5, 0.0,
-    ///    0.0, 0.0, 0.5, 0.5 ]
-    /// ```
-    /// The result contains three values of:
-    /// ```
-    ///  [ ( 1 * 0.5 + 2 * 0.5) = 1.5,
-    ///     (2 * 0.5 + 3 * 0.5) = 2.5,
-    ///     (3 * 0.5 + 4 * 0.5) = 3.5 ]
-    /// ```
+    public var gain: Double = 0.0288
+    public var zeroReference: Double = 1000
+
+    // Process a frame of raw audio data:
+    //
+    // 1. Convert the `Int16` time-domain audio values to `Float`.
+    // 2. Perform a forward DFT on the time-domain values.
+    // 3. Multiply the `frequencyDomainBuffer` vector by the `filterBank` matrix
+    // to generate `sgemmResult` product.
+    // 4. Convert the matrix multiply results to decibels.
+    //
+    // The matrix multiply effectively creates a  vector of `filterBankCount` elements that summarises
+    // the `sampleCount` frequency-domain values.  For example, given a vector of four frequency-domain
+    // values:
+    // ```
+    //  [ 1, 2, 3, 4 ]
+    // ```
+    // And a filter bank of three filters with the following values:
+    // ```
+    //  [ 0.5, 0.5, 0.0, 0.0,
+    //    0.0, 0.5, 0.5, 0.0,
+    //    0.0, 0.0, 0.5, 0.5 ]
+    // ```
+    // The result contains three values of:
+    // ```
+    //  [ ( 1 * 0.5 + 2 * 0.5) = 1.5,
+    //     (2 * 0.5 + 3 * 0.5) = 2.5,
+    //     (3 * 0.5 + 4 * 0.5) = 3.5 ]
+    // ```
     func processData(values: [Int16]) {
+
+        if let callback = amplitudeUpdateCallback {
+            callback(calculateAmplitude(samples: values.map { Float($0) }))
+        }
 
         vDSP.convertElements(of: values,
                              to: &timeDomainBuffer)
 
-        AudioSpectrogram.performForwardDFT(timeDomainValues: &timeDomainBuffer,
-                                         frequencyDomainValues: &frequencyDomainBuffer,
-                                         temporaryRealBuffer: &realParts,
-                                         temporaryImaginaryBuffer: &imaginaryParts)
+        vDSP.multiply(timeDomainBuffer,
+                      hanningWindow,
+                      result: &timeDomainBuffer)
 
-        vDSP.absolute(frequencyDomainBuffer,
+        forwardDCT.transform(timeDomainBuffer,
+                             result: &frequencyDomainBuffer)
+
+        vDSP.absolute(frequencyDomainBuffer, result: &frequencyDomainBuffer)
+
+        // linear
+        vDSP.convert(amplitude: frequencyDomainBuffer,
+                     toDecibels: &frequencyDomainBuffer,
+                     zeroReference: Float(zeroReference))
+
+        vDSP.multiply(Float(gain),
+                      frequencyDomainBuffer,
                       result: &frequencyDomainBuffer)
 
         frequencyDomainBuffer.withUnsafeBufferPointer { frequencyDomainValuesPtr in
@@ -152,10 +235,16 @@ public class AudioSpectrogram: NSObject {
         }
 
         vDSP_vdbcon(sgemmResult.baseAddress!, 1,
-                    [20_000],
+                    [AudioSpectrogram.frequencyRange.upperBound],
                     sgemmResult.baseAddress!, 1,
                     vDSP_Length(sgemmResult.count),
                     0)
+
+        if frequencyDomainValues.count > AudioSpectrogram.sampleCount {
+            frequencyDomainValues.removeFirst(AudioSpectrogram.sampleCount)
+        }
+
+        frequencyDomainValues.append(contentsOf: frequencyDomainBuffer)
 
         // Scroll the values in `melSpectrumValues` by removing the first
         // `filterBankCount` values and appending the `filterBankCount` elements
@@ -164,91 +253,52 @@ public class AudioSpectrogram: NSObject {
             melSpectrumValues.removeFirst(AudioSpectrogram.filterBankCount)
         }
         melSpectrumValues.append(contentsOf: sgemmResult)
-    }
-
-    /// The real parts of the time- and frequency-domain representations (the code performs DFT in-place)
-    /// of the current frame of audio.
-    var realParts = [Float](repeating: 0,
-                            count: sampleCount / 2)
-
-    /// The imaginary parts of the time- and frequency-domain representations (the code performs DFT
-    /// in-place) of the current frame of audio.
-    var imaginaryParts = [Float](repeating: 0,
-                                 count: sampleCount / 2)
-
-    /// Performs a forward Fourier transform on interleaved `timeDomainValues` writing the result to
-    /// interleaved `frequencyDomainValues`.
-    static func performForwardDFT(timeDomainValues: inout [Float],
-                                  frequencyDomainValues: inout [Float],
-                                  temporaryRealBuffer: inout [Float],
-                                  temporaryImaginaryBuffer: inout [Float]) {
-
-        vDSP.multiply(timeDomainValues,
-                      hanningWindow,
-                      result: &timeDomainValues)
-
-        // Populate split real and imaginary arrays with the interleaved values
-        // in `timeDomainValues`.
-        temporaryRealBuffer.withUnsafeMutableBufferPointer { realPtr in
-            temporaryImaginaryBuffer.withUnsafeMutableBufferPointer { imagPtr in
-                var splitComplex = DSPSplitComplex(realp: realPtr.baseAddress!,
-                                                   imagp: imagPtr.baseAddress!)
-
-                timeDomainValues.withUnsafeBytes {
-                    vDSP_ctoz($0.bindMemory(to: DSPComplex.self).baseAddress!, 2,
-                              &splitComplex, 1,
-                              vDSP_Length(AudioSpectrogram.sampleCount / 2))
-                }
-            }
-        }
-
-        // Perform forward transform.
-        temporaryRealBuffer.withUnsafeMutableBufferPointer { realPtr in
-            temporaryImaginaryBuffer.withUnsafeMutableBufferPointer { imagPtr in
-                fftRealBuffer.withUnsafeMutableBufferPointer { realBufferPtr in
-                    fftImagBuffer.withUnsafeMutableBufferPointer { imagBufferPtr in
-                        var splitComplex = DSPSplitComplex(realp: realPtr.baseAddress!,
-                                                           imagp: imagPtr.baseAddress!)
-
-                        var bufferSplitComplex = DSPSplitComplex(realp: realBufferPtr.baseAddress!,
-                                                                 imagp: imagBufferPtr.baseAddress!)
-
-                        let log2n = vDSP_Length(log2(Float(sampleCount)))
-
-                        vDSP_fft_zript(fft,
-                                       &splitComplex, 1,
-                                       &bufferSplitComplex,
-                                       log2n,
-                                       FFTDirection(kFFTDirection_Forward))
-                    }
-                }
-            }
-        }
-
-        // Populate interleaved `frequencyDomainValues` with the split values
-        // from the real and imaginary arrays.
-        temporaryRealBuffer.withUnsafeMutableBufferPointer { realPtr in
-            temporaryImaginaryBuffer.withUnsafeMutableBufferPointer { imagPtr in
-                var splitComplex = DSPSplitComplex(realp: realPtr.baseAddress!,
-                                                   imagp: imagPtr.baseAddress!)
-
-                frequencyDomainValues.withUnsafeMutableBytes { ptr in
-                    vDSP_ztoc(&splitComplex, 1,
-                              ptr.bindMemory(to: DSPComplex.self).baseAddress!, 2,
-                              vDSP_Length(AudioSpectrogram.sampleCount / 2))
+        // Filter out `inf` values
+        melSpectrumValues.withUnsafeMutableBufferPointer { ptr in
+            for idx in 0..<ptr.count {
+                if ptr[idx].isNaN {
+                    ptr[idx] = 0
+                } else {
+                    ptr[idx] += AudioSpectrogram.melSpectrumValueGain
                 }
             }
         }
     }
 
-    /// Creates an audio spectrogram `CGImage` from `melSpectrumValues` and renders it
-    /// to the `spectrogramLayer` layer.
+    private func calculateAmplitude(samples: [Float]) -> Float {
+        let sumOfSquares = samples.reduce(0) { $0 + $1 * $1 }
+        let rms = sqrt(sumOfSquares / Float(samples.count))
+        return rms
+    }
+
+    // Creates an audio spectrogram `CGImage` from `melSpectrumValues` and renders it
+    // to the `spectrogramLayer` layer.
     func createAudioSpectrogram() {
-
         if melSpectrumValues.count > AudioSpectrogram.filterBankCount {
             let realSignal  = Array(melSpectrumValues.suffix(AudioSpectrogram.filterBankCount))
-            if let del = self.delegate {
-                del.updateFrequency(frequency: realSignal)
+            if let callback = frequencyUpdateCallback {
+                callback(realSignal)
+            }
+        }
+
+        if let callback = audioSpectrogramImageUpdateCallback {
+            frequencyDomainValues.withUnsafeMutableBufferPointer {
+                let planarImageBuffer = vImage.PixelBuffer(
+                    data: $0.baseAddress!,
+                    width: AudioSpectrogram.sampleCount,
+                    height: AudioSpectrogram.bufferCount,
+                    byteCountPerRow: AudioSpectrogram.sampleCount * MemoryLayout<Float>.stride,
+                    pixelFormat: vImage.PlanarF.self)
+
+                AudioSpectrogram.multidimensionalLookupTable.apply(
+                    sources: [planarImageBuffer],
+                    destinations: [redBuffer, greenBuffer, blueBuffer],
+                    interpolation: .half)
+
+                rgbImageBuffer.interleave(
+                    planarSourceBuffers: [redBuffer, greenBuffer, blueBuffer])
+                let img = rgbImageBuffer.makeCGImage(cgImageFormat: rgbImageFormat) ?? AudioSpectrogram.emptyCGImage
+                callback(img)
             }
         }
     }
@@ -363,18 +413,94 @@ extension AudioSpectrogram: AVCaptureAudioDataOutputSampleBufferDelegate {
 
         if captureSession.canAddInput(microphoneInput) {
             captureSession.addInput(microphoneInput)
+        } else {
+            Logger.error("Can't add `microphoneInput`.")
+            return
         }
+
+        audioOutput.setSampleBufferDelegate(self, queue: captureQueue)
 
         captureSession.commitConfiguration()
     }
 
-    /// Starts the audio spectrogram.
+    private func startVolumeListener() {
+        var defaultOutputDeviceID = AudioDeviceID(0)
+        var defaultOutputDeviceIDSize = UInt32(MemoryLayout.size(ofValue: defaultOutputDeviceID))
+
+        var element: AudioObjectPropertyElement
+        if #available(macOS 12.0, *) {
+            element = kAudioObjectPropertyElementMain
+        } else {
+            element = kAudioObjectPropertyElementMaster
+        }
+
+        var propertyAddress = AudioObjectPropertyAddress(
+            mSelector: kAudioHardwarePropertyDefaultOutputDevice,
+            mScope: kAudioObjectPropertyScopeGlobal,
+            mElement: element
+        )
+
+        var status = AudioObjectGetPropertyData(
+            AudioObjectID(kAudioObjectSystemObject),
+            &propertyAddress,
+            0,
+            nil,
+            &defaultOutputDeviceIDSize,
+            &defaultOutputDeviceID
+        )
+
+        if status == noErr {
+            // doesn't called on headphone connection
+            let weakSelf = Unmanaged.passUnretained(self).toOpaque()
+
+            var volumePropertyAddress = AudioObjectPropertyAddress(
+                mSelector: kAudioHardwareServiceDeviceProperty_VirtualMainVolume,
+                mScope: kAudioDevicePropertyScopeOutput,
+                mElement: element
+            )
+
+            status = AudioObjectAddPropertyListener(
+                defaultOutputDeviceID,
+                &volumePropertyAddress,
+                volumeListenerCallback,
+                weakSelf
+            )
+
+            if status != noErr {
+                Logger.error("Failed to add volume listener")
+            }
+        } else {
+            Logger.error("Failed to get default output device")
+        }
+    }
+
+    func removeVolumeListener() {
+        let objectId = AudioObjectID(kAudioObjectSystemObject)
+        var propertyAddress = AudioObjectPropertyAddress(
+            mSelector: kAudioHardwarePropertyDefaultOutputDevice,
+            mScope: kAudioObjectPropertyScopeGlobal,
+            mElement: kAudioObjectPropertyElementMain
+        )
+
+        let status = AudioObjectRemovePropertyListener(
+            objectId,
+            &propertyAddress,
+            volumeListenerCallback,
+            Unmanaged.passUnretained(self).toOpaque()
+        )
+        if status != noErr {
+            print("Error removing audio property listener")
+        }
+    }
+
+    // Starts the audio spectrogram.
     func startRunning() {
         sessionQueue.async {
             if AVCaptureDevice.authorizationStatus(for: .audio) == .authorized {
                 self.captureSession.startRunning()
             }
         }
+        startVolumeListener()
     }
 
     func stopRunning() {
@@ -383,24 +509,25 @@ extension AudioSpectrogram: AVCaptureAudioDataOutputSampleBufferDelegate {
                 self.captureSession.stopRunning()
             }
         }
+        removeVolumeListener()
     }
 }
 
 extension AudioSpectrogram {
 
-    /// Populates the specified `filterBank` with a matrix of overlapping triangular windows.
-    ///
-    /// For each frequency in `melFilterBankFrequencies`, the function creates a row in `filterBank`
-    /// that contains a triangular window starting at the previous frequency, having a response of `1` at the
-    /// frequency, and ending at the next frequency.
+    // Populates the specified `filterBank` with a matrix of overlapping triangular windows.
+    //
+    // For each frequency in `melFilterBankFrequencies`, the function creates a row in `filterBank`
+    // that contains a triangular window starting at the previous frequency, having a response of `1` at the
+    // frequency, and ending at the next frequency.
     static func makeFilterBank(withFrequencyRange frequencyRange: ClosedRange<Float>,
                                sampleCount: Int,
                                filterBankCount: Int) -> UnsafeMutableBufferPointer<Float> {
 
-        /// The `melFilterBankFrequencies` array contains `filterBankCount` elements
-        /// that are indices of the `frequencyDomainBuffer`. The indices represent evenly spaced
-        /// monotonically incrementing mel frequencies; that is, they're roughly logarithmically spaced as
-        /// frequency in hertz.
+        // The `melFilterBankFrequencies` array contains `filterBankCount` elements
+        // that are indices of the `frequencyDomainBuffer`. The indices represent evenly spaced
+        // monotonically incrementing mel frequencies; that is, they're roughly logarithmically spaced as
+        // frequency in hertz.
         let melFilterBankFrequencies: [Int] = AudioSpectrogram
                 .populateMelFilterBankFrequencies(withFrequencyRange: frequencyRange,
                                                   filterBankCount: filterBankCount)
@@ -446,8 +573,8 @@ extension AudioSpectrogram {
         return filterBank
     }
 
-    /// Populates the specified `melFilterBankFrequencies` with a monotonically increasing series
-    /// of indices into `frequencyDomainBuffer` that represent evenly spaced mels.
+    // Populates the specified `melFilterBankFrequencies` with a monotonically increasing series
+    // of indices into `frequencyDomainBuffer` that represent evenly spaced mels.
     static func populateMelFilterBankFrequencies(withFrequencyRange frequencyRange: ClosedRange<Float>,
                                                  filterBankCount: Int) -> [Int] {
 
@@ -471,4 +598,81 @@ extension AudioSpectrogram {
 
         return melFilterBankFrequencies
     }
+
+    /// Returns the RGB values from a blue -> red -> green color map for a specified value.
+    ///
+    /// Values near zero return dark blue, `0.5` returns red, and `1.0` returns full-brightness green.
+    static var multidimensionalLookupTable: vImage.MultidimensionalLookupTable = {
+        let entriesPerChannel = UInt8(32)
+        let srcChannelCount = 1
+        let destChannelCount = 3
+
+        let lookupTableElementCount = Int(pow(Float(entriesPerChannel),
+                                              Float(srcChannelCount))) *
+        Int(destChannelCount)
+
+        let tableData = [UInt16](unsafeUninitializedCapacity: lookupTableElementCount) { buffer, count in
+
+            /// Supply the samples in the range `0...65535`. The transform function
+            /// interpolates these to the range `0...1`.
+            let multiplier = CGFloat(UInt16.max)
+            var bufferIndex = 0
+
+            for gray in ( 0 ..< entriesPerChannel) {
+                /// Create normalized red, green, and blue values in the range `0...1`.
+                let normalizedValue = CGFloat(gray) / CGFloat(entriesPerChannel - 1)
+
+                // Define `hue` that's blue at `0.0` to red at `1.0`.
+                let hue = 0.6666 - (0.6666 * normalizedValue)
+                let brightness = sqrt(normalizedValue)
+
+                let color = NSColor(hue: hue,
+                                    saturation: 1,
+                                    brightness: brightness,
+                                    alpha: 1)
+
+                var red = CGFloat()
+                var green = CGFloat()
+                var blue = CGFloat()
+
+                color.getRed(&red,
+                             green: &green,
+                             blue: &blue,
+                             alpha: nil)
+
+                buffer[ bufferIndex ] = UInt16(green * multiplier)
+                bufferIndex += 1
+                buffer[ bufferIndex ] = UInt16(red * multiplier)
+                bufferIndex += 1
+                buffer[ bufferIndex ] = UInt16(blue * multiplier)
+                bufferIndex += 1
+            }
+
+            count = lookupTableElementCount
+        }
+
+        let entryCountPerSourceChannel = [UInt8](repeating: entriesPerChannel,
+                                                 count: srcChannelCount)
+
+        return vImage.MultidimensionalLookupTable(entryCountPerSourceChannel: entryCountPerSourceChannel,
+                                                  destinationChannelCount: destChannelCount,
+                                                  data: tableData)
+    }()
+
+    /// A 1x1 Core Graphics image.
+    static var emptyCGImage: CGImage = {
+        let buffer = vImage.PixelBuffer(
+            pixelValues: [0],
+            size: .init(width: 1, height: 1),
+            pixelFormat: vImage.Planar8.self)
+
+        let fmt = vImage_CGImageFormat(
+            bitsPerComponent: 8,
+            bitsPerPixel: 8,
+            colorSpace: CGColorSpaceCreateDeviceGray(),
+            bitmapInfo: CGBitmapInfo(rawValue: CGImageAlphaInfo.none.rawValue),
+            renderingIntent: .defaultIntent)
+
+        return buffer.makeCGImage(cgImageFormat: fmt!)!
+    }()
 }

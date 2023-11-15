@@ -30,9 +30,15 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     @IBOutlet weak var scanTableView: NSTableView!
     @IBOutlet weak var scanningStatus: NSTextField!
     @IBOutlet weak var viewsButton: NSSegmentedControl!
+    @IBOutlet weak var audioDriveSwitch: NSSwitch!
+    @IBOutlet weak var gainValueField: NSTextField!
+    @IBOutlet weak var screenImageView: NSImageView!
 
     @IBOutlet var view0: NSView!
     @IBOutlet var view1: NSView!
+    @IBOutlet var view2: NSView!
+    @IBOutlet var view3: NSView!
+    var audioSpectrogramViewVisible: Bool = false
 
     private var statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
     private var audioSpectrogram: AudioSpectrogram?
@@ -110,6 +116,9 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
 
         collectionView.dataSource = self
         collectionView.delegate = self
+
+        audioSpectrogramView.mirror = true
+        audioSpectrogramView.clearFrequency()
 
         loadLightsFromDisk()
 
@@ -284,7 +293,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
             func act(_ viewObj: DeviceViewObject) {
                 if viewObj.isON && viewObj.device.supportRGB {
                     viewObj.changeToHSIMode()
-                    viewObj.HSB = HSB(hue: CGFloat(color.hueComponent), saturation: sat, brightness: CGFloat(bri), alpha: 1)
+                    viewObj.updateHSI(hue: CGFloat(color.hueComponent), sat: sat, brr: CGFloat(bri))
                 }
             }
 
@@ -319,22 +328,86 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         }))
     }
 
-    func updateAudioDriver() {
-        if viewObjects.contains(where: { $0.isON && $0.followMusic }) {
-             if audioSpectrogram == nil {
+    private func driveLightFromFrequency(_ frequency: [Float]) {
+        let time = CFAbsoluteTimeGetCurrent()
+        if time - self.spectrogramViewObject.lastTime > 0.5 {
+            self.spectrogramViewObject.updateFrequency(frequencyData: frequency)
+            let hue = self.spectrogramViewObject.hue
+            let brr = self.spectrogramViewObject.brr
+            let sat = self.spectrogramViewObject.sat
+            self.viewObjects.forEach {
+                if $0.followMusic && $0.isON && $0.isHSIMode {
+                    $0.updateHSI(hue: CGFloat(hue), sat: CGFloat(sat), brr: CGFloat(brr))
+                }
+            }
+        }
+    }
+
+    func checkAudioDriver() {
+        audioDriveSwitch?.state = self.viewObjects.contains(where: { $0.followMusic }) ? .on : .off
+        toggleAudioDriver(audioDriveSwitch!)
+    }
+
+    @IBAction func toggleScreenDriver(_ sender: NSSwitch) {
+        if sender.state == .on {
+
+        } else {
+
+        }
+    }
+
+    @IBAction func changeGainAction(_ sender: NSSlider) {
+        if let safe = audioSpectrogram {
+            safe.zeroReference = sender.doubleValue
+        }
+        gainValueField.stringValue = "\(sender.doubleValue)"
+    }
+
+    @IBAction func toggleAudioDriver(_ sender: NSSwitch) {
+        if sender.state == .on {
+            Logger.debug("Autio Driver ON")
+            if audioSpectrogram == nil {
                 Logger.debug("startAudioDriver")
                 audioSpectrogram = AudioSpectrogram()
-                audioSpectrogram!.delegate = self
+                audioSpectrogram!.audioSpectrogramImageUpdateCallback = { [weak self] cgimg in
+                    guard let safeSelf = self else { return }
+                    if safeSelf.audioSpectrogramViewVisible {
+                        DispatchQueue.main.async {
+                            safeSelf.audioSpectrogramView?.updateFrequencyImage(img: cgimg)
+                        }
+                    }
+                }
+                audioSpectrogram!.frequencyUpdateCallback = { [weak self] frequencyData in
+                    guard let safeSelf = self else { return }
+                    if safeSelf.audioSpectrogramViewVisible {
+                        DispatchQueue.main.async {
+                            safeSelf.audioSpectrogramView?.updateFrequency(frequencyData: frequencyData.map { CGFloat($0) })
+                        }
+                    }
+                    safeSelf.driveLightFromFrequency(frequencyData)
+                }
+                audioSpectrogram!.volumeUpdateCallback = { [weak self] volume in
+                    guard let safeSelf = self else { return }
+                    safeSelf.audioSpectrogramView?.volume = CGFloat(volume)
+                }
+                audioSpectrogram!.amplitudeUpdateCallback = { [weak self] amp in
+                    guard let safeSelf = self else { return }
+                    safeSelf.spectrogramViewObject.updateAmplitude(amplitude: amp)
+                }
                 audioSpectrogram!.startRunning()
             }
         } else {
+            Logger.debug("Autio Driver OFF")
             if audioSpectrogram != nil {
                 Logger.debug("stopAudioDriver")
                 audioSpectrogram!.stopRunning()
-                audioSpectrogram!.delegate = nil
+                audioSpectrogram!.frequencyUpdateCallback = nil
                 audioSpectrogram = nil
             }
-            audioSpectrogramView.clearFrequency()
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.24) {
+                // Your code here will be executed on the main thread after a 3-second delay.
+                self.audioSpectrogramView.clearFrequency()
+            }
         }
     }
 
@@ -367,12 +440,13 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         for subview in contentView.subviews {
             subview.removeFromSuperview()
         }
-        let views = [self.view0, self.view1]
+        let views = [self.view0, self.view1, self.view2, self.view3]
         if sender.selectedSegment >= 0 && sender.selectedSegment < views.count {
 
             UserDefaults.standard.setValue(sender.selectedSegment, forKey: "viewIdx")
 
             if let selectedView = views[sender.selectedSegment] {
+                self.audioSpectrogramViewVisible = false
                 if selectedView == self.view0 {
                     window.title = "NeewerLite - Scan View"
                     if !launching {
@@ -383,11 +457,25 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
                     if !launching {
                         Logger.info(LogTag.click, "Control View")
                     }
+                } else if selectedView == self.view2 {
+                    window.title = "NeewerLite - Music View"
+                    if !launching {
+                        Logger.info(LogTag.click, "Music View")
+                    }
+                } else if selectedView == self.view3 {
+                    window.title = "NeewerLite - Screen View"
+                    if !launching {
+                        Logger.info(LogTag.click, "Screen View")
+                    }
                 }
                 selectedView.frame = contentView.bounds
                 selectedView.autoresizingMask = [.width, .height]
                 contentView.addSubview(selectedView)
                 updateUI()
+                if selectedView == self.view2 {
+                    self.audioSpectrogramViewVisible = true
+                    audioSpectrogramView.clearFrequency()
+                }
             }
         }
     }
@@ -426,11 +514,11 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         peripheralCache.removeAll()
         Logger.debug("\(peripheralCache)")
 
-        let list = cbCentralManager?.retrieveConnectedPeripherals(withServices: [NeewerLight.Constants.NeewerBleServiceUUID])
+        let list = cbCentralManager?.retrieveConnectedPeripherals(withServices: [NeewerLightConstant.Constants.NeewerBleServiceUUID])
         if let safeList = list {
             for peripheral in safeList {
                 if let services = peripheral.services {
-                    guard let neewerService: CBService = services.first(where: {$0.uuid == NeewerLight.Constants.NeewerBleServiceUUID}) else {
+                    guard let neewerService: CBService = services.first(where: {$0.uuid == NeewerLightConstant.Constants.NeewerBleServiceUUID}) else {
                         continue
                     }
                     advancePeripheralToDevice(peripheral: peripheral, service: neewerService, updateUI: false, addNew: scanningNewLightMode)
@@ -531,35 +619,35 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
 
     func advancePeripheralToDevice(peripheral: CBPeripheral, service: CBService, updateUI: Bool, addNew: Bool) {
         if let characteristics = service.characteristics {
-            guard let characteristic1: CBCharacteristic = characteristics.first(where: {$0.uuid == NeewerLight.Constants.NeewerDeviceCtlCharacteristicUUID}) else {
+            guard let characteristic1: CBCharacteristic = characteristics.first(where: {$0.uuid == NeewerLightConstant.Constants.NeewerDeviceCtlCharacteristicUUID}) else {
                 Logger.debug("NeewerGattCharacteristicUUID not found")
                 return
             }
 
-            guard let characteristic2: CBCharacteristic = characteristics.first(where: {$0.uuid == NeewerLight.Constants.NeewerGattCharacteristicUUID}) else {
+            guard let characteristic2: CBCharacteristic = characteristics.first(where: {$0.uuid == NeewerLightConstant.Constants.NeewerGattCharacteristicUUID}) else {
                 Logger.debug("NeewerGattCharacteristicUUID not found")
                 return
             }
+
+            let identifier = "\(peripheral.identifier)"
 
             var update = updateUI
             // Logger.info("advance peripheral to device \(peripheral) \(service)")
-            let light: NeewerLight = NeewerLight(peripheral, characteristic1, characteristic2)
             var found = false
-            for viewObj in viewObjects {
-                if viewObj.device.identifier == light.identifier {
-                    found = true
-                    if viewObj.device.peripheral == nil {
-                        viewObj.device.setPeripheral(peripheral, characteristic1, characteristic2)
-                    }
-                    light.startLightOnNotify()
-                    break
+            if let targetViewObject = viewObjects.first(where: { $0.deviceIdentifier == identifier  }) {
+                found = true
+                if targetViewObject.device.peripheral == nil {
+                    targetViewObject.device.setPeripheral(peripheral, characteristic1, characteristic2)
                 }
+                targetViewObject.device.startLightOnNotify()
             }
+
             if !found {
                 if addNew {
-                    if let voj = scanningViewObjects.first(where: {$0.deviceIdentifier == light.identifier}) {
+                    if let voj = scanningViewObjects.first(where: {$0.deviceIdentifier == identifier}) {
                         Logger.debug("already added")
                     } else {
+                        let light: NeewerLight = NeewerLight(peripheral, characteristic1, characteristic2)
                         scanningViewObjects.append(DeviceViewObject(light))
                         light.startLightOnNotify()
                         update = true
@@ -579,55 +667,17 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
             }
         }
     }
-}
-
-extension AppDelegate: AudioSpectrogramDelegate {
-    func updateFrequency(frequency: [Float]) {
-        if frequency[1].isInfinite {
-            return
-        }
-        DispatchQueue.main.async {
-            if let visible = self.audioSpectrogramView.window?.isVisible {
-                if visible {
-                    self.audioSpectrogramView.updateFrequency(frequency: frequency.map { CGFloat($0) })
-                }
-            }
-            let time = CFAbsoluteTimeGetCurrent()
-            if time - self.spectrogramViewObject.lastTime > 0.2 {
-                self.spectrogramViewObject.update(time: time, frequency: frequency[1])
-                // self.spectrogram_data.last_n_BRR.removeFirst()
-                // self.spectrogram_data.last_n_BRR.append(frequency.reduce(0, +) / Float(frequency.count) * 3.0)
-                let hue = self.spectrogramViewObject.hue
-                let brr = 1.0
-                let sat = 1.0
-                Logger.debug("frequency: \(frequency[1])) hue: \(hue)")
-                self.viewObjects.forEach { if $0.followMusic && $0.isON && $0.isHSIMode {
-                    $0.HSB = HSB(hue: CGFloat(hue), saturation: CGFloat(sat), brightness: CGFloat(brr), alpha: 1)
-                }}
-                // self.spectrogram_data.hueBase += 0.001
-                // Logger.debug("self.spectrogram_data.hueBase: \(self.spectrogram_data.hueBase)")
-            }
-        }
-    }
 
     func grayoutLightViewObject(_ identifier: UUID) {
-        if viewObjects.contains(where: { $0.deviceIdentifier == "\(identifier)" }) {
-            Logger.error("grayoutLightViewObject \(identifier)")
-            for viewObj in viewObjects {
-                Logger.info("vo.device.identifier: \(viewObj.device.identifier)")
-                if viewObj.device.peripheral?.identifier == identifier {
-                    viewObj.device.setPeripheral(nil, nil, nil)
-                    break
-                }
-            }
-            // viewObjects.removeAll(where: { $0.deviceIdentifier == "\(identifier)" })
-            // peripheral.delegate = nil
-            // devices.removeValue(forKey: peripheral.identifier)
+        if let targetViewObject = viewObjects.first(where: { $0.deviceIdentifier == "\(identifier)"  }) {
+            Logger.info("grayoutLightViewObject \(identifier)")
+            targetViewObject.device.setPeripheral(nil, nil, nil)
             DispatchQueue.main.async {
                 self.updateUI()
             }
         }
     }
+
 }
 
 extension AppDelegate: NSCollectionViewDataSource {
@@ -706,7 +756,7 @@ extension AppDelegate: CBCentralManagerDelegate {
                 central.stopScan()
                 Logger.info(LogTag.bluetooth, "powered off")
                 self.scanning = false
-            case .resetting: break
+            case .resetting:
                 Logger.info(LogTag.bluetooth, "resetting")
             @unknown default: break
         }
@@ -768,7 +818,7 @@ extension AppDelegate: CBPeripheralDelegate {
 
     func peripheral(_ peripheral: CBPeripheral, didDiscoverServices error: Error?) {
         if let services = peripheral.services {
-            guard let neewerService: CBService = services.first(where: {$0.uuid == NeewerLight.Constants.NeewerBleServiceUUID}) else {
+            guard let neewerService: CBService = services.first(where: {$0.uuid == NeewerLightConstant.Constants.NeewerBleServiceUUID}) else {
                 cbCentralManager?.cancelPeripheralConnection(peripheral)
                 peripheralInvalidCache[peripheral.identifier] = true
                 if peripheralCache[peripheral.identifier] != nil {

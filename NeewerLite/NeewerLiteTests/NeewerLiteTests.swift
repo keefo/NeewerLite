@@ -124,6 +124,7 @@ class NeewerLiteTests: XCTestCase {
     func test_fxCommand() throws {
         let fxx = NeewerLightFX.lightingScene()
         let light = NeewerLight([:])
+        light.supportedFX.append(fxx)
         let cmd = light.getSceneCommand("DF:24:3A:B4:46:5D", fxx)
         print("cmd: \(cmd)")
     }

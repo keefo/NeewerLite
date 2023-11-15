@@ -41,6 +41,7 @@
 		A77414F82AF0E7890085F149 /* FXView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A77414F72AF0E7890085F149 /* FXView.swift */; };
 		A7770BF22AF6EEB30046E571 /* RenameViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7770BF12AF6EEB30046E571 /* RenameViewController.swift */; };
 		A7770BF42AF6F7190046E571 /* RoundedScrollView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7770BF32AF6F7190046E571 /* RoundedScrollView.swift */; };
+		A7EE61BD2B03680B00E85502 /* MySplitViewDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7EE61BC2B03680B00E85502 /* MySplitViewDelegate.swift */; };
 		A7FF36712AF84A690068022C /* CodableValue.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7FF36702AF84A690068022C /* CodableValue.swift */; };
 /* End PBXBuildFile section */
 
@@ -94,6 +95,7 @@
 		A77414F72AF0E7890085F149 /* FXView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FXView.swift; sourceTree = "<group>"; };
 		A7770BF12AF6EEB30046E571 /* RenameViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RenameViewController.swift; sourceTree = "<group>"; };
 		A7770BF32AF6F7190046E571 /* RoundedScrollView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoundedScrollView.swift; sourceTree = "<group>"; };
+		A7EE61BC2B03680B00E85502 /* MySplitViewDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MySplitViewDelegate.swift; sourceTree = "<group>"; };
 		A7FF36702AF84A690068022C /* CodableValue.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodableValue.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -209,6 +211,7 @@
 			children = (
 				A731DD9C25A5A01300302E25 /* DeviceViewObject.swift */,
 				A733AE46292DF05F00F37DDD /* SpectrogramViewObject.swift */,
+				A7EE61BC2B03680B00E85502 /* MySplitViewDelegate.swift */,
 			);
 			path = ViewModels;
 			sourceTree = "<group>";
@@ -386,6 +389,7 @@
 				A77414D42AEA43A90085F149 /* NeewerLightFX.swift in Sources */,
 				A71B39B72756EBA20005E271 /* AudioSpectrogramView.swift in Sources */,
 				A744CD432AF36BA1007E919A /* MyLightTableCellView.swift in Sources */,
+				A7EE61BD2B03680B00E85502 /* MySplitViewDelegate.swift in Sources */,
 				A730F7FE2AE79173009CA529 /* NeewerLightConstant.swift in Sources */,
 				A77414F82AF0E7890085F149 /* FXView.swift in Sources */,
 				A75310A12AFF2A19009F533C /* ContentManager.swift in Sources */,

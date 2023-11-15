@@ -30,32 +30,6 @@ class NeewerLight: NSObject, ObservableNeewerLightProtocol {
         case SRCMode        // Source mode
     }
 
-    struct Constants {
-        static let NeewerBleServiceUUID = CBUUID(string: "69400001-B5A3-F393-E0A9-E50E24DCCA99")
-        static let NeewerDeviceCtlCharacteristicUUID = CBUUID(string: "69400002-B5A3-F393-E0A9-E50E24DCCA99")
-        static let NeewerGattCharacteristicUUID = CBUUID(string: "69400003-B5A3-F393-E0A9-E50E24DCCA99")
-    }
-
-    struct BleCommand {
-        static let prefixTag = 0x78         // 120 Every bluettooth cmd start with 120
-        static let setLongCCTLightBrightnessTag = 0x82  // 130 Set long CCT Light brightness.
-        static let setLongCCTLightCCTTag = 0x83         // 131 Set long CCT Light CCT.
-
-        static let setRGBLightTag = 0x86  // 134 Set RGB Light Mode.
-        static let setCCTLightTag = 0x87  // 135 Set CCT Light Mode.
-
-        static let setSceneTag = 0x88      // 136 Set Scene Light Mode.
-        static let setSCESubTag =  0x8B  //
-
-        static let setHSVDataTag = 0x89  // 143 Set Continuity RGB Light HSV data.
-        static let setCCTDataTag = 0x90  // 144 Set Continuity RGB Light Mode.
-        static let setSCEDataTag = 0x91  //
-
-        static let powerOn = Data([0x78, 0x81, 0x01, 0x01, 0xFB])
-        static let powerOff = Data([0x78, 0x81, 0x01, 0x02, 0xFC])
-        static let readRequest = Data([0x78, 0x84, 0x00, 0xFC])
-    }
-
     struct BleUpdate {
         static let channelUpdatePrefix = Data([0x78, 0x01, 0x01])
     }
@@ -223,7 +197,7 @@ class NeewerLight: NSObject, ObservableNeewerLightProtocol {
         return _rawName!
     }()
 
-    public func getMAC() ->  String {
+    public func getMAC() -> String {
         return _macAddress ?? ""
     }
 
@@ -239,7 +213,7 @@ class NeewerLight: NSObject, ObservableNeewerLightProtocol {
         setPeripheral(peripheral, deviceCtlCharacteristic, gattCharacteristic)
         // Logger.debug("     config: \(getConfig())")
         Logger.debug("    rawName: \(rawName)")
-        Logger.debug("        MAC: \(_macAddress)")
+        Logger.debug("        MAC: \(_macAddress ?? "")")
         Logger.debug(" identifier: \(identifier)")
         Logger.debug("projectName: \(projectName)")
         Logger.debug("   nickName: \(nickName)")
@@ -396,7 +370,7 @@ class NeewerLight: NSObject, ObservableNeewerLightProtocol {
         guard let characteristic = deviceCtlCharacteristic else {
             return
         }
-        self.write(data: NeewerLight.BleCommand.powerOn as Data, to: characteristic)
+        self.write(data: NeewerLightConstant.BleCommand.powerOn as Data, to: characteristic)
     }
 
     func sendPowerOffRequest() {
@@ -405,14 +379,14 @@ class NeewerLight: NSObject, ObservableNeewerLightProtocol {
         guard let characteristic = deviceCtlCharacteristic else {
             return
         }
-        self.write(data: NeewerLight.BleCommand.powerOff as Data, to: characteristic)
+        self.write(data: NeewerLightConstant.BleCommand.powerOff as Data, to: characteristic)
     }
 
     func sendReadRequest() {
         guard let characteristic = deviceCtlCharacteristic else {
             return
         }
-        write(data: NeewerLight.BleCommand.readRequest as Data, to: characteristic)
+        write(data: NeewerLightConstant.BleCommand.readRequest as Data, to: characteristic)
     }
 
     func startLightOnNotify() {
@@ -440,6 +414,7 @@ class NeewerLight: NSObject, ObservableNeewerLightProtocol {
     // Set correlated color temperature and bulb brightness in CCT Mode
     public func setCCTLightValues(brr: CGFloat, cct: CGFloat, gmm: CGFloat) {
         var cmd: Data = Data()
+        Logger.debug("setCCTLightValues")
 
         if supportGMRange.value {
             cmd = getCCTDATALightValue(brightness: brr, correlatedColorTemperature: cct, gmm: gmm)
@@ -449,7 +424,6 @@ class NeewerLight: NSObject, ObservableNeewerLightProtocol {
             cmd = getCCTOnlyLightValue(brightness: brr, correlatedColorTemperature: cct)
         }
         lightMode = .CCTMode
-
         guard let characteristic = deviceCtlCharacteristic else {
             return
         }
@@ -547,7 +521,7 @@ class NeewerLight: NSObject, ObservableNeewerLightProtocol {
     private func composeSingleCommand(_ tag: Int, _ vals: Int...) -> [UInt8] {
         let byteCount = vals.count
         var bArr: [Int] = [Int](repeating: 0, count: byteCount + 4)
-        bArr[0] = NeewerLight.BleCommand.prefixTag
+        bArr[0] = NeewerLightConstant.BleCommand.prefixTag
         bArr[1] = tag
         bArr[2] = byteCount
 
@@ -562,7 +536,7 @@ class NeewerLight: NSObject, ObservableNeewerLightProtocol {
     private func composeSingleCommandWithMac(_ tag: Int, _ mac: String, _ subtag: Int, _ vals: [Int]) -> [UInt8] {
         let byteCount = vals.count
         var bArr: [Int] = [Int](repeating: 0, count: byteCount + 11)
-        bArr[0] = NeewerLight.BleCommand.prefixTag
+        bArr[0] = NeewerLightConstant.BleCommand.prefixTag
         bArr[1] = tag
         bArr[2] = byteCount + 7
         var intArray = mac.split(separator: ":").compactMap { Int($0, radix: 16) }
@@ -607,7 +581,7 @@ class NeewerLight: NSObject, ObservableNeewerLightProtocol {
         let dimmingCurveType = 0x04
         let iArr: [Int] = [brrValue.value, cctValue.value, gmmValue.value+50, dimmingCurveType]
 
-        let bArr1: [UInt8] = composeSingleCommandWithMac(NeewerLight.BleCommand.setCCTDataTag, _macAddress!, NeewerLight.BleCommand.setCCTLightTag, iArr)
+        let bArr1: [UInt8] = composeSingleCommandWithMac(NeewerLightConstant.BleCommand.setCCTDataTag, _macAddress!, NeewerLightConstant.BleCommand.setCCTLightTag, iArr)
         let data = NSData(bytes: bArr1, length: bArr1.count) as Data
 
         return data
@@ -631,7 +605,7 @@ class NeewerLight: NSObject, ObservableNeewerLightProtocol {
             }
             brrValue.value = newBrrValue
 
-            let bArr1: [UInt8] = composeSingleCommand(NeewerLight.BleCommand.setCCTLightTag, brrValue.value)
+            let bArr1: [UInt8] = composeSingleCommand(NeewerLightConstant.BleCommand.setCCTLightTag, brrValue.value)
 
             let data = NSData(bytes: bArr1, length: bArr1.count)
             return data as Data
@@ -640,7 +614,7 @@ class NeewerLight: NSObject, ObservableNeewerLightProtocol {
         cctValue.value = newCctValue
         brrValue.value = newBrrValue
 
-        let bArr1: [UInt8] = composeSingleCommand(NeewerLight.BleCommand.setCCTLightTag, brrValue.value, cctValue.value)
+        let bArr1: [UInt8] = composeSingleCommand(NeewerLightConstant.BleCommand.setCCTLightTag, brrValue.value, cctValue.value)
 
         let data = NSData(bytes: bArr1, length: bArr1.count)
         return data as Data
@@ -661,7 +635,7 @@ class NeewerLight: NSObject, ObservableNeewerLightProtocol {
             }
             brrValue.value = newBrrValue
 
-            let bArr1: [UInt8] = composeSingleCommand(NeewerLight.BleCommand.setLongCCTLightBrightnessTag, brrValue.value)
+            let bArr1: [UInt8] = composeSingleCommand(NeewerLightConstant.BleCommand.setLongCCTLightBrightnessTag, brrValue.value)
 
             let data = NSData(bytes: bArr1, length: bArr1.count)
             return data as Data
@@ -670,8 +644,8 @@ class NeewerLight: NSObject, ObservableNeewerLightProtocol {
         cctValue.value = newCctValue
         brrValue.value = newBrrValue
 
-        let bArr1 = composeSingleCommand(NeewerLight.BleCommand.setLongCCTLightBrightnessTag, brrValue.value)
-        let bArr2 = composeSingleCommand(NeewerLight.BleCommand.setLongCCTLightCCTTag, cctValue.value)
+        let bArr1 = composeSingleCommand(NeewerLightConstant.BleCommand.setLongCCTLightBrightnessTag, brrValue.value)
+        let bArr2 = composeSingleCommand(NeewerLightConstant.BleCommand.setLongCCTLightCCTTag, cctValue.value)
         let bArr = bArr1 + bArr2
 
         let data = NSData(bytes: bArr, length: bArr.count)
@@ -717,8 +691,8 @@ class NeewerLight: NSObject, ObservableNeewerLightProtocol {
         let byteCount = 4
         var bArr: [Int] = [Int](repeating: 0, count: byteCount + 4)
 
-        bArr[0] = NeewerLight.BleCommand.prefixTag
-        bArr[1] = NeewerLight.BleCommand.setRGBLightTag
+        bArr[0] = NeewerLightConstant.BleCommand.prefixTag
+        bArr[1] = NeewerLightConstant.BleCommand.setRGBLightTag
         bArr[2] = byteCount
         // 4 eletements
         bArr[3] = Int(newHueValue & 0xFF)
@@ -757,8 +731,8 @@ class NeewerLight: NSObject, ObservableNeewerLightProtocol {
         let byteCount = 2
         var bArr: [Int] = [Int](repeating: 0, count: byteCount + 4)
 
-        bArr[0] = NeewerLight.BleCommand.prefixTag
-        bArr[1] = NeewerLight.BleCommand.setSceneTag
+        bArr[0] = NeewerLightConstant.BleCommand.prefixTag
+        bArr[1] = NeewerLightConstant.BleCommand.setSceneTag
         bArr[2] = byteCount
         // 2 eletements
         bArr[3] = Int(brr)   // brightness value from 0-100
@@ -836,8 +810,8 @@ class NeewerLight: NSObject, ObservableNeewerLightProtocol {
             byteCount += 1
         }
         var bArr: [Int] = [Int](repeating: 0, count: byteCount + 4)
-        bArr[0] = NeewerLight.BleCommand.prefixTag      // 78
-        bArr[1] = NeewerLight.BleCommand.setSCEDataTag  // 91
+        bArr[0] = NeewerLightConstant.BleCommand.prefixTag      // 78
+        bArr[1] = NeewerLightConstant.BleCommand.setSCEDataTag  // 91
         bArr[2] = byteCount
         var intArray = mac.split(separator: ":").compactMap { Int($0, radix: 16) }
         while intArray.count < 6 {
@@ -849,7 +823,7 @@ class NeewerLight: NSObject, ObservableNeewerLightProtocol {
         bArr[6] = intArray[3]
         bArr[7] = intArray[4]
         bArr[8] = intArray[5]
-        bArr[9] = NeewerLight.BleCommand.setSCESubTag
+        bArr[9] = NeewerLightConstant.BleCommand.setSCESubTag
         bArr[10] = Int(channel.value)
         var idx = 11
         if fxx.needBRR {
