@@ -104,11 +104,32 @@ class MyLightTableCellView: NSTableCellView {
         return minX
     }
 
+    private func resetLayout() {
+        var showBtn = false
+        if let btn = button2 {
+            showBtn = !btn.isHidden
+        }
+        var frame1 = titleLabel.frame
+        var frame2 = subtitleLabel.frame
+        if showBtn {
+            frame1.size.width = self.bounds.width - 220
+            frame2.size.width = self.bounds.width - 220
+            titleLabel.frame = frame1
+            subtitleLabel.frame = frame2
+        } else {
+            frame1.size.width = self.bounds.width - 100
+            frame2.size.width = self.bounds.width - 100
+        }
+        titleLabel.frame = frame1
+        subtitleLabel.frame = frame2
+    }
+
     // Mouse entered the tracking area
     override func mouseEntered(with event: NSEvent) {
         super.mouseEntered(with: event)
         button?.isHidden = false
         button2?.isHidden = false
+        resetLayout()
     }
 
     // Mouse exited the tracking area
@@ -116,6 +137,7 @@ class MyLightTableCellView: NSTableCellView {
         super.mouseExited(with: event)
         button?.isHidden = true
         button2?.isHidden = true
+        resetLayout()
     }
 
     // Ensure the button is hidden when the view is reused
@@ -123,5 +145,6 @@ class MyLightTableCellView: NSTableCellView {
         super.prepareForReuse()
         button?.isHidden = true
         button2?.isHidden = true
+        resetLayout()
     }
 }

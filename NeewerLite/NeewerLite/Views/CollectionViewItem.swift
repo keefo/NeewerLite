@@ -7,26 +7,11 @@
 
 import Cocoa
 
-enum ControlTag: Int {
-    case brr = 10
-    case cct = 11
-    case gmm = 12
-    case hue = 13
-    case sat = 14
-    case wheel = 15
-    case fxsubview = 16
-    case speed = 17
-    case spark = 18
-}
-
 class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDelegate {
 
     @IBOutlet weak var lightModeTabView: NSTabView!
     @IBOutlet weak var nameField: NSTextField!
     @IBOutlet weak var switchButton: NSSwitch!
-
-    @IBOutlet var tabSCE: NSTabViewItem!
-    // @IBOutlet weak var followMusicButton: NSButton!
 
     private var renameVC: RenameViewController?
     private var imageFetchOperation: ImageFetchOperation?
@@ -71,7 +56,6 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
         view.layer?.cornerRadius = 10.0
         // self.followMusicButton.state = .off
     }
-
 
     @IBAction func forgetAction(_ sender: NSButton) {
         if let dev = device {
@@ -303,7 +287,6 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
             return
         }
         guard tabView.tabViewItems.contains(where: { $0.identifier as? String == identifier as? String }) else {
-            Logger.error("Tab item with identifier \(identifier) does not exist!")
             if tabView.tabViewItems.count > 0 {
                 tabView.selectTabViewItem(at: 0)
             }
@@ -335,14 +318,14 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
                 }
             }
 
-            removeTabItem("cctTab")
-            removeTabItem("sourceTab")
-            removeTabItem("hsiTab")
-            removeTabItem("sceTab")
+            removeTabItem(TabId.cct.rawValue)
+            removeTabItem(TabId.source.rawValue)
+            removeTabItem(TabId.hsi.rawValue)
+            removeTabItem(TabId.scene.rawValue)
 
             if true {
                 let view = buildCCTView(device: dev)
-                let tab = NSTabViewItem(identifier: "cctTab")
+                let tab = NSTabViewItem(identifier: TabId.cct.rawValue )
                 tab.view = view
                 tab.label = "CCT"
                 self.lightModeTabView.addTabViewItem(tab)
@@ -350,7 +333,7 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
 
             if dev.supportRGB {
                 let view = buildHSIView(device: dev)
-                let tab = NSTabViewItem(identifier: "hsiTab")
+                let tab = NSTabViewItem(identifier: TabId.hsi.rawValue)
                 tab.view = view
                 tab.label = "HSI"
                 self.lightModeTabView.addTabViewItem(tab)
@@ -358,7 +341,7 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
 
             if true {
                 let view = buildLightSourceView(device: dev)
-                let tab = NSTabViewItem(identifier: "sourceTab")
+                let tab = NSTabViewItem(identifier: TabId.source.rawValue)
                 tab.view = view
                 tab.label = "Light Source"
                 self.lightModeTabView.addTabViewItem(tab)
@@ -366,7 +349,7 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
 
             if dev.maxChannel > 0 {
                 let view = buildFXView(device: dev)
-                let tab = NSTabViewItem(identifier: "sceTab")
+                let tab = NSTabViewItem(identifier: TabId.scene.rawValue)
                 tab.view = view
                 tab.label = "FX"
                 self.lightModeTabView.addTabViewItem(tab)
@@ -877,6 +860,8 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
             valueField.stringValue = "\(Int(slide.currentValue))"
             offsetY -= 30
         }
+
+        dev.setCCTLightValues(brr: safeFx.brrValue, cct: CGFloat(safeFx.cctValue), gmm: CGFloat(safeFx.gmValue))
     }
 
     @objc func fxClicked(_ sender: NSPopUpButton) {
@@ -1199,22 +1184,25 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
         guard let view = item.view else {
             return
         }
-        view.subviews.forEach { subview in
+
+        // Define a lambda (closure) that processes an NSView
+        let processSubView: (NSView) -> Void = { subview in
             if subview.tag == type.rawValue {
                 if let field = subview as? NSTextField {
                     if type == ControlTag.brr {
-                        field.attributedStringValue = formatBrrValue("\(value)", .center)
+                        field.attributedStringValue = self.formatBrrValue("\(value)", .center)
                     } else if type == ControlTag.cct {
-                        field.attributedStringValue = formatCCTValue("\(value)", .center)
+                        field.attributedStringValue = self.formatCCTValue("\(value)", .center)
                     } else if type == ControlTag.gmm {
-                        field.attributedStringValue = formatGMMValue("\(value)", .center)
+                        field.attributedStringValue = self.formatGMMValue("\(value)", .center)
                     } else if type == ControlTag.hue {
-                        field.attributedStringValue = formatHUEValue("\(value)", .center)
+                        field.attributedStringValue = self.formatHUEValue("\(value)", .center)
                     } else if type == ControlTag.sat {
-                        field.attributedStringValue = formatSATValue("\(value)", .center)
+                        field.attributedStringValue = self.formatSATValue("\(value)", .center)
                     }
                 } else if let slider = subview as? NLSlider {
                     if let dev = self.device {
+                        slider.pauseNotify = true
                         if type == ControlTag.brr {
                             slider.currentValue = CGFloat(dev.brrValue.value)
                         } else if type == ControlTag.cct {
@@ -1222,8 +1210,19 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
                         } else if type == ControlTag.gmm {
                             slider.currentValue = CGFloat(dev.gmmValue.value)
                         }
+                        slider.pauseNotify = false
                     }
                 }
+            }
+        }
+
+        view.subviews.forEach { subview in
+            if subview.isKind(of: FXView.self) {
+                subview.subviews.forEach { ssubview in
+                    processSubView(ssubview)
+                }
+            } else {
+                processSubView(subview)
             }
         }
     }
@@ -1342,10 +1341,28 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
             return nil
         }
         if let idf = item.identifier as? String {
-            if idf == "hsiTab" || item.label == "HSI" {
+            if idf == TabId.hsi.rawValue || item.label == "HSI" {
                 if let btn = view.subviews.first(where: { $0.isKind(of: NLSlider.self) && $0.tag == ControlTag.brr.rawValue }) {
                     return btn as? NLSlider
                 }
+            }
+        }
+        return nil
+    }
+
+    func getBrrSlideFromView() -> NLSlider? {
+        guard let item = self.lightModeTabView.selectedTabViewItem else {
+            return nil
+        }
+        guard let view = item.view else {
+            return nil
+        }
+        if let btn = view.subviews.first(where: { $0.isKind(of: NLSlider.self) && $0.tag == ControlTag.brr.rawValue }) {
+            return btn as? NLSlider
+        }
+        if let fxview = view.subviews.first(where: { $0.isKind(of: FXView.self) }) {
+            if let btn = fxview.subviews.first(where: { $0.isKind(of: NLSlider.self) && $0.tag == ControlTag.brr.rawValue }) {
+                return btn as? NLSlider
             }
         }
         return nil
@@ -1396,18 +1413,57 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
         return nil
     }
 
-    func updateHSI(hue: CGFloat, sat: CGFloat, brr: CGFloat) {
+    func updteFX(_ fxx: Int) {
+        if let btn = getFXListButtonFromView() {
+            btn.selectItem(withTag: fxx)
+            fxClicked(btn)
+        }
+    }
+
+    func updteBrightness(_ brr: Double) {
+        if let brrSlider = getBrrSlideFromView() {
+            brrSlider.currentValue = brr
+        } else if let dev = device {
+            dev.setBRRLightValues(brr)
+        }
+    }
+
+    func updateHSI(hue: CGFloat, sat: CGFloat, brr: Double?) {
         if let dev = device {
             if dev.supportRGB {
                 Logger.debug("brr: \(brr) hue: \(hue) sat: \(sat)")
+                let val = getHSIValuesFromView()
+                let brrValue = brr != nil ? brr! : val.brr
+                let hueVal = CGFloat(hue) / 360.0
                 if let wheel = getHSIWheelFromView() {
-                    let color = NSColor(calibratedHue: CGFloat(hue) / 360.0, saturation: sat, brightness: brr, alpha: 1)
+                    let color = NSColor(calibratedHue: hueVal, saturation: sat, brightness: brrValue, alpha: 1)
                     wheel.setViewColor(color)
                 }
                 if let brrSlide = getHSIBrrSlideFromView() {
-                    brrSlide.currentValue = brr * brrSlide.maxValue
+                    brrSlide.pauseNotify = true
+                    brrSlide.currentValue = brrValue * brrSlide.maxValue
+                    brrSlide.pauseNotify = false
                 }
-                // dev.setRGBLightValues(brr: brr, hue: hue, sat: sat)
+                dev.setRGBLightValues(brr: brrValue, hue: hueVal, sat: sat)
+            }
+        }
+    }
+
+    func updateCCT(cct: CGFloat, gmm: CGFloat, brr: Double?) {
+        if let dev = device {
+            Logger.debug("update cct: \(cct) gm: \(gmm) brr: \(brr)")
+            guard let item = self.lightModeTabView.selectedTabViewItem else {
+                return
+            }
+            guard let view = item.view else {
+                return
+            }
+            if let idf = item.identifier as? String {
+                if idf == TabId.hsi.rawValue {
+                    let val = getCCTValuesFromView()
+                    let brrValue = brr != nil ? brr! : val.brr
+                    dev.setCCTLightValues(brr: brrValue, cct: cct, gmm: gmm)
+                }
             }
         }
     }
@@ -1419,21 +1475,21 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
             }
             if let dev = device {
                 if let idf = tabViewItem?.identifier as? String {
-                    if idf == "cctTab" || tabViewItem?.label == "CCT" {
+                    if idf == TabId.cct.rawValue || tabViewItem?.label == "CCT" {
                         // CCT mode
                         let val = getCCTValuesFromView()
                         dev.setCCTLightValues(brr: CGFloat(val.brr) / 100.0, cct: CGFloat(val.cct), gmm: CGFloat(val.gmm))
-                    } else if idf == "sourceTab" || tabViewItem?.label == "Light Source" {
+                    } else if idf == TabId.source.rawValue || tabViewItem?.label == "Light Source" {
                         // CCT mode
                         let val = getCCTValuesFromView()
                         dev.setCCTLightValues(brr: CGFloat(val.brr) / 100.0, cct: CGFloat(val.cct), gmm: CGFloat(val.gmm))
-                    } else if idf == "hsiTab" || tabViewItem?.label == "HSI" {
+                    } else if idf == TabId.hsi.rawValue || tabViewItem?.label == "HSI" {
                         // HSI mode
                         if dev.supportRGB {
                             let val = getHSIValuesFromView()
                             dev.setRGBLightValues(brr: CGFloat(val.brr) / 100.0, hue: val.hue, sat: val.sat)
                         }
-                    } else if idf == "sceTab" || tabViewItem?.label == "FX" {
+                    } else if idf == TabId.scene.rawValue || tabViewItem?.label == "FX" {
                         // scene mode
                         if let btn = getFXListButtonFromView() {
                             btn.selectItem(withTag: Int(dev.channel.value))

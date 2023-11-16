@@ -37,7 +37,8 @@ public class AudioSpectrogram: NSObject {
     // The number of mel filter banks  — the height of the spectrogram.
     static let filterBankCount = 60
 
-    static let melSpectrumValueGain: Float = 50.0
+    static let melSpectrumValueThreshold: Float = 50.0
+    static let melSpectrumValueGain: Float = 0.683
 
     static let frequencyRange: ClosedRange<Float> = 20...20_000
 
@@ -259,7 +260,8 @@ public class AudioSpectrogram: NSObject {
                 if ptr[idx].isNaN {
                     ptr[idx] = 0
                 } else {
-                    ptr[idx] += AudioSpectrogram.melSpectrumValueGain
+                    ptr[idx] += AudioSpectrogram.melSpectrumValueThreshold
+                    ptr[idx] *= AudioSpectrogram.melSpectrumValueGain
                 }
             }
         }

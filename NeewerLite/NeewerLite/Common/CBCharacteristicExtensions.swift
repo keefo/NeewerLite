@@ -25,7 +25,6 @@ extension CBCharacteristic {
     public var canWrite: Bool {
         return propertyEnabled(.write) || self.propertyEnabled(.writeWithoutResponse)
     }
-
 }
 
 func getConnectedBluetoothDevices() -> [[String: String]]? {
@@ -42,10 +41,11 @@ func getConnectedBluetoothDevices() -> [[String: String]]? {
     let data = pipe.fileHandleForReading.readDataToEndOfFile()
     guard let plist = try? PropertyListSerialization.propertyList(from: data, options: [], format: nil) as? [[String: Any]] else {
         print("Failed to deserialize plist")
+        Logger.warn(LogTag.bluetooth, "getConnectedBluetoothDevices Failed to deserialize plist")
         return nil
     }
 
-    var result : [[String: String]] = []
+    var result: [[String: String]] = []
     for dict in plist {
         if let items = dict["_items"] as? [[String: Any]] {
             for item in items {
@@ -72,8 +72,7 @@ func getConnectedBluetoothDevices() -> [[String: String]]? {
         }
     }
 
+    Logger.info(LogTag.bluetooth, "getConnectedBluetoothDevices device_connected not found!?")
+
     return result
 }
-
-
-
