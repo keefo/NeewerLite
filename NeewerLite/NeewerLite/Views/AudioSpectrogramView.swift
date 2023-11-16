@@ -185,7 +185,6 @@ class AudioSpectrogramView: NSView {
         CATransaction.commit()
     }
 
-
     func clearFrequency() {
         width = floor(CGFloat(self.bounds.size.width / CGFloat(mirror ? num + num : num)))
         let freq = Int(1)

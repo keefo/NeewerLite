@@ -180,68 +180,82 @@ class DeviceViewObject: NSObject {
         return device.lightMode == .SCEMode
     }
 
-    public func changeToMode(_ mode: Int) {
+    public func changeToMode(_ mode: TabId) {
+        guard !self.initing else {
+            return
+        }
         if let theView = view {
-            theView.lightModeTabView.selectTabViewItem(at: mode)
-            //theView.lightModeButton.selectedSegment = mode
-            //theView.lightModeButton.performClick(nil)
+            theView.selectTabViewItemSafely(withIdentifier: mode.rawValue)
         }
     }
 
     public func changeToCCTMode() {
+        guard !self.initing else {
+            return
+        }
         if !isCCTMode {
-            changeToMode(0)
+            changeToMode(TabId.cct)
         }
     }
 
     public func changeToHSIMode() {
-        if !isHSIMode {
-            changeToMode(1)
+        guard !self.initing else {
+            return
+        }
+        if device.supportRGB {
+            if !isHSIMode {
+                changeToMode(TabId.hsi)
+            }
         }
     }
 
     public func changeToSCEMode() {
-        if !isSCEMode {
-            changeToMode(2)
+        guard !self.initing else {
+            return
+        }
+        if device.supportRGB {
+            if !isSCEMode {
+                changeToMode(TabId.scene)
+            }
         }
     }
 
-    public func changeToSCE(_ val: Int) {
+    public func changeToSCE(_ val: Int, _ brr: Double?) {
         guard !self.initing else {
             return
         }
         if let theView = view {
-            // TODO: make this pass to view
-//            let btn = NSButton()
-//            btn.tag = val
-//            theView.channelAction(btn)
-//            theView.updateScene(true)
+            theView.updteFX(val)
+            if let brrVal = brr {
+                theView.updteBrightness(brrVal)
+            }
         }
     }
 
-    public func updateCCT(_ cct: Int, _ bri: Double) {
+    public func updateCCT(_ cct: Int, _ gmm: Int, _ brr: Double?) {
         guard !self.initing else {
             return
         }
         if let theView = view {
-            var cttVal = Double(cct)
+            var cctVal = Double(cct)
+            if cctVal > 900 {
+                cctVal /= 100.0
+            }
             let cctrange = device.CCTRange()
+            cctVal = cctVal.clamped(to: Double(cctrange.minCCT)...Double(cctrange.maxCCT))
 
-            if cttVal < Double(cctrange.minCCT) {
-                cttVal = Double(cctrange.minCCT)
+            var gmmValue = Double(gmm)
+            if device.supportGMRange.value {
+                gmmValue = gmmValue.clamped(to: -50...50)
+            } else {
+                gmmValue = 0.0
             }
-            if cttVal > Double(cctrange.maxCCT) {
-                cttVal = Double(cctrange.maxCCT)
-            }
-            // TODO: update UI CCT values
-            //            theView.cctCctSlide.doubleValue = Double(cttVal/100.0)
-            //            theView.cctBrrSlide.doubleValue = bri
-            //            theView.slideAction(theView.cctCctSlide)
-            //            theView.slideAction(theView.cctBrrSlide)
+
+            theView.updateCCT(cct: cctVal, gmm: gmmValue, brr: brr)
         }
     }
 
-    public func updateHSI(hue: CGFloat, sat: CGFloat, brr: CGFloat) {
+    public func updateHSI(hue: CGFloat, sat: CGFloat, brr: Double?) {
         guard !self.initing else {
             return
         }

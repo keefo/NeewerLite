@@ -589,7 +589,7 @@ class NeewerLight: NSObject, ObservableNeewerLightProtocol {
 
     private func getCCTLightValue(brightness brr: CGFloat, correlatedColorTemperature cct: CGFloat) -> Data {
         var ratio = 100.0
-        if brr > 1.0 {
+        if brr >= 1.0 {
             ratio = 1.0
         }
         // cct range from 0x20(32) - 0x38(56) 32 stands for 3200K 65 stands for 5600K
@@ -901,7 +901,7 @@ class NeewerLight: NSObject, ObservableNeewerLightProtocol {
         }
         if value.count > 1 {
             if peripheral.state != .connected {
-                Logger.error("peripheral is not connected, can not send command!")
+                Logger.warn("peripheral is not connected, can not send command!")
                 return
             }
             _writeDispatcher?.cancel()
@@ -957,7 +957,7 @@ extension NeewerLight: CBPeripheralDelegate {
     func peripheral(_ peripheral: CBPeripheral, didUpdateValueFor characteristic: CBCharacteristic, error: Error?) {
         // Logger.debug("didUpdateValueFor characteristic: \(characteristic)")
         if let err = error {
-            Logger.error("err: \(err)")
+            Logger.error("peripheral didUpdateValueFor err: \(err)")
             return
         }
         if let data: Data = characteristic.value as Data? {
@@ -968,14 +968,14 @@ extension NeewerLight: CBPeripheralDelegate {
     func peripheral(_ peripheral: CBPeripheral, didWriteValueFor characteristic: CBCharacteristic, error: Error?) {
         // self.writeGroup.leave()
         if let err = error {
-            Logger.error("didWriteValueFor err: \(err)")
+            Logger.error("peripheral didWriteValueFor err: \(err)")
             return
         }
     }
 
     func peripheral(_ peripheral: CBPeripheral, didUpdateNotificationStateFor characteristic: CBCharacteristic, error: Error?) {
         if let err = error {
-            Logger.error("didUpdateNotificationStateFor err: \(err)")
+            Logger.error("peripheral didUpdateNotificationStateFor err: \(err)")
             return
         }
         Logger.debug("didUpdateNotificationStateFor characteristic: \(characteristic)")
@@ -988,7 +988,7 @@ extension NeewerLight: CBPeripheralDelegate {
 
     func peripheral(_ peripheral: CBPeripheral, didDiscoverDescriptorsFor characteristic: CBCharacteristic, error: Error?) {
         if let err = error {
-            Logger.error("didDiscoverDescriptorsFor err: \(err)")
+            Logger.error("peripheral didDiscoverDescriptorsFor err: \(err)")
             return
         }
 
@@ -1009,7 +1009,7 @@ extension NeewerLight: CBPeripheralDelegate {
     func peripheral(_ peripheral: CBPeripheral, didUpdateValueFor descriptor: CBDescriptor, error: Error?) {
         Logger.debug("didUpdateValueFor descriptor: \(descriptor)")
         if let err = error {
-            Logger.error("err: \(err)")
+            Logger.error("peripheral didUpdateValueFor err: \(err)")
             return
         }
     }
@@ -1017,7 +1017,7 @@ extension NeewerLight: CBPeripheralDelegate {
     func peripheral(_ peripheral: CBPeripheral, didWriteValueFor descriptor: CBDescriptor, error: Error?) {
         Logger.debug("didWriteValueFor descriptor: \(descriptor)")
         if let err = error {
-            Logger.error("err: \(err)")
+            Logger.error("peripheral didWriteValueFor err: \(err)")
             return
         }
     }
@@ -1029,7 +1029,7 @@ extension NeewerLight: CBPeripheralDelegate {
     func peripheral(_ peripheral: CBPeripheral, didOpen channel: CBL2CAPChannel?, error: Error?) {
         Logger.debug("peripheral didOpen channel: \(channel!)")
         if let err = error {
-            Logger.error("err: \(err)")
+            Logger.error("peripheral didOpen err: \(err)")
             return
         }
     }

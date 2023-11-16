@@ -23,7 +23,6 @@ Here is a video I made to demo the scene:
 	<img src="https://j.gifs.com/3Qz2Ox.gif" />
 </a>
 <img src="screenshot.png" width="300px" />
-<img src="screenshot1.png" width="300px" />
 </p>
 
 # Features
@@ -66,7 +65,12 @@ Set lights CCT:
 open "neewerlite://setLightCCT?CCT=3200&Brightness=100"
 ```
 
-Most of light model support CCT range 3200K to 5600K, Some lights support long CCT range 3200K to 8500K.
+Set lights CCT+GM:
+```bash
+open "neewerlite://setLightCCT?CCT=3200&GM=-50&Brightness=100"
+```
+
+Most of light model support CCT range 3200K to 5600K, Some lights support long CCT range 3200K to 8500K. And some newer model of light support GM.
 
 
 Set lights Hue and Saturation and Brightness:
@@ -74,11 +78,25 @@ Set lights Hue and Saturation and Brightness:
 open "neewerlite://setLightHSI?RGB=ff00ff&Saturation=100&Brightness=100"
 ```
 
+```bash
+open "neewerlite://setLightHSI?HUE=360&Saturation=100&Brightness=100"
+```
+
 Set lights to scene:
+
 ```bash
 open "neewerlite://setLightScene?Scene=SquadCar"
 ```
-Scene Values: SquadCar, Ambulance, FireEngine, Fireworks, Party, CandleLight, Lighting, Paparazzi, Screen
+
+```bash
+open "neewerlite://setLightScene?SceneId=1&Brightness=100"
+```
+
+Scene Names: SquadCar, Ambulance, FireEngine, Fireworks, Party, CandleLight, Lighting, Paparazzi, Screen
+
+Not all model follow these scene names. If your light support more scenes, you can use SceneId to switch.
+
+SceneId Range from 1 ~ 17 depends on light type.
 
 Turn on light by name:
 

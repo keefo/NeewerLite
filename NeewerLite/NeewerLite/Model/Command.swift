@@ -56,32 +56,48 @@ struct CommandParameter {
         return nil
     }
 
+    func HUE() -> Int? {
+        if let val = components.queryItems?.first(where: { $0.name == "HUE" })?.value {
+            let valInt = Int(val)!
+            return valInt
+        }
+        return nil
+    }
+
     func CCT() -> Int {
         if let val = components.queryItems?.first(where: { $0.name == "CCT" })?.value {
-            var valInt = Int(val)!
-            if valInt < 3200 {
-                valInt = 3200
-            }
-            if valInt > 8500 {
-                valInt = 8500
-            }
+            let valInt = Int(val)!
             return valInt
         }
         return 3200
     }
 
+    func GMM() -> Int {
+        if let val = components.queryItems?.first(where: { $0.name == "GM" })?.value {
+            let valInt = Int(val)!
+            return valInt
+        }
+        return 0
+    }
+
     func saturation() -> Double {
-        if let sat = components.queryItems?.first(where: { $0.name == "Saturation" })?.value {
-            return (Double(sat) ?? 100.0) / 100.0
+        if let val = components.queryItems?.first(where: { $0.name == "Saturation" })?.value {
+            if let sat = Double(val) {
+                return sat
+            } else {
+                return 1.0
+            }
         }
         return 1.0
     }
 
-    func brightness() -> Double {
+    func brightness() -> Double? {
         if let val = components.queryItems?.first(where: { $0.name == "Brightness" })?.value {
-            return (Double(val) ?? 100.0) / 100.0
+            if let brr = Double(val) {
+                return brr
+            }
         }
-        return 1.0
+        return nil
     }
 
     func scene() -> Int {
@@ -111,6 +127,14 @@ struct CommandParameter {
             }
         }
         return 1
+    }
+
+    func sceneId() -> Int? {
+        if let val = components.queryItems?.first(where: { $0.name == "SceneId" })?.value {
+            let valInt = Int(val)!
+            return valInt
+        }
+        return nil
     }
 }
 
@@ -142,3 +166,23 @@ class CommandHandler {
         }
     }
 }
+
+public enum ControlTag: Int {
+    case brr = 10
+    case cct = 11
+    case gmm = 12
+    case hue = 13
+    case sat = 14
+    case wheel = 15
+    case fxsubview = 16
+    case speed = 17
+    case spark = 18
+}
+
+public enum TabId: String {
+    case cct = "cctTab"
+    case hsi = "hsiTab"
+    case source = "sourceTab"
+    case scene = "sceTab"
+}
+
