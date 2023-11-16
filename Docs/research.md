@@ -1,4 +1,4 @@
-- How to research Neewer phone app
+# How to research Neewer phone app
 
 0. Download a latest apk package from apkcombo website. 
 https://apkcombo.com/neewer/neewer.nginx.annularlight/download/apk
@@ -49,7 +49,7 @@ CMD  TAG   SIZE    MAC               (subTAG)    (INT)  CCT    GM  (DIMMINGCURVE
 
 ### SCENE commands
 
-Support 12 types of scene
+Support 17 types of scene
 
 ```
 Oct 25 01:41:40.143  ATT Send         0x004A  00:00:00:00:00:00  Write Command - Handle:0x000E - Value: 7891 0BDF 243A B446 5D8B 1107 0103 4F  SEND  

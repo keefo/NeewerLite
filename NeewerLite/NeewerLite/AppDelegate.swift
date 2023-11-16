@@ -222,6 +222,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
 
     func registerCommands() {
         commandHandler.register(command: Command(type: .scanLight, action: { _ in
+
             self.scanAction(self)
         }))
 
@@ -266,11 +267,12 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
 
         commandHandler.register(command: Command(type: .setLightCCT, action: { cmdParameter in
             let cct = cmdParameter.CCT()
-            let bri = cmdParameter.brightness() * 100
+            let brr = cmdParameter.brightness()
+            let gmm = cmdParameter.GMM()
             func act(_ viewObj: DeviceViewObject) {
                 if viewObj.isON {
                     viewObj.changeToCCTMode()
-                    viewObj.updateCCT(cct, bri)
+                    viewObj.updateCCT(cct, gmm, brr)
                 }
             }
 
@@ -285,15 +287,20 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         }))
 
         commandHandler.register(command: Command(type: .setLightHSI, action: { cmdParameter in
-            guard let color = cmdParameter.RGB() else {
+            var hueVal = 0.0
+            if let color = cmdParameter.RGB() {
+                hueVal = CGFloat(color.hueComponent * 360.0)
+            } else if let hue = cmdParameter.HUE() {
+                hueVal = CGFloat(hue)
+            } else {
                 return
             }
             let sat = cmdParameter.saturation()
-            let bri = cmdParameter.brightness()
+            let brr = cmdParameter.brightness()
             func act(_ viewObj: DeviceViewObject) {
                 if viewObj.isON && viewObj.device.supportRGB {
                     viewObj.changeToHSIMode()
-                    viewObj.updateHSI(hue: CGFloat(color.hueComponent), sat: sat, brr: CGFloat(bri))
+                    viewObj.updateHSI(hue: hueVal, sat: sat, brr: brr)
                 }
             }
 
@@ -308,12 +315,16 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         }))
 
         commandHandler.register(command: Command(type: .setLightScene, action: { cmdParameter in
-            let scene = cmdParameter.scene()
+            var sceneId = cmdParameter.sceneId()
+            if sceneId == nil {
+                sceneId = cmdParameter.scene()
+            }
+            let brr = cmdParameter.brightness()
 
             func act(_ viewObj: DeviceViewObject) {
                 if viewObj.isON && viewObj.device.supportRGB {
-                    viewObj.changeToSCE(scene)
                     viewObj.changeToSCEMode()
+                    viewObj.changeToSCE(sceneId!, brr)
                 }
             }
 
@@ -365,9 +376,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
 
     @IBAction func toggleAudioDriver(_ sender: NSSwitch) {
         if sender.state == .on {
-            Logger.debug("Autio Driver ON")
             if audioSpectrogram == nil {
-                Logger.debug("startAudioDriver")
+                Logger.info(LogTag.click, "autio driver start")
                 audioSpectrogram = AudioSpectrogram()
                 audioSpectrogram!.audioSpectrogramImageUpdateCallback = { [weak self] cgimg in
                     guard let safeSelf = self else { return }
@@ -397,9 +407,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
                 audioSpectrogram!.startRunning()
             }
         } else {
-            Logger.debug("Autio Driver OFF")
             if audioSpectrogram != nil {
-                Logger.debug("stopAudioDriver")
+                Logger.info(LogTag.click, "autio driver stop")
                 audioSpectrogram!.stopRunning()
                 audioSpectrogram!.frequencyUpdateCallback = nil
                 audioSpectrogram = nil
@@ -591,10 +600,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
 
         mylightTableView.reloadData()
         var newIndexSet = IndexSet()
-        for (index, item) in viewObjects.enumerated() {
-            if deviceIdentifiers.contains(item.deviceIdentifier) {
-                newIndexSet.insert(index)
-            }
+        for (index, item) in viewObjects.enumerated() where deviceIdentifiers.contains(item.deviceIdentifier) {
+            newIndexSet.insert(index)
         }
         mylightTableView.selectRowIndexes(newIndexSet, byExtendingSelection: false)
         mylightTableView.enclosingScrollView?.display()
@@ -644,7 +651,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
 
             if !found {
                 if addNew {
-                    if let voj = scanningViewObjects.first(where: {$0.deviceIdentifier == identifier}) {
+                    if scanningViewObjects.contains(where: {$0.deviceIdentifier == identifier}) {
                         Logger.debug("already added")
                     } else {
                         let light: NeewerLight = NeewerLight(peripheral, characteristic1, characteristic2)
@@ -736,7 +743,7 @@ extension AppDelegate: CBCentralManagerDelegate {
 
         switch central.state {
             case .unauthorized:
-                Logger.info(LogTag.bluetooth, "authorization: \(central.authorization)")
+                Logger.debug(LogTag.bluetooth, "authorization: \(central.authorization)")
                 switch central.authorization {
                     case .allowedAlways: break
                     case .denied: break
@@ -748,16 +755,16 @@ extension AppDelegate: CBCentralManagerDelegate {
             case .unknown: break
             case .unsupported: break
             case .poweredOn:
-                Logger.info(LogTag.bluetooth, "powered on")
+                Logger.debug(LogTag.bluetooth, "powered on")
                 central.scanForPeripherals(withServices: nil, options: nil)
                 // scanAction(self)
                 self.scanning = true
             case .poweredOff:
                 central.stopScan()
-                Logger.info(LogTag.bluetooth, "powered off")
+                Logger.debug(LogTag.bluetooth, "powered off")
                 self.scanning = false
             case .resetting:
-                Logger.info(LogTag.bluetooth, "resetting")
+                Logger.debug(LogTag.bluetooth, "resetting")
             @unknown default: break
         }
     }
@@ -827,7 +834,7 @@ extension AppDelegate: CBPeripheralDelegate {
                 }
                 return
             }
-            Logger.info("A Valid Neewer Light Found: \(peripheral) \(services)")
+            Logger.info(LogTag.bluetooth, "A Valid Neewer Light Found: \(peripheral) \(services)")
             // discover characteristics of services
             peripheral.discoverCharacteristics(nil, for: neewerService)
         }

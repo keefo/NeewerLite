@@ -109,7 +109,6 @@ class ContentManager {
     }
 
     // MARK: - Image Fetching and Caching
-
     func fetchImage(from urlString: String, lightType: UInt8) async throws -> NSImage? {
         guard let url = URL(string: urlString) else {
             throw NSError(domain: "InvalidURL", code: 0, userInfo: nil)
@@ -157,7 +156,6 @@ class ContentManager {
     }
 
     // MARK: - Handling Network Failures
-
     func clearFailedURLs() {
         failedURLs.removeAll()
     }
@@ -182,27 +180,25 @@ class ContentManager {
     }
 
     private func fetchImageUrl(for lightType: UInt8) -> String? {
-        do {
-            if databaseCache == nil {
-                if fileManager.fileExists(atPath: localDatabaseURL.path) {
+        if databaseCache == nil {
+            if fileManager.fileExists(atPath: localDatabaseURL.path) {
+                do {
+                    let data = try Data(contentsOf: localDatabaseURL)
+                    databaseCache = try JSONDecoder().decode(Database.self, from: data)
+                } catch {
+                    Logger.error("Error reading or parsing JSON: \(error)")
                     do {
-                        let data = try Data(contentsOf: localDatabaseURL)
-                        databaseCache = try JSONDecoder().decode(Database.self, from: data)
+                        try fileManager.removeItem(atPath: localDatabaseURL.path)
                     } catch {
-                        Logger.error("Error reading or parsing JSON: \(error)")
-                        do {
-                            try fileManager.removeItem(atPath: localDatabaseURL.path)
-                        } catch {
-                        }
-                        return nil
                     }
+                    return nil
                 }
             }
-            let lights = databaseCache?.lights ?? []
-            return lights.first { $0.type == lightType }?.image
-        } catch {
-            Logger.error("Error reading or parsing JSON: \(error)")
-            return nil
         }
+        let lights = databaseCache?.lights ?? []
+        if let found = lights.first(where: { $0.type == lightType }) {
+            return found.image
+        }
+        return nil
     }
 }

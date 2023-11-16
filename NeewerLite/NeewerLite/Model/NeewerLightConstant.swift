@@ -25,8 +25,8 @@ class NeewerLightConstant {
         static let setRGBLightTag = 0x86  // 134 Set RGB Light Mode.
         static let setCCTLightTag = 0x87  // 135 Set CCT Light Mode.
 
-        static let setSceneTag = 0x88      // 136 Set Scene Light Mode.
-        static let setSCESubTag =  0x8B  //
+        static let setSceneTag = 0x88     // 136 Set Scene Light Mode.
+        static let setSCESubTag =  0x8B   //
 
         static let setHSVDataTag = 0x89  // 143 Set Continuity RGB Light HSV data.
         static let setCCTDataTag = 0x90  // 144 Set Continuity RGB Light Mode.
@@ -576,7 +576,7 @@ class NeewerLightConstant {
             cfg["fake"] = CodableValue.boolValue(true)
             cfg["mac"] = CodableValue.stringValue("FA:74:C6:C5:AA:AB")
             cfg["rawname"] = CodableValue.stringValue("NEEWER-RGB530 Pro")
-            cfg["identifier"] = CodableValue.stringValue("DEE0BA8C-D9B4-B7DB-0FD2-1A3BDEE0BAFA")
+            cfg["identifier"] = CodableValue.stringValue("3B724835-BF4C-1702-3ADC-773EDC38EC8C")
             lights.append(cfg)
         }
 

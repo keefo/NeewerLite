@@ -19,6 +19,8 @@ enum NLSliderType {
 
 class NLSlider: NSView {
 
+    var pauseNotify: Bool = false
+
     var minValue: CGFloat = 0.0 {
         didSet {
             if currentValue > minValue {
@@ -124,6 +126,9 @@ class NLSlider: NSView {
     private var mouseDownOnRightBtn = false
 
     private func notifyValueChange() {
+        if pauseNotify {
+            return
+        }
         self.willChangeValue(forKey: "currentValue")
         if let safeCallback = callback {
             safeCallback(currentValue)
@@ -132,6 +137,9 @@ class NLSlider: NSView {
     }
 
     private func notifyUpperValueChange() {
+        if pauseNotify {
+            return
+        }
         self.willChangeValue(forKey: "currentUpperValue")
         if let safeCallback = callback {
             safeCallback(currentValue)

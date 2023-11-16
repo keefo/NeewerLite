@@ -72,26 +72,32 @@ public class Logger {
     }
 
     private static func sendLogEntry(_ logEntry: LogEntry) {
+#if DEBUG
+        return
+#else
         logBuffer.logs.append(logEntry)
 
         if logBuffer.logs.count >= logThreshold {
             sendBatchedLogs()
         }
+#endif
     }
 
     private static func addLogEntry(_ logEntry: LogEntry) {
+#if DEBUG
+        return
+#else
         logBuffer.logs.append(logEntry)
         if logBuffer.logs.count >= logThreshold {
             sendBatchedLogs()
         }
+#endif
     }
 
     private static func sendBatchedLogs() {
 #if DEBUG
         return
 #else
-#endif
-
         guard !logBuffer.logs.isEmpty else { return }
         guard !networkDown else { return }
 
@@ -117,6 +123,7 @@ public class Logger {
         }
 
         logBuffer.logs.removeAll()
+#endif
     }
 
     public typealias FlushCompletion = () -> Void
@@ -155,6 +162,17 @@ public class Logger {
         } catch {
             completion()
         }
+    }
+
+    public class func debug(_ tag: LogTag, _ message: String? = nil, function: String = #function, file: String = #file, line: Int = #line) {
+#if DEBUG
+        let fileName = URL(fileURLWithPath: file).lastPathComponent
+        if let message = message {
+            print("\(fileName):\(function):\(line): \(message)")
+        } else {
+            print("\(fileName):\(function):\(line)")
+        }
+#endif
     }
 
     public class func debug(_ message: String? = nil, function: String = #function, file: String = #file, line: Int = #line) {
