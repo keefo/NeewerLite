@@ -129,12 +129,13 @@ Now, when you say “Meow” voice control will switch on/off your LED lights.
 
 # Tested Lights
 
-* [Neewer CB60 RGB Led Light](https://neewer.com/products/neewer-led-video-light-66601007)
-* [Neewer 660 RGB Led Light](https://neewer.com/products/neewer-led-light-10096807)
-* [Neewer 480 RGB Led Light](https://neewer.com/collections/rgb-led-panel-light/products/neewer-led-light-10096594)
-* [Neewer RGB176 Led Light](https://neewer.com/products/neewer-rgb176-video-light-with-app-control-10098961)
-* [Neewer RGB 530PRO Led Light](https://neewer.com/products/neewer-led-light-10096806)
-* [Neewer RGB1-A Stick Light](https://ca.neewer.com/products/neewer-cri98-rgb1-handheld-led-video-light-66601508)
+* [Neewer CB60 RGB Light](https://neewer.com/products/neewer-led-video-light-66601007)
+* [Neewer 660 RGB Light](https://neewer.com/products/neewer-led-light-10096807)
+* [Neewer 480 RGB Light](https://neewer.com/collections/rgb-led-panel-light/products/neewer-led-light-10096594)
+* [Neewer RGB176 Light](https://neewer.com/products/neewer-rgb176-video-light-with-app-control-10098961)
+* [Neewer RGB 530 PRO Light](https://www.amazon.ca/360%C2%B0Full-Streaming-Broadcasting-Conference-Photography/dp/B08MVTJTVQ)
+* [Neewer RGB1-A Magnetic Handheld Light Stick](https://ca.neewer.com/products/neewer-cri98-rgb1-handheld-led-video-light-66601508)
+* [Neewer SL90 Pro Aluminum Alloy RGB Panel Video Light](https://ca.neewer.com/products/neewer-sl90-12w-on-camera-rgb-panel-video-light-66600927)
 
 # TO DO LIST
 
