@@ -23,7 +23,6 @@ Here is a video I made to demo the scene:
 	<img src="https://j.gifs.com/3Qz2Ox.gif" />
 </a>
 <img src="screenshot.png" width="300px" />
-<img src="screenshot1.png" width="300px" />
 </p>
 
 # Features
