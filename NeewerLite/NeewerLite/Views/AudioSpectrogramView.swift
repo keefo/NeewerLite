@@ -35,6 +35,7 @@ extension CALayer {
     }
 }
 
+@available(macOS 13.0, *)
 class AudioSpectrogramView: NSView {
 
     var bars: [CALayer] = []
