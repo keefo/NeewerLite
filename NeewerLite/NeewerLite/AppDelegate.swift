@@ -19,6 +19,7 @@ let debugFakeLights = false
 let debugFakeLights = false
 #endif
 
+@available(macOS 13.0, *)
 @NSApplicationMain
 class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
 
@@ -687,6 +688,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
 
 }
 
+@available(macOS 13.0, *)
 extension AppDelegate: NSCollectionViewDataSource {
 
     func numberOfSections(in collectionView: NSCollectionView) -> Int {
@@ -711,6 +713,7 @@ extension AppDelegate: NSCollectionViewDataSource {
     }
 }
 
+@available(macOS 13.0, *)
 extension AppDelegate: NSCollectionViewDelegateFlowLayout {
     func collectionView(_ collectionView: NSCollectionView, layout collectionViewLayout: NSCollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> NSSize {
         return NSSize(width: 480, height: 280)
@@ -737,6 +740,7 @@ extension AppDelegate: NSCollectionViewDelegateFlowLayout {
     }
 }
 
+@available(macOS 13.0, *)
 extension AppDelegate: CBCentralManagerDelegate {
 
     func centralManagerDidUpdateState(_ central: CBCentralManager) {
@@ -817,6 +821,7 @@ extension AppDelegate: CBCentralManagerDelegate {
     }
 }
 
+@available(macOS 13.0, *)
 extension AppDelegate: CBPeripheralDelegate {
 
     func peripheral(_ peripheral: CBPeripheral, didModifyServices invalidatedServices: [CBService]) {
@@ -846,6 +851,7 @@ extension AppDelegate: CBPeripheralDelegate {
     }
 }
 
+@available(macOS 13.0, *)
 extension AppDelegate: NSTableViewDataSource, NSTableViewDelegate {
 
     func numberOfRows(in tableView: NSTableView) -> Int {

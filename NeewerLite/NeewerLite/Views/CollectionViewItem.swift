@@ -7,6 +7,7 @@
 
 import Cocoa
 
+@available(macOS 13.0, *)
 class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDelegate {
 
     @IBOutlet weak var lightModeTabView: NSTabView!
