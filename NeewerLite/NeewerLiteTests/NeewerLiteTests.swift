@@ -110,6 +110,11 @@ class NeewerLiteTests: XCTestCase {
         XCTAssertEqual(name.projectName, "RGB176 A1")
         XCTAssertEqual(NeewerLightConstant.getLightType(nickName: name.nickName, str: "", projectName: name.projectName), 20, "")
 
+        name = NeewerLightConstant.getLightNames(rawName: "NEEWER-RGB176", identifier: "DEE0BA8C-D9B4-B7DB-0FD2-F0CC23BACB1C")
+        XCTAssertEqual(name.nickName, "RGB176-BACB1C")
+        XCTAssertEqual(name.projectName, "RGB176")
+        XCTAssertEqual(NeewerLightConstant.getLightType(nickName: name.nickName, str: "", projectName: name.projectName), 5, "")
+
         name = NeewerLightConstant.getLightNames(rawName: "NEEWER-RGB530", identifier: "DEE0BA8C-D9B4-B7DB-0FD2-2531C7E4B053")
         XCTAssertEqual(name.nickName, "RGB530-E4B053")
         XCTAssertEqual(name.projectName, "RGB530")
