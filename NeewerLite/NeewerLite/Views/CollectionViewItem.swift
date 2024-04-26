@@ -386,7 +386,7 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
             guard let safeSelf = self else { return }
             if let safeDev = safeSelf.device {
                 if safeDev.supportRGB {
-                    safeDev.setRGBLightValues(brr: CGFloat(safeDev.brrValue.value) / 100.0, hue: hue, sat: sat)
+                    safeDev.setRGBLightValues(brr: CGFloat(safeDev.brrValue.value) / 100.0, hue: hue, hue360: hue * 360.0, sat: sat)
                 }
             }
         }
@@ -1434,7 +1434,7 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
                 Logger.debug("brr: \(brr) hue: \(hue) sat: \(sat)")
                 let val = getHSIValuesFromView()
                 let brrValue = brr != nil ? brr! : val.brr
-                let hueVal = CGFloat(hue) / 360.0
+                let hueVal = Double(hue) / 360.0
                 if let wheel = getHSIWheelFromView() {
                     let color = NSColor(calibratedHue: hueVal, saturation: sat, brightness: brrValue, alpha: 1)
                     wheel.setViewColor(color)
@@ -1444,7 +1444,7 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
                     brrSlide.currentValue = brrValue * brrSlide.maxValue
                     brrSlide.pauseNotify = false
                 }
-                dev.setRGBLightValues(brr: brrValue, hue: hueVal, sat: sat)
+                dev.setRGBLightValues(brr: brrValue, hue: hueVal, hue360: hue, sat: sat)
             }
         }
     }
@@ -1487,7 +1487,7 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
                         // HSI mode
                         if dev.supportRGB {
                             let val = getHSIValuesFromView()
-                            dev.setRGBLightValues(brr: CGFloat(val.brr) / 100.0, hue: val.hue, sat: val.sat)
+                            dev.setRGBLightValues(brr: CGFloat(val.brr) / 100.0, hue: val.hue, hue360: val.hue * 360.0, sat: val.sat)
                         }
                     } else if idf == TabId.scene.rawValue || tabViewItem?.label == "FX" {
                         // scene mode
