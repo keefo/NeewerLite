@@ -483,7 +483,11 @@ class NeewerLight: NSObject, ObservableNeewerLightProtocol {
         if data.prefix(upTo: BleUpdate.channelUpdatePrefix.count) == BleUpdate.channelUpdatePrefix
             && data.count == BleUpdate.channelUpdatePrefix.count + 2 {
             // data[3] range in [0,1,2,3,4,5,6,7,8]
-            channel.value = UInt8(data[3]+1).clamped(to: 1...maxChannel) // only 1-maxChannel channel a allowed.
+            if maxChannel >= 1 {
+                channel.value = UInt8(data[3]+1).clamped(to: 1...maxChannel) // only 1-maxChannel channel a allowed.
+            } else {
+                channel.value = UInt8(data[3]+1).clamped(to: 1...30)
+            }
         } else {
             Logger.info("handleNotifyValueUpdate \(data.hexEncodedString())")
         }
