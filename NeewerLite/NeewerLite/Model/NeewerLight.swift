@@ -431,10 +431,10 @@ class NeewerLight: NSObject, ObservableNeewerLightProtocol {
     }
 
     // Set RBG light in HSV Mode
-    public func setRGBLightValues(brr: CGFloat, hue: CGFloat, sat: CGFloat) {
+    public func setRGBLightValues(brr: CGFloat, hue: CGFloat, hue360: CGFloat, sat: CGFloat) {
         var cmd: Data = Data()
         // Logger.debug("hue: \(hue) sat: \(sat)")
-        cmd = getRGBLightValue(brightness: brr, hue: hue, satruation: sat)
+        cmd = getRGBLightValue(brightness: brr, hue: hue, hue360: hue360, satruation: sat)
 
         lightMode = .HSIMode
 
@@ -665,7 +665,7 @@ class NeewerLight: NSObject, ObservableNeewerLightProtocol {
                 cmd = getCCTOnlyLightValue(brightness: brr, correlatedColorTemperature: CGFloat(cctValue.value))
             }
         } else if lightMode == .HSIMode {
-            cmd = getRGBLightValue(brightness: brr, hue: CGFloat(hueValue.value) / 360.0, satruation: CGFloat(satValue.value) / 100.0)
+            cmd = getRGBLightValue(brightness: brr, hue: CGFloat(hueValue.value) / 360.0, hue360: CGFloat(hueValue.value), satruation: CGFloat(satValue.value) / 100.0)
         } else {
             cmd = getSceneValue(channel.value, brightness: CGFloat(brr))
         }
@@ -675,7 +675,7 @@ class NeewerLight: NSObject, ObservableNeewerLightProtocol {
         write(data: cmd as Data, to: characteristic)
     }
 
-    private func getRGBLightValue(brightness brr: CGFloat, hue theHue: CGFloat, satruation sat: CGFloat ) -> Data {
+    private func getRGBLightValue(brightness brr: CGFloat, hue theHue: CGFloat, hue360 theHue360: CGFloat, satruation sat: CGFloat ) -> Data {
         var ratio = 100.0
         if brr > 1.0 {
             ratio = 1.0
@@ -684,6 +684,7 @@ class NeewerLight: NSObject, ObservableNeewerLightProtocol {
         let newBrrValue: Int = Int(brr * ratio).clamped(to: 0...100)
         let newSatValue: Int = Int(sat * 100.0).clamped(to: 0...100)
         let newHueValue = Int(theHue * 360.0).clamped(to: 0...360)
+        let newHue360Value = Int(theHue360).clamped(to: 0...360)
 
         // Red  7886 0400 0064 643F
         // Blue 7886 04E7 0064 64B0
@@ -705,7 +706,7 @@ class NeewerLight: NSObject, ObservableNeewerLightProtocol {
         bArr[6] = newBrrValue // brightness
 
         brrValue.value = newBrrValue
-        hueValue.value = newHueValue
+        hueValue.value = newHue360Value
         satValue.value = newSatValue
 
         let bArr1: [UInt8] = appendCheckSum(bArr)
