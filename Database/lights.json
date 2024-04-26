@@ -10,6 +10,10 @@
             "image": "https://github.com/keefo/NeewerLite/blob/main/Database/light_images/gl1.png?raw=true"
         },
         {
+            "type": 5,
+            "image": "https://github.com/keefo/NeewerLite/blob/main/Database/light_images/rgb176-a1.png?raw=true"
+        },
+        {
             "type": 7,
             "image": "https://github.com/keefo/NeewerLite/blob/main/Database/light_images/snl530.png?raw=true"
         },
