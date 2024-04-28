@@ -34,6 +34,10 @@
             "image": "https://github.com/keefo/NeewerLite/blob/main/Database/light_images/cb60-rgb.png?raw=true"
         },
         {
+            "type": 26,
+            "image": "https://github.com/keefo/NeewerLite/blob/main/Database/light_images/bh-30s.png?raw=true"
+        },
+        {
             "type": 33,
             "image": "https://github.com/keefo/NeewerLite/blob/main/Database/light_images/gl1-pro.png?raw=true"
         },
