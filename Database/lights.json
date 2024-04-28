@@ -52,6 +52,10 @@
         {
             "type": 40,
             "image": "https://github.com/keefo/NeewerLite/blob/main/Database/light_images/rgb62.png?raw=true"
+        },
+        {
+            "type": 42,
+            "image": "https://github.com/keefo/NeewerLite/blob/main/Database/light_images/bh-30s.png?raw=true"
         }
     ]
 }
