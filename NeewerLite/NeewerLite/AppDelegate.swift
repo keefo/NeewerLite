@@ -299,7 +299,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
             let brr = cmdParameter.brightness()
             func act(_ viewObj: DeviceViewObject, showAlert: Bool) {
                 if viewObj.isON {
-                    if !viewObj.device.supportRGB {
+                    if viewObj.device.supportRGB {
                         viewObj.changeToHSIMode()
                         viewObj.updateHSI(hue: hueVal, sat: sat, brr: brr)
                     } else {
