@@ -116,24 +116,28 @@ extension NSColor {
             alpha: 1.0
         )
     }
+
     convenience init(hex: String, alpha: Float) {
-        // Handle two types of literals: 0x and # prefixed
-        var cleanedString = ""
-        if hex.hasPrefix("0x") {
-            cleanedString = String(hex[hex.index(cleanedString.startIndex, offsetBy: 2)..<hex.endIndex])
-        } else if hex.hasPrefix("#") {
-            cleanedString = String(hex[hex.index(cleanedString.startIndex, offsetBy: 1)..<hex.endIndex])
-        } else if hex.count == 6 {
-            cleanedString = hex
+        var cleanedString = hex.hasPrefix("0x") ? String(hex.dropFirst(2)) : hex
+        cleanedString = hex.hasPrefix("#") ? String(hex.dropFirst(1)) : cleanedString
+
+        // Normalize short hex code to full 6 characters
+        if cleanedString.count == 3 {
+            cleanedString = cleanedString.map { String(repeating: $0, count: 2) }.joined()
         }
-        // Ensure it only contains valid hex characters 0
-        let validHexPattern = "[a-fA-F0-9]+"
-        if cleanedString.conformsTo(validHexPattern) {
+
+        if cleanedString.range(of: "^[a-fA-F0-9]{6}$", options: .regularExpression) != nil {
             var rgbValue: UInt64 = 0
             Scanner(string: cleanedString).scanHexInt64(&rgbValue)
-            self.init(hex: rgbValue, alpha: 1)
+            self.init(hex: rgbValue, alpha: alpha)
         } else {
-            fatalError("Unable to parse color?")
+            let alert = NSAlert()
+            alert.messageText = "Error"
+            alert.informativeText = "Invalid hex color format \(hex)"
+            alert.alertStyle = .warning
+            alert.addButton(withTitle: "OK")
+            alert.runModal()
+            self.init(hex: 0, alpha: alpha)
         }
     }
 }
