@@ -297,19 +297,30 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
             }
             let sat = cmdParameter.saturation()
             let brr = cmdParameter.brightness()
-            func act(_ viewObj: DeviceViewObject) {
-                if viewObj.isON && viewObj.device.supportRGB {
-                    viewObj.changeToHSIMode()
-                    viewObj.updateHSI(hue: hueVal, sat: sat, brr: brr)
+            func act(_ viewObj: DeviceViewObject, showAlert: Bool) {
+                if viewObj.isON {
+                    if !viewObj.device.supportRGB {
+                        viewObj.changeToHSIMode()
+                        viewObj.updateHSI(hue: hueVal, sat: sat, brr: brr)
+                    } else {
+                        if showAlert {
+                            let alert = NSAlert()
+                            alert.messageText = "This light does not support RGB"
+                            alert.informativeText = "\(viewObj.device.nickName)"
+                            alert.alertStyle = .informational
+                            alert.addButton(withTitle: "OK")
+                            alert.runModal()
+                        }
+                    }
                 }
             }
 
             if let lightname = cmdParameter.lightName() {
                 self.viewObjects.forEach {
-                    if lightname.caseInsensitiveCompare($0.device.userLightName.value) == .orderedSame { act($0) }
+                    if lightname.caseInsensitiveCompare($0.device.userLightName.value) == .orderedSame { act($0, showAlert: true) }
                 }
             } else {
-                self.viewObjects.forEach { act($0) }
+                self.viewObjects.forEach { act($0, showAlert: false) }
             }
             self.statusItemIcon = .on
         }))
@@ -321,19 +332,30 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
             }
             let brr = cmdParameter.brightness()
 
-            func act(_ viewObj: DeviceViewObject) {
-                if viewObj.isON && viewObj.device.supportRGB {
-                    viewObj.changeToSCEMode()
-                    viewObj.changeToSCE(sceneId!, brr)
+            func act(_ viewObj: DeviceViewObject, showAlert: Bool) {
+                if viewObj.isON {
+                    if viewObj.device.supportRGB {
+                        viewObj.changeToSCEMode()
+                        viewObj.changeToSCE(sceneId!, brr)
+                    } else {
+                        if showAlert {
+                            let alert = NSAlert()
+                            alert.messageText = "This light does not support RGB"
+                            alert.informativeText = "\(viewObj.device.nickName)"
+                            alert.alertStyle = .informational
+                            alert.addButton(withTitle: "OK")
+                            alert.runModal()
+                        }
+                    }
                 }
             }
 
             if let lightname = cmdParameter.lightName() {
                 self.viewObjects.forEach {
-                    if lightname.caseInsensitiveCompare($0.device.userLightName.value) == .orderedSame { act($0) }
+                    if lightname.caseInsensitiveCompare($0.device.userLightName.value) == .orderedSame { act($0, showAlert: true) }
                 }
             } else {
-                self.viewObjects.forEach { act($0) }
+                self.viewObjects.forEach { act($0, showAlert: false) }
             }
             self.statusItemIcon = .on
         }))

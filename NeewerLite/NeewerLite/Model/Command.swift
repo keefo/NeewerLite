@@ -83,6 +83,9 @@ struct CommandParameter {
     func saturation() -> Double {
         if let val = components.queryItems?.first(where: { $0.name == "Saturation" })?.value {
             if let sat = Double(val) {
+                if sat > 1.0 {
+                    return sat / 100.0
+                }
                 return sat
             } else {
                 return 1.0
