@@ -62,7 +62,7 @@ class ContentManager {
     // Image Cache Directory
     private lazy var cacheDirectory: URL = {
         let appSupportURL = fileManager.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
-        let cacheURL = appSupportURL.appendingPathComponent("LightImageCache")
+        let cacheURL = appSupportURL.appendingPathComponent("NeewerLite/LightImageCache")
         if !fileManager.fileExists(atPath: cacheURL.path) {
             try? fileManager.createDirectory(at: cacheURL, withIntermediateDirectories: true, attributes: nil)
         }

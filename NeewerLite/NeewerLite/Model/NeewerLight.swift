@@ -124,21 +124,7 @@ class NeewerLight: NSObject, ObservableNeewerLightProtocol {
     }
 
     func CCTRange() -> (minCCT: Int, maxCCT: Int) {
-        // Default CCT range from 3200k–5600k
-        // some lights support extended CCT range from 3200K–8500K such as
-        // https://neewer.com/products/neewer-sl80-10w-rgb-led-video-light-10097903?_pos=1&_sid=dfa97e049&_ss=r&variant=37586440683713
-        if ligthType == 6 {
-            if projectName.contains("SL140") {
-                // https://neewer.com/products/neewer-sl-140-rgb-led-light-full-color-rechargeable-pocket-size-10097200?_pos=2&_sid=3ff26da17&_ss=r
-                return (minCCT: 25, maxCCT: 90)
-            } else {
-                return (minCCT: 25, maxCCT: 85)
-            }
-        }
-        if ligthType == 22 {
-            return (minCCT: 27, maxCCT: 65)
-        }
-        return (minCCT: 32, maxCCT: 56)
+        return NeewerLightConstant.CCTRange(ligthType: _lightType, projectName: projectName)
     }
 
     var deviceName: String {
@@ -203,7 +189,7 @@ class NeewerLight: NSObject, ObservableNeewerLightProtocol {
 
     private lazy var ligthType: UInt8 = {
         if _lightType <= 0 {
-            _lightType = NeewerLightConstant.getLightType(nickName: nickName, str: "", projectName: projectName)
+            _lightType = NeewerLightConstant.getLightType(nickName: nickName, rawname: _rawName ?? "", projectName: projectName)
         }
         return _lightType
     }()
@@ -287,7 +273,7 @@ class NeewerLight: NSObject, ObservableNeewerLightProtocol {
         }
 
         if let safeMac = _macAddress {
-            if (safeMac.lengthOfBytes(using: .utf8)) > 8 && self.ligthType == 22 {
+            if (safeMac.lengthOfBytes(using: .utf8)) > 8 && NeewerLightConstant.getCCTGMLightTypes().contains(self.ligthType) {
                 supportGMRange.value = true
             }
         }
@@ -370,6 +356,14 @@ class NeewerLight: NSObject, ObservableNeewerLightProtocol {
         guard let characteristic = deviceCtlCharacteristic else {
             return
         }
+
+        if NeewerLightConstant.getNewPowerLightTypes().contains(_lightType) {
+            Logger.debug("send new powerOn command")
+            write(data: getNewPowerCommand(true) as Data, to: characteristic)
+            return
+        }
+
+        Logger.debug("send old powerOn command")
         self.write(data: NeewerLightConstant.BleCommand.powerOn as Data, to: characteristic)
     }
 
@@ -379,6 +373,14 @@ class NeewerLight: NSObject, ObservableNeewerLightProtocol {
         guard let characteristic = deviceCtlCharacteristic else {
             return
         }
+
+        if NeewerLightConstant.getNewPowerLightTypes().contains(_lightType) {
+            Logger.debug("send new powerOff command")
+            write(data: getNewPowerCommand(false) as Data, to: characteristic)
+            return
+        }
+
+        Logger.debug("send old powerOff command")
         self.write(data: NeewerLightConstant.BleCommand.powerOff as Data, to: characteristic)
     }
 
@@ -417,11 +419,11 @@ class NeewerLight: NSObject, ObservableNeewerLightProtocol {
         Logger.debug("setCCTLightValues")
 
         if supportGMRange.value {
-            cmd = getCCTDATALightValue(brightness: brr, correlatedColorTemperature: cct, gmm: gmm)
+            cmd = getCCTDATALightCommand(brightness: brr, correlatedColorTemperature: cct, gmm: gmm)
         } else if supportRGB {
-            cmd = getCCTLightValue(brightness: brr, correlatedColorTemperature: cct)
+            cmd = getCCTLightCommand(brightness: brr, correlatedColorTemperature: cct)
         } else {
-            cmd = getCCTOnlyLightValue(brightness: brr, correlatedColorTemperature: cct)
+            cmd = getCCTOnlyLightCommand(brightness: brr, correlatedColorTemperature: cct)
         }
         lightMode = .CCTMode
         guard let characteristic = deviceCtlCharacteristic else {
@@ -434,7 +436,12 @@ class NeewerLight: NSObject, ObservableNeewerLightProtocol {
     public func setRGBLightValues(brr: CGFloat, hue: CGFloat, hue360: CGFloat, sat: CGFloat) {
         var cmd: Data = Data()
         // Logger.debug("hue: \(hue) sat: \(sat)")
-        cmd = getRGBLightValue(brightness: brr, hue: hue, hue360: hue360, satruation: sat)
+
+        if NeewerLightConstant.getNewRGBLightTypes().contains(_lightType) {
+            cmd = getNewRGBLightCommand(mac: _macAddress ?? "", brightness: brr, hue: hue, hue360: hue360, satruation: sat)
+        } else {
+            cmd = getRGBLightCommand(brightness: brr, hue: hue, hue360: hue360, satruation: sat)
+        }
 
         lightMode = .HSIMode
 
@@ -543,16 +550,16 @@ class NeewerLight: NSObject, ObservableNeewerLightProtocol {
         bArr[0] = NeewerLightConstant.BleCommand.prefixTag
         bArr[1] = tag
         bArr[2] = byteCount + 7
-        var intArray = mac.split(separator: ":").compactMap { Int($0, radix: 16) }
-        while intArray.count < 6 {
-            intArray.append(0)
+        var macArray = mac.split(separator: ":").compactMap { Int($0, radix: 16) }
+        while macArray.count < 6 {
+            macArray.append(0)
         }
-        bArr[3] = intArray[0]
-        bArr[4] = intArray[1]
-        bArr[5] = intArray[2]
-        bArr[6] = intArray[3]
-        bArr[7] = intArray[4]
-        bArr[8] = intArray[5]
+        bArr[3] = macArray[0]
+        bArr[4] = macArray[1]
+        bArr[5] = macArray[2]
+        bArr[6] = macArray[3]
+        bArr[7] = macArray[4]
+        bArr[8] = macArray[5]
         bArr[9] = subtag
         var idx = 10
         for val in vals {
@@ -562,7 +569,23 @@ class NeewerLight: NSObject, ObservableNeewerLightProtocol {
         return appendCheckSum(bArr)
     }
 
-    private func getCCTDATALightValue(brightness brr: CGFloat, correlatedColorTemperature cct: CGFloat, gmm: CGFloat) -> Data {
+    func getNewPowerCommand(_ turnOn: Bool) -> Data {
+        /*
+         Apr 28 12:12:17.298  ATT Send Write Request - Handle:0x000E - Value: 788D 08F7 AC16 F158 9681 0127  SEND
+         Apr 28 12:11:57.197  ATT Send Write Request - Handle:0x000E - Value: 788D 08F7 AC16 F158 9681 0228  SEND
+         CMD  TAG  SIZE       MAC                     SUB_TAG  PowerOn     (checksum)
+         78   8D   08         (F7 AC 16 F1 58 96)     81       01          27
+         CMD  TAG  SIZE       MAC                     SUB_TAG  PowerOff    (checksum)
+         78   8D   08         (F7 AC 16 F1 58 96)     81       02          28
+         */
+        let bArr1: [UInt8] = composeSingleCommandWithMac(NeewerLightConstant.BleCommand.powerNewTag, _macAddress!,
+                                                         NeewerLightConstant.BleCommand.powerNewSubTag,
+                                                         turnOn ? NeewerLightConstant.BleCommand.powerNewOnSubTag : NeewerLightConstant.BleCommand.powerNewOffSubTag)
+        let data = NSData(bytes: bArr1, length: bArr1.count) as Data
+        return data
+    }
+
+    private func getCCTDATALightCommand(brightness brr: CGFloat, correlatedColorTemperature cct: CGFloat, gmm: CGFloat) -> Data {
         var ratio = 100.0
         if brr > 1.0 {
             ratio = 1.0
@@ -591,7 +614,7 @@ class NeewerLight: NSObject, ObservableNeewerLightProtocol {
         return data
     }
 
-    private func getCCTLightValue(brightness brr: CGFloat, correlatedColorTemperature cct: CGFloat) -> Data {
+    private func getCCTLightCommand(brightness brr: CGFloat, correlatedColorTemperature cct: CGFloat) -> Data {
         var ratio = 100.0
         if brr >= 1.0 {
             ratio = 1.0
@@ -625,7 +648,7 @@ class NeewerLight: NSObject, ObservableNeewerLightProtocol {
     }
 
     // Not sure what is is L stand for.
-    private func getCCTOnlyLightValue(brightness brr: CGFloat, correlatedColorTemperature cct: CGFloat) -> Data {
+    private func getCCTOnlyLightCommand(brightness brr: CGFloat, correlatedColorTemperature cct: CGFloat) -> Data {
         // cct range from 0x20(32) - 0x38(56) 32 stands for 3200K 65 stands for 5600K
         let cctrange = CCTRange()
         let newCctValue: Int = Int(cct).clamped(to: cctrange.minCCT...cctrange.maxCCT)
@@ -660,12 +683,20 @@ class NeewerLight: NSObject, ObservableNeewerLightProtocol {
         var cmd: Data = Data()
         if lightMode == .CCTMode {
             if supportRGB {
-                cmd = getCCTLightValue(brightness: brr, correlatedColorTemperature: CGFloat(cctValue.value))
+                cmd = getCCTLightCommand(brightness: brr, correlatedColorTemperature: CGFloat(cctValue.value))
             } else {
-                cmd = getCCTOnlyLightValue(brightness: brr, correlatedColorTemperature: CGFloat(cctValue.value))
+                cmd = getCCTOnlyLightCommand(brightness: brr, correlatedColorTemperature: CGFloat(cctValue.value))
             }
         } else if lightMode == .HSIMode {
-            cmd = getRGBLightValue(brightness: brr, hue: CGFloat(hueValue.value) / 360.0, hue360: CGFloat(hueValue.value), satruation: CGFloat(satValue.value) / 100.0)
+            if NeewerLightConstant.getNewRGBLightTypes().contains(_lightType) {
+                cmd = getNewRGBLightCommand(mac: _macAddress ?? "", 
+                                            brightness: brr,
+                                            hue: CGFloat(hueValue.value) / 360.0,
+                                            hue360: CGFloat(hueValue.value),
+                                            satruation: CGFloat(satValue.value) / 100.0)
+            } else {
+                cmd = getRGBLightCommand(brightness: brr, hue: CGFloat(hueValue.value) / 360.0, hue360: CGFloat(hueValue.value), satruation: CGFloat(satValue.value) / 100.0)
+            }
         } else {
             cmd = getSceneValue(channel.value, brightness: CGFloat(brr))
         }
@@ -675,7 +706,7 @@ class NeewerLight: NSObject, ObservableNeewerLightProtocol {
         write(data: cmd as Data, to: characteristic)
     }
 
-    private func getRGBLightValue(brightness brr: CGFloat, hue theHue: CGFloat, hue360 theHue360: CGFloat, satruation sat: CGFloat ) -> Data {
+    private func getRGBLightCommand(brightness brr: CGFloat, hue theHue: CGFloat, hue360 theHue360: CGFloat, satruation sat: CGFloat ) -> Data {
         var ratio = 100.0
         if brr > 1.0 {
             ratio = 1.0
@@ -704,6 +735,70 @@ class NeewerLight: NSObject, ObservableNeewerLightProtocol {
         bArr[4] = Int((newHueValue & 0xFF00) >> 8) // callcuated from rgb
         bArr[5] = newSatValue // satruation 0x00 ~ 0x64
         bArr[6] = newBrrValue // brightness
+
+        brrValue.value = newBrrValue
+        hueValue.value = newHue360Value
+        satValue.value = newSatValue
+
+        let bArr1: [UInt8] = appendCheckSum(bArr)
+
+        return NSData(bytes: bArr1, length: bArr1.count) as Data
+    }
+
+    private func getNewRGBLightCommand(mac: String, brightness brr: CGFloat, hue theHue: CGFloat, hue360 theHue360: CGFloat, satruation sat: CGFloat ) -> Data {
+        /*
+         Apr 28 12:12:27.429  ATT Send         0x005B  00:00:00:00:00:00  Write Command - Handle:0x000E - Value: 788F 0CF7 AC16 F158 9686 4500 5C32 0004  SEND
+
+         CMD  TAG  SIZE       MAC                     SUB_TAG  (HUE 0~360)   (SAT 00~64)     (BRR 00~64)   (??)     (checksum)
+         78   8F   0C         (F7 AC 16 F1 58 96)     86       45 00         5C               32           00        04
+
+         78,8f,0b,f7,ac,16,f1,58,96,53,01,43,49,00,8a
+         */
+
+        var ratio = 100.0
+        if brr > 1.0 {
+            ratio = 1.0
+        }
+        // brr range from 0x00 - 0x64
+        let newBrrValue: Int = Int(brr * ratio).clamped(to: 0...100)
+        let newSatValue: Int = Int(sat * 100.0).clamped(to: 0...100)
+        let newHueValue = Int(theHue * 360.0).clamped(to: 0...360)
+        let newHue360Value = Int(theHue360).clamped(to: 0...360)
+
+        // Red  7886 0400 0064 643F
+        // Blue 7886 04E7 0064 64B0
+        // Yell 7886 043E 0064 64B0
+        // Gree 7886 0476 0064 643F
+        // Red  7886 0468 0164 643F
+        // Logger.debug("hue \(newHueValue) sat \(newSatValue)")
+
+        let byteCount = 4 + 6 + 1 + 1
+        var bArr: [Int] = [Int](repeating: 0, count: byteCount + 4)
+
+        bArr[0] = NeewerLightConstant.BleCommand.prefixTag
+        bArr[1] = NeewerLightConstant.BleCommand.setNewRGBLightTag
+        bArr[2] = byteCount
+        // mac address
+        var macArray = mac.split(separator: ":").compactMap { Int($0, radix: 16) }
+        while macArray.count < 6 {
+            macArray.append(0)
+        }
+        bArr[3] = macArray[0]
+        bArr[4] = macArray[1]
+        bArr[5] = macArray[2]
+        bArr[6] = macArray[3]
+        bArr[7] = macArray[4]
+        bArr[8] = macArray[5]
+
+        // sub-tag
+        bArr[9] = NeewerLightConstant.BleCommand.setNewRGBLightSubTag
+
+        // 4 eletements
+        bArr[10] = Int(newHueValue & 0xFF)
+        bArr[11] = Int((newHueValue & 0xFF00) >> 8) // callcuated from rgb
+        bArr[12] = newSatValue // satruation 0x00 ~ 0x64
+        bArr[13] = newBrrValue // brightness
+        bArr[14] = 0 // ??
 
         brrValue.value = newBrrValue
         hueValue.value = newHue360Value
@@ -818,16 +913,16 @@ class NeewerLight: NSObject, ObservableNeewerLightProtocol {
         bArr[0] = NeewerLightConstant.BleCommand.prefixTag      // 78
         bArr[1] = NeewerLightConstant.BleCommand.setSCEDataTag  // 91
         bArr[2] = byteCount
-        var intArray = mac.split(separator: ":").compactMap { Int($0, radix: 16) }
-        while intArray.count < 6 {
-            intArray.append(0)
+        var macArray = mac.split(separator: ":").compactMap { Int($0, radix: 16) }
+        while macArray.count < 6 {
+            macArray.append(0)
         }
-        bArr[3] = intArray[0]
-        bArr[4] = intArray[1]
-        bArr[5] = intArray[2]
-        bArr[6] = intArray[3]
-        bArr[7] = intArray[4]
-        bArr[8] = intArray[5]
+        bArr[3] = macArray[0]
+        bArr[4] = macArray[1]
+        bArr[5] = macArray[2]
+        bArr[6] = macArray[3]
+        bArr[7] = macArray[4]
+        bArr[8] = macArray[5]
         bArr[9] = NeewerLightConstant.BleCommand.setSCESubTag
         bArr[10] = Int(channel.value)
         var idx = 11
