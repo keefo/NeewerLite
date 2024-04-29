@@ -195,9 +195,11 @@ class ContentManager {
                 }
             }
         }
-        let lights = databaseCache?.lights ?? []
-        if let found = lights.first(where: { $0.type == lightType }) {
-            return found.image
+        if let safeCache = databaseCache {
+            let lights = safeCache.lights
+            if let found = lights.first(where: { $0.type == lightType }) {
+                return found.image
+            }
         }
         return nil
     }

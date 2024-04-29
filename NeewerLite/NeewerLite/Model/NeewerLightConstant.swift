@@ -54,11 +54,11 @@ class NeewerLightConstant {
     }
 
     class func getRGBLightTypes() -> [UInt8] {
-        return [3, 5, 8, 9, 11, 12, 15, 16, 18, 19, 20, 21, 22, 26, 29, 32, 34, 39, 40, 42, 43, 56, 57, 59]
+        return [3, 5, 8, 9, 11, 12, 15, 16, 18, 19, 20, 21, 22, 25, 26, 29, 32, 34, 39, 40, 42, 43, 56, 57, 59]
     }
 
     class func getCCTGMLightTypes() -> [UInt8] {
-        return [22, 26, 42]
+        return [22, 25, 26, 42]
     }
 
     class func getMusicSupportLightTypes() -> [UInt8] {
@@ -66,7 +66,7 @@ class NeewerLightConstant {
     }
 
     class func getRGBLightTypesThatSupport17FX() -> [UInt8] {
-        return [8, 16, 20, 22, 34, 40, 42]
+        return [8, 16, 20, 22, 25, 34, 40, 42]
     }
 
     class func getRGBLightTypesThatSupport9FX() -> [UInt8] {

@@ -350,14 +350,19 @@ class NeewerLight: NSObject, ObservableNeewerLightProtocol {
         }
     }
 
-    func sendPowerOnRequest() {
+    func sendPowerOnRequest(_ altCommand: Bool = false) {
         Logger.debug("send powerOn")
         isOn.value = true
         guard let characteristic = deviceCtlCharacteristic else {
             return
         }
+        var useNew = NeewerLightConstant.getNewPowerLightTypes().contains(_lightType)
 
-        if NeewerLightConstant.getNewPowerLightTypes().contains(_lightType) {
+        if altCommand {
+            useNew = !useNew
+        }
+
+        if useNew {
             Logger.debug("send new powerOn command")
             write(data: getNewPowerCommand(true) as Data, to: characteristic)
             return
@@ -367,14 +372,19 @@ class NeewerLight: NSObject, ObservableNeewerLightProtocol {
         self.write(data: NeewerLightConstant.BleCommand.powerOn as Data, to: characteristic)
     }
 
-    func sendPowerOffRequest() {
+    func sendPowerOffRequest(_ altCommand: Bool = false) {
         Logger.debug("send powerOff")
         isOn.value = false
         guard let characteristic = deviceCtlCharacteristic else {
             return
         }
+        var useNew = NeewerLightConstant.getNewPowerLightTypes().contains(_lightType)
 
-        if NeewerLightConstant.getNewPowerLightTypes().contains(_lightType) {
+        if altCommand {
+            useNew = !useNew
+        }
+
+        if useNew {
             Logger.debug("send new powerOff command")
             write(data: getNewPowerCommand(false) as Data, to: characteristic)
             return

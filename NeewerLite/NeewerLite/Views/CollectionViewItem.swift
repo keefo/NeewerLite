@@ -237,6 +237,18 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
 
     @IBAction func toggleAction(_ sender: Any) {
         if let dev = device {
+            if let event = NSApplication.shared.currentEvent {
+                let isAltKeyPressed = event.modifierFlags.contains(.option)
+                if isAltKeyPressed {
+                    // for debug purpose
+                    if dev.isOn.value {
+                        dev.sendPowerOffRequest(true)
+                    } else {
+                        dev.sendPowerOnRequest(true)
+                    }
+                    return
+                }
+            }
             if dev.isOn.value {
                 dev.sendPowerOffRequest()
             } else {
