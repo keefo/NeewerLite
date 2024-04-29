@@ -237,6 +237,18 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
 
     @IBAction func toggleAction(_ sender: Any) {
         if let dev = device {
+            if let event = NSApplication.shared.currentEvent {
+                let isAltKeyPressed = event.modifierFlags.contains(.option)
+                if isAltKeyPressed {
+                    // for debug purpose
+                    if dev.isOn.value {
+                        dev.sendPowerOffRequest(true)
+                    } else {
+                        dev.sendPowerOnRequest(true)
+                    }
+                    return
+                }
+            }
             if dev.isOn.value {
                 dev.sendPowerOffRequest()
             } else {
@@ -386,6 +398,7 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
             guard let safeSelf = self else { return }
             if let safeDev = safeSelf.device {
                 if safeDev.supportRGB {
+                    safeDev.lightMode = .HSIMode
                     safeDev.setRGBLightValues(brr: CGFloat(safeDev.brrValue.value) / 100.0, hue: hue, hue360: hue * 360.0, sat: sat)
                 }
             }
@@ -446,6 +459,9 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
         brrSlide.callback = { [weak self] val in
             guard let safeSelf = self else { return }
             if let safeDev = safeSelf.device {
+                if safeDev.supportRGB {
+                    safeDev.lightMode = .HSIMode
+                }
                 safeDev.setBRRLightValues(CGFloat(val))
             }
         }
@@ -483,7 +499,7 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
 
         let valueItem = dev.supportGMRange.value ? 3 : 2
         var topY = 100.0
-        let valueItemWidth = 80.0
+        let valueItemWidth = 98.0
         // Define the gap between subviews
         let gap: CGFloat = 10
 
@@ -641,6 +657,9 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
         // Populate the menu with menu items
         for scene in fxs {
             let menuItem = NSMenuItem(title: "\(scene.id) - \(scene.name)", action: nil, keyEquivalent: "")
+            if !scene.iconName.isEmpty {
+                menuItem.image = NSImage(systemSymbolName: scene.iconName, accessibilityDescription: "")
+            }
             menuItem.tag = Int(scene.id)
             menuItem.target = self // Set the target to your desired target
             menu.addItem(menuItem)

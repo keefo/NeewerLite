@@ -20,6 +20,7 @@ struct ColorItem: Codable {
 class NeewerLightFX: NSObject, Codable {
     var id: UInt16
     var name: String
+    var iconName: String
 
     var needBRR: Bool = false
     var needBRRUpperBound: Bool = false
@@ -41,6 +42,7 @@ class NeewerLightFX: NSObject, Codable {
     init(id: UInt16, name: String) {
         self.id = id
         self.name = name
+        self.iconName = ""
         super.init()
     }
 
@@ -48,6 +50,7 @@ class NeewerLightFX: NSObject, Codable {
         self.id = id
         self.name = name
         self.needBRR = brr
+        self.iconName = ""
         super.init()
     }
 
@@ -113,6 +116,7 @@ extension NeewerLightFX {
     // Class method to create a "Lighting" scene
     class func lightingScene() -> NeewerLightFX {
         let scene = NeewerLightFX(id: 0x01, name: "Lighting")
+        scene.iconName = "bolt.fill"
         scene.needBRR = true
         scene.needCCT = true
         scene.needSpeed = true
@@ -123,6 +127,7 @@ extension NeewerLightFX {
     // Class method to create a "Paparazzi" scene
     class func paparazziScene() -> NeewerLightFX {
         let scene = NeewerLightFX(id: 0x02, name: "Paparazzi")
+        scene.iconName = "camera.shutter.button"
         scene.needBRR = true
         scene.needCCT = true
         scene.needGM = true
@@ -134,6 +139,7 @@ extension NeewerLightFX {
     // Class method to create a "Defective bulb" scene
     class func defectiveBulbScene() -> NeewerLightFX {
         let scene = NeewerLightFX(id: 0x03, name: "Defective bulb")
+        scene.iconName = "lightbulb.min.badge.exclamationmark.fill"
         scene.needBRR = true
         scene.needCCT = true
         scene.needGM = true
@@ -145,6 +151,7 @@ extension NeewerLightFX {
     // Class method to create an "Explosion" scene
     class func explosionScene() -> NeewerLightFX {
         let scene = NeewerLightFX(id: 0x04, name: "Explosion")
+        scene.iconName = "timelapse"
         scene.needBRR = true
         scene.needCCT = true
         scene.needGM = true
@@ -276,6 +283,7 @@ extension NeewerLightFX {
     // Class method to create a "TV Screen" scene
     class func tvScreenScene() -> NeewerLightFX {
         let scene = NeewerLightFX(id: 0x0F, name: "TV Screen")
+        scene.iconName = "tv"
         scene.needBRR = true
         scene.needCCT = true
         scene.needGM = true
@@ -287,6 +295,7 @@ extension NeewerLightFX {
     // Class method to create a "Firework" scene
     class func fireworkScene() -> NeewerLightFX {
         let scene = NeewerLightFX(id: 0x10, name: "Firework")
+        scene.iconName = "fireworks"
         scene.needBRR = true
         scene.needSpeed = true
         scene.speedLevel = 10
@@ -302,6 +311,7 @@ extension NeewerLightFX {
     // Class method to create a "Party" scene
     class func partyScene() -> NeewerLightFX {
         let scene = NeewerLightFX(id: 0x11, name: "Party")
+        scene.iconName = "party.popper.fill"
         scene.needBRR = true
         scene.needSpeed = true
         scene.speedLevel = 10

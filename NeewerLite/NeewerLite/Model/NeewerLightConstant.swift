@@ -24,6 +24,8 @@ class NeewerLightConstant {
 
         static let setRGBLightTag = 0x86  // 134 Set RGB Light Mode.
         static let setCCTLightTag = 0x87  // 135 Set CCT Light Mode.
+        static let setNewRGBLightTag = 0x8f  // Set New RGB Light Mode.
+        static let setNewRGBLightSubTag = 0x86 
 
         static let setSceneTag = 0x88     // 136 Set Scene Light Mode.
         static let setSCESubTag =  0x8B   //
@@ -32,13 +34,31 @@ class NeewerLightConstant {
         static let setCCTDataTag = 0x90  // 144 Set Continuity RGB Light Mode.
         static let setSCEDataTag = 0x91  //
 
-        static let powerOn = Data([0x78, 0x81, 0x01, 0x01, 0xFB])
-        static let powerOff = Data([0x78, 0x81, 0x01, 0x02, 0xFC])
-        static let readRequest = Data([0x78, 0x84, 0x00, 0xFC])
+        static let powerOn = Data([UInt8(prefixTag), 0x81, 0x01, 0x01, 0xFB])
+        static let powerOff = Data([UInt8(prefixTag), 0x81, 0x01, 0x02, 0xFC])
+
+        static let powerNewTag = 0x8D
+        static let powerNewSubTag = 0x81
+        static let powerNewOnSubTag = [0x1]
+        static let powerNewOffSubTag = [0x2]
+
+        static let readRequest = Data([UInt8(prefixTag), 0x84, 0x00, 0xFC])
+    }
+
+    class func getNewPowerLightTypes() -> [UInt8] {
+        return [42]
+    }
+
+    class func getNewRGBLightTypes() -> [UInt8] {
+        return [42]
     }
 
     class func getRGBLightTypes() -> [UInt8] {
-        return [3, 5, 8, 9, 11, 12, 15, 16, 18, 19, 20, 21, 22, 26, 29, 32, 34, 39, 40, 42, 43, 56, 57, 59]
+        return [3, 5, 8, 9, 11, 12, 15, 16, 18, 19, 20, 21, 22, 25, 26, 29, 32, 34, 39, 40, 42, 43, 56, 57, 59]
+    }
+
+    class func getCCTGMLightTypes() -> [UInt8] {
+        return [22, 25, 26, 42]
     }
 
     class func getMusicSupportLightTypes() -> [UInt8] {
@@ -46,7 +66,7 @@ class NeewerLightConstant {
     }
 
     class func getRGBLightTypesThatSupport17FX() -> [UInt8] {
-        return [8, 16, 20, 22, 34, 40]
+        return [8, 16, 20, 22, 25, 34, 40, 42]
     }
 
     class func getRGBLightTypesThatSupport9FX() -> [UInt8] {
@@ -65,6 +85,29 @@ class NeewerLightConstant {
             return true
         }
         return false
+    }
+
+    class func CCTRange(ligthType: UInt8, projectName: String) -> (minCCT: Int, maxCCT: Int) {
+        // Default CCT range from 3200k–5600k
+        if ligthType == 6 {
+            if projectName.contains("SL140") {
+                // https://neewer.com/products/neewer-sl-140-rgb-led-light-full-color-rechargeable-pocket-size-10097200?_pos=2&_sid=3ff26da17&_ss=r
+                return (minCCT: 25, maxCCT: 90)
+            } else {
+                // some lights support extended CCT range from 3200K–8500K such as
+                // https://neewer.com/products/neewer-sl80-10w-rgb-led-video-light-10097903?_pos=1&_sid=dfa97e049&_ss=r&variant=37586440683713
+                return (minCCT: 25, maxCCT: 85)
+            }
+        }
+        if ligthType == 22 {
+            return (minCCT: 27, maxCCT: 65)
+        }
+        if ligthType == 42 {
+            // some lights support extended CCT range from 2500K–10000K such as
+            // https://ca.neewer.com/products/neewer-bh30s-rgb-led-tube-light-wand-66602411
+            return (minCCT: 25, maxCCT: 100)
+        }
+        return (minCCT: 32, maxCCT: 56)
     }
 
     class func getProjectName(_ idx: Int) -> String {
@@ -121,6 +164,34 @@ class NeewerLightConstant {
                 return "PL60C"
             case 63:
                 return "RP19C"
+            case 64:
+                return "TL97C"
+            case 65:
+                return "VL67C"
+            case 66:
+                return "HS60B"
+            case 67:
+                return "TL40"
+            case 68:
+                return "Q200"
+            case 69:
+                return "TL21C"
+            case 73:
+                return "MS150C"
+            case 74:
+                return "CB200C"
+            case 75:
+                return "FS150C"
+            case 78:
+                return "MS60"
+            case 79:
+                return "MS150"
+            case 82:
+                return "CB300C"
+            case 84:
+                return "CB120B"
+            case 83:
+                return "AP150C-2"
             default:
                 return ""
         }
@@ -284,7 +355,7 @@ class NeewerLightConstant {
     }
 
     // classes4/sources/neewer/clj/fastble/data/BleDevice.java
-    class func getLightType(nickName: String, str: String, projectName: String) -> UInt8 {
+    class func getLightType(nickName: String, rawname: String, projectName: String) -> UInt8 {
         // decoded from Android app,
         // what does these light types means?
         // Not sure.
@@ -392,6 +463,10 @@ class NeewerLightConstant {
                 lightType = 46
                 return lightType
             }
+            if nickName.contains("CB300") && (rawname.contains("20230111") || rawname == "NW-CB300") {
+                lightType = 81
+                return lightType
+            }
             if nickName.contains("CB300B") {
                 lightType = 47
                 return lightType
@@ -444,6 +519,69 @@ class NeewerLightConstant {
                 lightType = 63
                 return lightType
             }
+            if nickName.contains("VL67C") {
+                lightType = 65
+                return lightType
+            }
+            if nickName.contains("TL97C") {
+                lightType = 64
+                return lightType
+            }
+            if nickName.contains("HS60B") {
+                lightType = 66
+                return lightType
+            }
+            if nickName.contains("TL40") {
+                lightType = 67
+                return lightType
+            }
+            if nickName.contains("Q200") {
+                lightType = 68
+                return lightType
+            }
+            if nickName.contains("TL21C") {
+                lightType = 69
+                return lightType
+            }
+            if nickName.contains("MS150C") {
+                lightType = 73
+                return lightType
+            }
+            if nickName.contains("CB200C") {
+                lightType = 74
+                return lightType
+            } 
+            if nickName.contains("FS150C") {
+                lightType = 75
+                return lightType
+            } 
+            if nickName.contains("MS60") {
+                lightType = 78;
+                return lightType
+            } 
+            if nickName.contains("MS150") {
+                lightType = 79
+                return lightType
+            }
+            if nickName.contains("CB300C") {
+                lightType = 82
+                return lightType
+            } 
+            if nickName.contains("CB120B") {
+                lightType = 84
+                return lightType
+            } 
+            if nickName.contains("AP150C-2") {
+                lightType = 83
+                return lightType
+            }
+            if !nickName.contains("T100C-2") {
+                if nickName.contains("TL40-2") {
+                    lightType = 86
+                }
+                lightType = 0
+            }
+
             lightType = 0
             return lightType
         }
@@ -482,9 +620,9 @@ class NeewerLightConstant {
                         lightType = 29
                     }
                     if nickName.contains("BH-30S RGB") {
-                        lightType = str.contains("20230021") ? 42 : 26
+                        lightType = rawname.contains("20230021") ? 42 : 26
                     } else if nickName.contains("TL60 RGB") {
-                        lightType = str.contains("20230064") ? 59 : 32
+                        lightType = rawname.contains("20230064") ? 59 : 32
                     } else if nickName.contains("RGB62") {
                         lightType = 40
                     } else {
