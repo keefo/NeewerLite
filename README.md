@@ -35,6 +35,13 @@ Here is a video I made to demo the scene:
 - Script support
 - Sync RGB lights with music
 
+# How to install pre-build app
+
+1. Download the latest dmg file from release page, double click the dmg to open it.
+2. Then drag .app file in dmg to your application folder.
+3. Go to application folder to double the app you just dropped from dmg.
+4. once the app is running, it should has a icon in the status bar on the right top of you screen.
+
 ## Script Usage
 
 Open the app and let it scans all Neewer lights through Bluetooth. Once it finds lights. Then you could use command to switch On/Off lights.
