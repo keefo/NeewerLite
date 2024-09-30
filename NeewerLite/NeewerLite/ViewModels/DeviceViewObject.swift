@@ -7,6 +7,7 @@
 
 import Cocoa
 
+@available(macOS 13.0, *)
 class DeviceViewObject: NSObject {
     private var syncLifetime: Timer?
 
