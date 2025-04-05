@@ -102,6 +102,12 @@ class NeewerLightConstant {
         if ligthType == 22 {
             return (minCCT: 27, maxCCT: 65)
         }
+        if ligthType == 33 || ligthType == 39 {
+            // some lights support extended CCT range from 2900K–7000K such as
+            // https://neewer.com/products/neewer-gl1-pro-15-5-key-light-streaming-light-66602110
+            // https://neewer.com/products/neewer-gl1c-rgb-led-streaming-light-66603325
+            return (minCCT: 29, maxCCT: 70)
+        }
         if ligthType == 42 {
             // some lights support extended CCT range from 2500K–10000K such as
             // https://ca.neewer.com/products/neewer-bh30s-rgb-led-tube-light-wand-66602411
