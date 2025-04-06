@@ -16,6 +16,7 @@ typealias VolumeUpdateCallback = (Float) -> Void
 typealias AmplitudeUpdateCallback = (Float) -> Void
 typealias AudioSpectrogramImageUpdateCallback = (CGImage) -> Void
 
+@available(macOS 13.0, *)
 public class AudioSpectrogram: NSObject {
 
     // Replace the delegate with a callback
@@ -306,6 +307,7 @@ public class AudioSpectrogram: NSObject {
     }
 }
 
+@available(macOS 13.0, *)
 extension AudioSpectrogram: AVCaptureAudioDataOutputSampleBufferDelegate {
 
     public func captureOutput(_ output: AVCaptureOutput,
@@ -515,6 +517,7 @@ extension AudioSpectrogram: AVCaptureAudioDataOutputSampleBufferDelegate {
     }
 }
 
+@available(macOS 13.0, *)
 extension AudioSpectrogram {
 
     // Populates the specified `filterBank` with a matrix of overlapping triangular windows.
