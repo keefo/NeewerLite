@@ -9,11 +9,11 @@ import Foundation
 import Cocoa
 
 class ImageFetchOperation: Operation {
-    var light: NeewerLight
+    var lightType: UInt8
     var completionHandler: ((NSImage?) -> Void)?
 
-    init(light: NeewerLight, completionHandler: ((NSImage?) -> Void)?) {
-        self.light = light
+    init(lightType: UInt8, completionHandler: ((NSImage?) -> Void)?) {
+        self.lightType = lightType
         self.completionHandler = completionHandler
     }
 
@@ -22,7 +22,7 @@ class ImageFetchOperation: Operation {
             return
         }
         Task {
-            let image = try? await ContentManager.shared.fetchLightImage(light: light)
+            let image = try? await ContentManager.shared.fetchLightImage(lightType: self.lightType)
             if !isCancelled {
                 DispatchQueue.main.async {
                     self.completionHandler?(image)
@@ -34,7 +34,17 @@ class ImageFetchOperation: Operation {
 
 struct LightItem: Decodable {
     let type: UInt8
+    let link: String?
     let image: String
+    let supportRGB: Bool
+    let supportCCTGM: Bool
+    let supportMusic: Bool
+    let support17FX: Bool
+    let support9FX: Bool
+    let minCCT: Int?
+    let maxCCT: Int?
+    let newPowerLightCommand: Bool?
+    let newRGBLightCommand: Bool?
 }
 
 struct Database: Decodable {
@@ -42,7 +52,6 @@ struct Database: Decodable {
     let lights: [LightItem]
 }
 
-var missingCached: Set<UInt8> = []
 
 class ContentManager {
     static let shared = ContentManager()
@@ -167,16 +176,22 @@ class ContentManager {
         return nil
     }
 
-    func fetchLightImage(light: NeewerLight) async throws -> NSImage? {
-        try await downloadDatabaseIfNeeded()
-        guard let imageUrl = fetchImageUrl(for: light.lightType) else {
-            if !missingCached.contains(light.lightType) {
-                missingCached.insert(light.lightType)
-                Logger.warn("✅ New Light Found! \(light.getConfig(true))")
+    func fetchLightProperty(lightType: UInt8) -> LightItem? {
+        if let safeCache = databaseCache {
+            let lights = safeCache.lights
+            if let found = lights.first(where: { $0.type == lightType }) {
+                return found
             }
-            throw NSError(domain: "NoImageURLFound", code: Int(light.lightType), userInfo: nil)
         }
-        return try await fetchImage(from: imageUrl, lightType: light.lightType)
+        return nil
+    }
+    
+    func fetchLightImage(lightType: UInt8) async throws -> NSImage? {
+        try await downloadDatabaseIfNeeded()
+        guard let imageUrl = fetchImageUrl(for: lightType) else {
+            throw NSError(domain: "NoImageURLFound", code: Int(lightType), userInfo: nil)
+        }
+        return try await fetchImage(from: imageUrl, lightType: lightType)
     }
 
     private func fetchImageUrl(for lightType: UInt8) -> String? {

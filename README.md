@@ -165,6 +165,16 @@ If you are unable to find your Neewer light using NeewerLite, you can easily add
 
 By following these steps, you can quickly add support for your Neewer light and start controlling it using NeewerLite.
 
+# It does not recognize my RGB light as RGB light, what to do?
+
+If you are have a Neewer RGB light but, the app does not show it as RGB light, then you could follow these steps:
+
+1. Use a Bluetooth app to find the name of your light.
+2. Use the name to add a test in **NeewerLite/NeewerLiteTests/NeewerLiteTests.swift**.
+3. Run test to see what is the light type based on name.
+4. If you got light type is 62 in step 3, then goto **NeewerLite/NeewerLite/Model/NeewerLightConstant.swift** and add this number into getRGBLightTypes function.
+5. Compile and run to test.
+
 # License
 
 Follow NeewerLite, the code and examples of this project is released under MIT License.
