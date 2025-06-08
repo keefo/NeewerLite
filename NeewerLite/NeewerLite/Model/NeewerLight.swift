@@ -120,10 +120,21 @@ class NeewerLight: NSObject, ObservableNeewerLightProtocol {
     // read only properties
     var supportRGB: Bool {
         // some lights are only Bi-Color which does not support RGB.
-        return NeewerLightConstant.getRGBLightTypes().contains(_lightType)
+        if let item = ContentManager.shared.fetchLightProperty(lightType: _lightType)
+        {
+            return item.supportRGB
+        }
+        return false
     }
 
     func CCTRange() -> (minCCT: Int, maxCCT: Int) {
+        if let item = ContentManager.shared.fetchLightProperty(lightType: _lightType)
+        {
+            if (item.minCCT != nil) && (item.maxCCT != nil)
+            {
+                return (item.minCCT!, item.maxCCT!)
+            }
+        }
         return NeewerLightConstant.CCTRange(ligthType: _lightType, projectName: projectName)
     }
 
@@ -273,8 +284,14 @@ class NeewerLight: NSObject, ObservableNeewerLightProtocol {
         }
 
         if let safeMac = _macAddress {
-            if (safeMac.lengthOfBytes(using: .utf8)) > 8 && NeewerLightConstant.getCCTGMLightTypes().contains(self.ligthType) {
-                supportGMRange.value = true
+            if (safeMac.lengthOfBytes(using: .utf8)) > 8 {
+                if let item = ContentManager.shared.fetchLightProperty(lightType: self.ligthType)
+                {
+                    if item.supportCCTGM
+                    {
+                        supportGMRange.value = true
+                    }
+                }
             }
         }
 
@@ -356,8 +373,16 @@ class NeewerLight: NSObject, ObservableNeewerLightProtocol {
         guard let characteristic = deviceCtlCharacteristic else {
             return
         }
-        var useNew = NeewerLightConstant.getNewPowerLightTypes().contains(_lightType)
-
+        
+        var useNew = false
+        if let item = ContentManager.shared.fetchLightProperty(lightType: _lightType)
+        {
+            if item.newPowerLightCommand != nil
+            {
+                useNew = item.newPowerLightCommand ?? false
+            }
+        }
+        
         if altCommand {
             useNew = !useNew
         }
@@ -378,8 +403,16 @@ class NeewerLight: NSObject, ObservableNeewerLightProtocol {
         guard let characteristic = deviceCtlCharacteristic else {
             return
         }
-        var useNew = NeewerLightConstant.getNewPowerLightTypes().contains(_lightType)
-
+        
+        var useNew = false
+        if let item = ContentManager.shared.fetchLightProperty(lightType: _lightType)
+        {
+            if item.newPowerLightCommand != nil
+            {
+                useNew = item.newPowerLightCommand ?? false
+            }
+        }
+        
         if altCommand {
             useNew = !useNew
         }
@@ -447,7 +480,16 @@ class NeewerLight: NSObject, ObservableNeewerLightProtocol {
         var cmd: Data = Data()
         // Logger.debug("hue: \(hue) sat: \(sat)")
 
-        if NeewerLightConstant.getNewRGBLightTypes().contains(_lightType) {
+        var useNew = false
+        if let item = ContentManager.shared.fetchLightProperty(lightType: _lightType)
+        {
+            if item.newRGBLightCommand != nil
+            {
+                useNew = item.newRGBLightCommand ?? false
+            }
+        }
+        
+        if useNew {
             cmd = getNewRGBLightCommand(mac: _macAddress ?? "", brightness: brr, hue: hue, hue360: hue360, satruation: sat)
         } else {
             cmd = getRGBLightCommand(brightness: brr, hue: hue, hue360: hue360, satruation: sat)
@@ -477,12 +519,22 @@ class NeewerLight: NSObject, ObservableNeewerLightProtocol {
     public func sendSceneCommand(_ fxx: NeewerLightFX) {
         var cmd: Data = Data()
 
-        if NeewerLightConstant.getRGBLightTypesThatSupport17FX().contains(_lightType) {
-            cmd = getSceneCommand(_macAddress ?? "", fxx)
-            channel.value = UInt8(fxx.id)
-        } else {
+        if let item = ContentManager.shared.fetchLightProperty(lightType: _lightType)
+        {
+            if item.support17FX {
+                cmd = getSceneCommand(_macAddress ?? "", fxx)
+                channel.value = UInt8(fxx.id)
+            }
+            else
+            {
+                cmd = getSceneValue(UInt8(fxx.id), brightness: CGFloat(fxx.brrValue))
+            }
+        }
+        else
+        {
             cmd = getSceneValue(UInt8(fxx.id), brightness: CGFloat(fxx.brrValue))
         }
+        
         lightMode = .SCEMode
 
         guard let characteristic = deviceCtlCharacteristic else {
@@ -698,8 +750,18 @@ class NeewerLight: NSObject, ObservableNeewerLightProtocol {
                 cmd = getCCTOnlyLightCommand(brightness: brr, correlatedColorTemperature: CGFloat(cctValue.value))
             }
         } else if lightMode == .HSIMode {
-            if NeewerLightConstant.getNewRGBLightTypes().contains(_lightType) {
-                cmd = getNewRGBLightCommand(mac: _macAddress ?? "", 
+            
+            var useNew = false
+            if let item = ContentManager.shared.fetchLightProperty(lightType: _lightType)
+            {
+                if item.newRGBLightCommand != nil
+                {
+                    useNew = item.newRGBLightCommand ?? false
+                }
+            }
+            
+            if useNew {
+                cmd = getNewRGBLightCommand(mac: _macAddress ?? "",
                                             brightness: brr,
                                             hue: CGFloat(hueValue.value) / 360.0,
                                             hue360: CGFloat(hueValue.value),

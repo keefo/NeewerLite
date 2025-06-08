@@ -1253,7 +1253,7 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
             updateDeviceName()
             self.nameField.toolTip = "\(dev.rawName)\n\(viewObj.deviceIdentifier)"
             imageFetchOperation?.cancel() // Cancel any ongoing operation
-            let operation = ImageFetchOperation(light: dev) { [weak self] image in
+            let operation = ImageFetchOperation(lightType: dev.lightType) { [weak self] image in
                 self?.image = image
             }
             ContentManager.shared.operationQueue.addOperation(operation)
