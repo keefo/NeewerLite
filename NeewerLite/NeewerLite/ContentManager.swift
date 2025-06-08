@@ -34,7 +34,17 @@ class ImageFetchOperation: Operation {
 
 struct LightItem: Decodable {
     let type: UInt8
+    let link: String?
     let image: String
+    let supportRGB: Bool
+    let supportCCTGM: Bool
+    let supportMusic: Bool
+    let support17FX: Bool
+    let support9FX: Bool
+    let minCCT: Int?
+    let maxCCT: Int?
+    let newPowerLightCommand: Bool?
+    let newRGBLightCommand: Bool?
 }
 
 struct Database: Decodable {
@@ -166,6 +176,16 @@ class ContentManager {
         return nil
     }
 
+    func fetchLightProperty(lightType: UInt8) -> LightItem? {
+        if let safeCache = databaseCache {
+            let lights = safeCache.lights
+            if let found = lights.first(where: { $0.type == lightType }) {
+                return found
+            }
+        }
+        return nil
+    }
+    
     func fetchLightImage(lightType: UInt8) async throws -> NSImage? {
         try await downloadDatabaseIfNeeded()
         guard let imageUrl = fetchImageUrl(for: lightType) else {
