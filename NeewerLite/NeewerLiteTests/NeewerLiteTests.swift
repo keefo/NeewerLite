@@ -20,11 +20,17 @@ class NeewerLiteTests: XCTestCase {
 
     func test_LightName() throws {
         // This is an example of a functional test case.
+        
         var name = NeewerLightConstant.getLightNames(rawName: "NEEWER-RGB660 PRO", identifier: "DEE0BA8C-D9B4-B7DB-0FD2-2531C7E4B053")
         XCTAssertEqual(name.nickName, "RGB660 PRO-E4B053")
         XCTAssertEqual(name.projectName, "RGB660 PRO")
         XCTAssertEqual(NeewerLightConstant.getLightType(nickName: name.nickName, rawname: "", projectName: name.projectName), 3, "")
-
+        
+        name = NeewerLightConstant.getLightNames(rawName: "GR18C-953999", identifier: "DEE0BA8C-D9B4-B7DB-0FD2-2531C7E4B053")
+        XCTAssertEqual(name.nickName, "GR18C-953999-E4B053")
+        XCTAssertEqual(name.projectName, "GR18C-953999")
+        XCTAssertEqual(NeewerLightConstant.getLightType(nickName: name.nickName, rawname: "", projectName: name.projectName), 62, "")
+        
         name = NeewerLightConstant.getLightNames(rawName: "NEEWER-GL1", identifier: "DEE0BA8C-D9B4-B7DB-0FD2-2531C7E4B053")
         XCTAssertEqual(name.nickName, "GL1-E4B053")
         XCTAssertEqual(name.projectName, "GL1")

@@ -54,7 +54,7 @@ class NeewerLightConstant {
     }
 
     class func getRGBLightTypes() -> [UInt8] {
-        return [3, 5, 8, 9, 11, 12, 15, 16, 18, 19, 20, 21, 22, 25, 26, 29, 32, 34, 39, 40, 42, 43, 56, 57, 59]
+        return [3, 5, 8, 9, 11, 12, 15, 16, 18, 19, 20, 21, 22, 25, 26, 29, 32, 34, 39, 40, 42, 43, 56, 57, 59, 62]
     }
 
     class func getCCTGMLightTypes() -> [UInt8] {
@@ -66,7 +66,7 @@ class NeewerLightConstant {
     }
 
     class func getRGBLightTypesThatSupport17FX() -> [UInt8] {
-        return [8, 16, 20, 22, 25, 34, 40, 42]
+        return [8, 16, 20, 22, 25, 34, 40, 42, 62]
     }
 
     class func getRGBLightTypesThatSupport9FX() -> [UInt8] {
@@ -651,132 +651,142 @@ class NeewerLightConstant {
     class func getFakeLightConfigs() -> [[String: CodableValue]] {
         var lights: [[String: CodableValue]] = []
         if true {
-            // CB60 RGB
-            // https://ca.neewer.com/products/neewer-led-video-light-66601007?_pos=1&_sid=8fa195c56&_ss=r
+            // NEEWER 18" RGB LED Round Panel Video Light
+            // https://www.amazon.ca/NEEWER-2500K-8500K-Photography-Recording-GR18C/dp/B0D2GWGR9Y?th=1
             var cfg: [String: CodableValue] = [:]
             cfg["fake"] = CodableValue.boolValue(true)
-            cfg["mac"] = CodableValue.stringValue("DF:24:3A:B4:46:5D")
-            cfg["rawname"] = CodableValue.stringValue("NW-20210012&FFFFFFFF")
-            cfg["identifier"] = CodableValue.stringValue("DEE0BA8C-D9B4-B7DB-0FD2-2531C7E4B053")
+            cfg["mac"] = CodableValue.stringValue("DF:34:3A:B4:46:5D")
+            cfg["rawname"] = CodableValue.stringValue("GR18C-953999")
+            cfg["identifier"] = CodableValue.stringValue("DEE0BA8C-D9B4-B7DB-0FD2-4531C7E5A053")
             lights.append(cfg)
         }
-        if true {
-            // RGB660 PRO
-            // https://ca.neewer.com/products/neewer-2-packs-of-50w-rgb-660-pro-led-video-light-kit-66600132?_pos=2&_psq=RGB660+PRO&_ss=e&_v=1.0
-            var cfg: [String: CodableValue] = [:]
-            cfg["fake"] = CodableValue.boolValue(true)
-            cfg["mac"] = CodableValue.stringValue("ED:86:66:4A:18:74")
-            cfg["rawname"] = CodableValue.stringValue("NEEWER-RGB660 PRO")
-            cfg["identifier"] = CodableValue.stringValue("EC2907F4-B7DC-ED69-6385-19682E5FE87F")
-            lights.append(cfg)
-        }
-        if true {
-            // RGB1 RGB Stick Light
-            // https://ca.neewer.com/products/neewer-cri98-rgb1-handheld-led-video-light-66601508?variant=46055559790882
-            var cfg: [String: CodableValue] = [:]
-            cfg["fake"] = CodableValue.boolValue(true)
-            cfg["mac"] = CodableValue.stringValue("F3:74:C6:C5:7C:EF")
-            cfg["rawname"] = CodableValue.stringValue("NW-20200015&00000000")
-            cfg["identifier"] = CodableValue.stringValue("85D152B3-AC94-3CBB-A475-9A3D2224E88F")
-            lights.append(cfg)
-        }
-        if true {
-            // Neewer RGB176 A1 Light
-            // https://ca.neewer.com/products/neewer-rgb176-a1-led-video-light-66602544?_pos=1&_psq=RGB176+A1&_ss=e&_v=1.0
-            var cfg: [String: CodableValue] = [:]
-            cfg["fake"] = CodableValue.boolValue(true)
-            cfg["mac"] = CodableValue.stringValue("F3:74:C6:C5:7E:CF")
-            cfg["rawname"] = CodableValue.stringValue("NW-RGB176 A1")
-            cfg["identifier"] = CodableValue.stringValue("DEE0BA8C-D9B4-B7DB-0FD2-2531C7E4B053")
-            lights.append(cfg)
-        }
-
-        if true {
-            // Neewer SNL530 LED Light
-            // https://neewer.com/products/neewer-2-pack-snl530-led-video-lighting-kit-66603091?_pos=1&_psq=NEEWER-SNL530&_ss=e&_v=1.0
-            var cfg: [String: CodableValue] = [:]
-            cfg["fake"] = CodableValue.boolValue(true)
-            cfg["mac"] = CodableValue.stringValue("FA:74:C6:C5:7E:AB")
-            cfg["rawname"] = CodableValue.stringValue("NEEWER-SNL530")
-            cfg["identifier"] = CodableValue.stringValue("DEE0BA8C-D9B4-B7DB-0FD2-2531DEE0BA8C")
-            lights.append(cfg)
-        }
-
-        if true {
-            // Neewer RBG168 LED Light
-            // https://neewer.com/products/neewer-2-pack-snl530-led-video-lighting-kit-66603091?_pos=1&_psq=NEEWER-SNL530&_ss=e&_v=1.0
-            var cfg: [String: CodableValue] = [:]
-            cfg["fake"] = CodableValue.boolValue(true)
-            cfg["mac"] = CodableValue.stringValue("FA:74:C6:C5:CC:AB")
-            cfg["rawname"] = CodableValue.stringValue("NEEWER-RGB168")
-            cfg["identifier"] = CodableValue.stringValue("DEE0BA8C-D9B4-B7DB-0FD2-2531DEE0BAFA")
-            lights.append(cfg)
-        }
-
-        if true {
-            // Neewer RBG530 Pro LED Light
-            // https://www.amazon.ca/3200K-5600K-Brightness-Adjustable-Applicable-Photography/dp/B082DZCJ7V
-            var cfg: [String: CodableValue] = [:]
-            cfg["fake"] = CodableValue.boolValue(true)
-            cfg["mac"] = CodableValue.stringValue("FA:74:C6:C5:AA:AB")
-            cfg["rawname"] = CodableValue.stringValue("NEEWER-RGB530 Pro")
-            cfg["identifier"] = CodableValue.stringValue("3B724835-BF4C-1702-3ADC-773EDC38EC8C")
-            lights.append(cfg)
-        }
-
-        if true {
-            // Neewer GL1 Key Light
-            // https://www.amazon.ca/NEEWER-Streaming-Control-Android-Compatible/dp/B0BR4XX1HB
-            var cfg: [String: CodableValue] = [:]
-            cfg["fake"] = CodableValue.boolValue(true)
-            cfg["mac"] = CodableValue.stringValue("FA:74:C6:C5:AA:CC")
-            cfg["rawname"] = CodableValue.stringValue("NEEWER-GL1")
-            cfg["identifier"] = CodableValue.stringValue("DEE0BA8C-D9B4-B7DB-0FD2-1A3DDEE0BAFA")
-            lights.append(cfg)
-        }
-
-        if true {
-            // Neewer GL1C RGB Light
-            // https://www.amazon.ca/NEEWER-Streaming-Lighting-Android-2900K-7000K/dp/B0CFF43DHC
-            var cfg: [String: CodableValue] = [:]
-            cfg["fake"] = CodableValue.boolValue(true)
-            cfg["mac"] = CodableValue.stringValue("FA:74:AA:BB:AA:DD")
-            cfg["rawname"] = CodableValue.stringValue("NEEWER-GL1C")
-            cfg["identifier"] = CodableValue.stringValue("DEE0BA8C-D9B4-B7DB-0FD2-7A8DDEE0BAFA")
-            lights.append(cfg)
-        }
-
-        if true {
-            // Neewer SL90 Pro Light
-            // https://ca.neewer.com/products/neewer-sl90-12w-on-camera-rgb-panel-video-light-66600927?_pos=1&_psq=sl90+pro&_ss=e&_v=1.0
-            var cfg: [String: CodableValue] = [:]
-            cfg["fake"] = CodableValue.boolValue(true)
-            cfg["mac"] = CodableValue.stringValue("FA:58:9A:CC:EE:DD")
-            cfg["rawname"] = CodableValue.stringValue("NW-20220057&00000000")
-            cfg["identifier"] = CodableValue.stringValue("DEE0BA8C-D9B4-B7DB-012C-7A8DDEE0BAFA")
-            lights.append(cfg)
-        }
-
-        if true {
-            // Neewer RGB62
-            // https://ca.neewer.com/products/neewer-rgb62-magnetic-rgb-video-light-66603000?_pos=1&_psq=RGB62&_ss=e&_v=1.0
-            var cfg: [String: CodableValue] = [:]
-            cfg["fake"] = CodableValue.boolValue(true)
-            cfg["mac"] = CodableValue.stringValue("12:38:9A:CC:EE:DD")
-            cfg["rawname"] = CodableValue.stringValue("NW-RGB62")
-            cfg["identifier"] = CodableValue.stringValue("FAE0BA8C-D9B4-B7DB-012C-7A8DDEE0BAFA")
-            lights.append(cfg)
-        }
-
-        if true {
-            // Fake new light
-            var cfg: [String: CodableValue] = [:]
-            cfg["fake"] = CodableValue.boolValue(true)
-            cfg["mac"] = CodableValue.stringValue("12:32:9A:AC:EE:DD")
-            cfg["rawname"] = CodableValue.stringValue("NEEWER-NL-116AI")
-            cfg["identifier"] = CodableValue.stringValue("FAE0BA8C-ABCD-B7DB-012C-7A8DDEE0BAFA")
-            lights.append(cfg)
-        }
+//        if true {
+//            // CB60 RGB
+//            // https://ca.neewer.com/products/neewer-led-video-light-66601007?_pos=1&_sid=8fa195c56&_ss=r
+//            var cfg: [String: CodableValue] = [:]
+//            cfg["fake"] = CodableValue.boolValue(true)
+//            cfg["mac"] = CodableValue.stringValue("DF:24:3A:B4:46:5D")
+//            cfg["rawname"] = CodableValue.stringValue("NW-20210012&FFFFFFFF")
+//            cfg["identifier"] = CodableValue.stringValue("DEE0BA8C-D9B4-B7DB-0FD2-2531C7E4B053")
+//            lights.append(cfg)
+//        }
+//        if true {
+//            // RGB660 PRO
+//            // https://ca.neewer.com/products/neewer-2-packs-of-50w-rgb-660-pro-led-video-light-kit-66600132?_pos=2&_psq=RGB660+PRO&_ss=e&_v=1.0
+//            var cfg: [String: CodableValue] = [:]
+//            cfg["fake"] = CodableValue.boolValue(true)
+//            cfg["mac"] = CodableValue.stringValue("ED:86:66:4A:18:74")
+//            cfg["rawname"] = CodableValue.stringValue("NEEWER-RGB660 PRO")
+//            cfg["identifier"] = CodableValue.stringValue("EC2907F4-B7DC-ED69-6385-19682E5FE87F")
+//            lights.append(cfg)
+//        }
+//        if true {
+//            // RGB1 RGB Stick Light
+//            // https://ca.neewer.com/products/neewer-cri98-rgb1-handheld-led-video-light-66601508?variant=46055559790882
+//            var cfg: [String: CodableValue] = [:]
+//            cfg["fake"] = CodableValue.boolValue(true)
+//            cfg["mac"] = CodableValue.stringValue("F3:74:C6:C5:7C:EF")
+//            cfg["rawname"] = CodableValue.stringValue("NW-20200015&00000000")
+//            cfg["identifier"] = CodableValue.stringValue("85D152B3-AC94-3CBB-A475-9A3D2224E88F")
+//            lights.append(cfg)
+//        }
+//        if true {
+//            // Neewer RGB176 A1 Light
+//            // https://ca.neewer.com/products/neewer-rgb176-a1-led-video-light-66602544?_pos=1&_psq=RGB176+A1&_ss=e&_v=1.0
+//            var cfg: [String: CodableValue] = [:]
+//            cfg["fake"] = CodableValue.boolValue(true)
+//            cfg["mac"] = CodableValue.stringValue("F3:74:C6:C5:7E:CF")
+//            cfg["rawname"] = CodableValue.stringValue("NW-RGB176 A1")
+//            cfg["identifier"] = CodableValue.stringValue("DEE0BA8C-D9B4-B7DB-0FD2-2531C7E4B053")
+//            lights.append(cfg)
+//        }
+//
+//        if true {
+//            // Neewer SNL530 LED Light
+//            // https://neewer.com/products/neewer-2-pack-snl530-led-video-lighting-kit-66603091?_pos=1&_psq=NEEWER-SNL530&_ss=e&_v=1.0
+//            var cfg: [String: CodableValue] = [:]
+//            cfg["fake"] = CodableValue.boolValue(true)
+//            cfg["mac"] = CodableValue.stringValue("FA:74:C6:C5:7E:AB")
+//            cfg["rawname"] = CodableValue.stringValue("NEEWER-SNL530")
+//            cfg["identifier"] = CodableValue.stringValue("DEE0BA8C-D9B4-B7DB-0FD2-2531DEE0BA8C")
+//            lights.append(cfg)
+//        }
+//
+//        if true {
+//            // Neewer RBG168 LED Light
+//            // https://neewer.com/products/neewer-2-pack-snl530-led-video-lighting-kit-66603091?_pos=1&_psq=NEEWER-SNL530&_ss=e&_v=1.0
+//            var cfg: [String: CodableValue] = [:]
+//            cfg["fake"] = CodableValue.boolValue(true)
+//            cfg["mac"] = CodableValue.stringValue("FA:74:C6:C5:CC:AB")
+//            cfg["rawname"] = CodableValue.stringValue("NEEWER-RGB168")
+//            cfg["identifier"] = CodableValue.stringValue("DEE0BA8C-D9B4-B7DB-0FD2-2531DEE0BAFA")
+//            lights.append(cfg)
+//        }
+//
+//        if true {
+//            // Neewer RBG530 Pro LED Light
+//            // https://www.amazon.ca/3200K-5600K-Brightness-Adjustable-Applicable-Photography/dp/B082DZCJ7V
+//            var cfg: [String: CodableValue] = [:]
+//            cfg["fake"] = CodableValue.boolValue(true)
+//            cfg["mac"] = CodableValue.stringValue("FA:74:C6:C5:AA:AB")
+//            cfg["rawname"] = CodableValue.stringValue("NEEWER-RGB530 Pro")
+//            cfg["identifier"] = CodableValue.stringValue("3B724835-BF4C-1702-3ADC-773EDC38EC8C")
+//            lights.append(cfg)
+//        }
+//
+//        if true {
+//            // Neewer GL1 Key Light
+//            // https://www.amazon.ca/NEEWER-Streaming-Control-Android-Compatible/dp/B0BR4XX1HB
+//            var cfg: [String: CodableValue] = [:]
+//            cfg["fake"] = CodableValue.boolValue(true)
+//            cfg["mac"] = CodableValue.stringValue("FA:74:C6:C5:AA:CC")
+//            cfg["rawname"] = CodableValue.stringValue("NEEWER-GL1")
+//            cfg["identifier"] = CodableValue.stringValue("DEE0BA8C-D9B4-B7DB-0FD2-1A3DDEE0BAFA")
+//            lights.append(cfg)
+//        }
+//
+//        if true {
+//            // Neewer GL1C RGB Light
+//            // https://www.amazon.ca/NEEWER-Streaming-Lighting-Android-2900K-7000K/dp/B0CFF43DHC
+//            var cfg: [String: CodableValue] = [:]
+//            cfg["fake"] = CodableValue.boolValue(true)
+//            cfg["mac"] = CodableValue.stringValue("FA:74:AA:BB:AA:DD")
+//            cfg["rawname"] = CodableValue.stringValue("NEEWER-GL1C")
+//            cfg["identifier"] = CodableValue.stringValue("DEE0BA8C-D9B4-B7DB-0FD2-7A8DDEE0BAFA")
+//            lights.append(cfg)
+//        }
+//
+//        if true {
+//            // Neewer SL90 Pro Light
+//            // https://ca.neewer.com/products/neewer-sl90-12w-on-camera-rgb-panel-video-light-66600927?_pos=1&_psq=sl90+pro&_ss=e&_v=1.0
+//            var cfg: [String: CodableValue] = [:]
+//            cfg["fake"] = CodableValue.boolValue(true)
+//            cfg["mac"] = CodableValue.stringValue("FA:58:9A:CC:EE:DD")
+//            cfg["rawname"] = CodableValue.stringValue("NW-20220057&00000000")
+//            cfg["identifier"] = CodableValue.stringValue("DEE0BA8C-D9B4-B7DB-012C-7A8DDEE0BAFA")
+//            lights.append(cfg)
+//        }
+//
+//        if true {
+//            // Neewer RGB62
+//            // https://ca.neewer.com/products/neewer-rgb62-magnetic-rgb-video-light-66603000?_pos=1&_psq=RGB62&_ss=e&_v=1.0
+//            var cfg: [String: CodableValue] = [:]
+//            cfg["fake"] = CodableValue.boolValue(true)
+//            cfg["mac"] = CodableValue.stringValue("12:38:9A:CC:EE:DD")
+//            cfg["rawname"] = CodableValue.stringValue("NW-RGB62")
+//            cfg["identifier"] = CodableValue.stringValue("FAE0BA8C-D9B4-B7DB-012C-7A8DDEE0BAFA")
+//            lights.append(cfg)
+//        }
+//
+//        if true {
+//            // Fake new light
+//            var cfg: [String: CodableValue] = [:]
+//            cfg["fake"] = CodableValue.boolValue(true)
+//            cfg["mac"] = CodableValue.stringValue("12:32:9A:AC:EE:DD")
+//            cfg["rawname"] = CodableValue.stringValue("NEEWER-NL-116AI")
+//            cfg["identifier"] = CodableValue.stringValue("FAE0BA8C-ABCD-B7DB-012C-7A8DDEE0BAFA")
+//            lights.append(cfg)
+//        }
 
         return lights
     }
