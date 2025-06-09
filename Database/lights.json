@@ -10,8 +10,10 @@
             "supportMusic": false,
             "support17FX": false,
             "support9FX": true,
-            "minCCT": 32,
-            "maxCCT": 56
+            "cctRange": {
+                "min": 32,
+                "max": 56
+            }
         },
         {
             "type": 4,
@@ -22,8 +24,10 @@
             "supportMusic": false,
             "support17FX": false,
             "support9FX": false,
-            "minCCT": 32,
-            "maxCCT": 56
+            "cctRange": {
+                "min": 32,
+                "max": 56
+            }
         },
         {
             "type": 5,
@@ -34,8 +38,10 @@
             "supportMusic": false,
             "support17FX": false,
             "support9FX": true,
-            "minCCT": 32,
-            "maxCCT": 56
+            "cctRange": {
+                "min": 32,
+                "max": 56
+            }
         },
         {
             "type": 7,
@@ -46,8 +52,10 @@
             "supportMusic": false,
             "support17FX": false,
             "support9FX": false,
-            "minCCT": 32,
-            "maxCCT": 56
+            "cctRange": {
+                "min": 32,
+                "max": 56
+            }
         },
         {
             "type": 8,
@@ -58,8 +66,10 @@
             "supportMusic": true,
             "support17FX": true,
             "support9FX": false,
-            "minCCT": 32,
-            "maxCCT": 56
+            "cctRange": {
+                "min": 32,
+                "max": 56
+            }
         },
         {
             "type": 9,
@@ -70,8 +80,10 @@
             "supportMusic": false,
             "support17FX": false,
             "support9FX": false,
-            "minCCT": 32,
-            "maxCCT": 56
+            "cctRange": {
+                "min": 32,
+                "max": 56
+            }
         },
         {
             "type": 11,
@@ -82,8 +94,10 @@
             "supportMusic": false,
             "support17FX": false,
             "support9FX": false,
-            "minCCT": 32,
-            "maxCCT": 56
+            "cctRange": {
+                "min": 32,
+                "max": 56
+            }
         },
         {
             "type": 12,
@@ -94,8 +108,10 @@
             "supportMusic": false,
             "support17FX": false,
             "support9FX": false,
-            "minCCT": 32,
-            "maxCCT": 56
+            "cctRange": {
+                "min": 32,
+                "max": 56
+            }
         },
         {
             "type": 14,
@@ -106,8 +122,10 @@
             "supportMusic": true,
             "support17FX": false,
             "support9FX": false,
-            "minCCT": 32,
-            "maxCCT": 56
+            "cctRange": {
+                "min": 32,
+                "max": 56
+            }
         },
         {
             "type": 15,
@@ -118,8 +136,10 @@
             "supportMusic": false,
             "support17FX": false,
             "support9FX": false,
-            "minCCT": 32,
-            "maxCCT": 56
+            "cctRange": {
+                "min": 32,
+                "max": 56
+            }
         },
         {
             "type": 16,
@@ -130,8 +150,10 @@
             "supportMusic": true,
             "support17FX": true,
             "support9FX": false,
-            "minCCT": 32,
-            "maxCCT": 56
+            "cctRange": {
+                "min": 32,
+                "max": 56
+            }
         },
         {
             "type": 18,
@@ -142,8 +164,10 @@
             "supportMusic": true,
             "support17FX": false,
             "support9FX": false,
-            "minCCT": 32,
-            "maxCCT": 56
+            "cctRange": {
+                "min": 32,
+                "max": 56
+            }
         },
         {
             "type": 19,
@@ -154,8 +178,10 @@
             "supportMusic": true,
             "support17FX": false,
             "support9FX": false,
-            "minCCT": 32,
-            "maxCCT": 56
+            "cctRange": {
+                "min": 32,
+                "max": 56
+            }
         },
         {
             "type": 20,
@@ -166,8 +192,10 @@
             "supportMusic": true,
             "support17FX": true,
             "support9FX": false,
-            "minCCT": 32,
-            "maxCCT": 56
+            "cctRange": {
+                "min": 32,
+                "max": 56
+            }
         },
         {
             "type": 21,
@@ -178,8 +206,10 @@
             "supportMusic": true,
             "support17FX": false,
             "support9FX": false,
-            "minCCT": 32,
-            "maxCCT": 56
+            "cctRange": {
+                "min": 32,
+                "max": 56
+            }
         },
         {
             "type": 22,
@@ -190,8 +220,10 @@
             "supportMusic": true,
             "support17FX": true,
             "support9FX": false,
-            "minCCT": 27,
-            "maxCCT": 65
+            "cctRange": {
+                "min": 27,
+                "max": 65
+            }
         },
         {
             "type": 25,
@@ -202,8 +234,10 @@
             "supportMusic": true,
             "support17FX": true,
             "support9FX": false,
-            "minCCT": 32,
-            "maxCCT": 56
+            "cctRange": {
+                "min": 32,
+                "max": 56
+            }
         },
         {
             "type": 26,
@@ -214,8 +248,10 @@
             "supportMusic": true,
             "support17FX": false,
             "support9FX": false,
-            "minCCT": 32,
-            "maxCCT": 56
+            "cctRange": {
+                "min": 32,
+                "max": 56
+            }
         },
         {
             "type": 27,
@@ -226,8 +262,10 @@
             "supportMusic": true,
             "support17FX": false,
             "support9FX": false,
-            "minCCT": 32,
-            "maxCCT": 56
+            "cctRange": {
+                "min": 32,
+                "max": 56
+            }
         },
         {
             "type": 28,
@@ -238,8 +276,10 @@
             "supportMusic": true,
             "support17FX": false,
             "support9FX": false,
-            "minCCT": 32,
-            "maxCCT": 56
+            "cctRange": {
+                "min": 32,
+                "max": 56
+            }
         },
         {
             "type": 29,
@@ -250,8 +290,10 @@
             "supportMusic": false,
             "support17FX": false,
             "support9FX": false,
-            "minCCT": 32,
-            "maxCCT": 56
+            "cctRange": {
+                "min": 32,
+                "max": 56
+            }
         },
         {
             "type": 30,
@@ -262,8 +304,10 @@
             "supportMusic": true,
             "support17FX": false,
             "support9FX": false,
-            "minCCT": 32,
-            "maxCCT": 56
+            "cctRange": {
+                "min": 32,
+                "max": 56
+            }
         },
         {
             "type": 31,
@@ -274,8 +318,10 @@
             "supportMusic": true,
             "support17FX": false,
             "support9FX": false,
-            "minCCT": 32,
-            "maxCCT": 56
+            "cctRange": {
+                "min": 32,
+                "max": 56
+            }
         },
         {
             "type": 32,
@@ -286,8 +332,10 @@
             "supportMusic": true,
             "support17FX": false,
             "support9FX": false,
-            "minCCT": 32,
-            "maxCCT": 56
+            "cctRange": {
+                "min": 32,
+                "max": 56
+            }
         },
         {
             "type": 33,
@@ -298,8 +346,10 @@
             "supportMusic": false,
             "support17FX": false,
             "support9FX": false,
-            "minCCT": 29,
-            "maxCCT": 70
+            "cctRange": {
+                "min": 29,
+                "max": 70
+            }
         },
         {
             "type": 34,
@@ -310,8 +360,10 @@
             "supportMusic": true,
             "support17FX": true,
             "support9FX": false,
-            "minCCT": 32,
-            "maxCCT": 56
+            "cctRange": {
+                "min": 32,
+                "max": 56
+            }
         },
         {
             "type": 37,
@@ -322,8 +374,10 @@
             "supportMusic": true,
             "support17FX": false,
             "support9FX": false,
-            "minCCT": 32,
-            "maxCCT": 56
+            "cctRange": {
+                "min": 32,
+                "max": 56
+            }
         },
         {
             "type": 38,
@@ -334,8 +388,10 @@
             "supportMusic": true,
             "support17FX": false,
             "support9FX": false,
-            "minCCT": 32,
-            "maxCCT": 56
+            "cctRange": {
+                "min": 32,
+                "max": 56
+            }
         },
         {
             "type": 39,
@@ -346,8 +402,10 @@
             "supportMusic": true,
             "support17FX": false,
             "support9FX": false,
-            "minCCT": 29,
-            "maxCCT": 70
+            "cctRange": {
+                "min": 29,
+                "max": 70
+            }
         },
         {
             "type": 40,
@@ -358,8 +416,10 @@
             "supportMusic": true,
             "support17FX": true,
             "support9FX": false,
-            "minCCT": 25,
-            "maxCCT": 84,
+            "cctRange": {
+                "min": 25,
+                "max": 84
+            },
             "newPowerLightCommand": true,
             "newRGBLightCommand": true
         },
@@ -372,8 +432,10 @@
             "supportMusic": true,
             "support17FX": true,
             "support9FX": false,
-            "minCCT": 25,
-            "maxCCT": 100,
+            "cctRange": {
+                "min": 25,
+                "max": 100
+            },
             "newPowerLightCommand": true,
             "newRGBLightCommand": true
         },
@@ -386,8 +448,10 @@
             "supportMusic": true,
             "support17FX": false,
             "support9FX": false,
-            "minCCT": 32,
-            "maxCCT": 56
+            "cctRange": {
+                "min": 32,
+                "max": 56
+            }
         },
         {
             "type": 44,
@@ -398,8 +462,10 @@
             "supportMusic": true,
             "support17FX": false,
             "support9FX": false,
-            "minCCT": 32,
-            "maxCCT": 56
+            "cctRange": {
+                "min": 32,
+                "max": 56
+            }
         },
         {
             "type": 45,
@@ -410,8 +476,10 @@
             "supportMusic": true,
             "support17FX": false,
             "support9FX": false,
-            "minCCT": 32,
-            "maxCCT": 56
+            "cctRange": {
+                "min": 32,
+                "max": 56
+            }
         },
         {
             "type": 46,
@@ -422,8 +490,10 @@
             "supportMusic": true,
             "support17FX": false,
             "support9FX": false,
-            "minCCT": 32,
-            "maxCCT": 56
+            "cctRange": {
+                "min": 32,
+                "max": 56
+            }
         },
         {
             "type": 47,
@@ -434,8 +504,10 @@
             "supportMusic": true,
             "support17FX": false,
             "support9FX": false,
-            "minCCT": 32,
-            "maxCCT": 56
+            "cctRange": {
+                "min": 32,
+                "max": 56
+            }
         },
         {
             "type": 49,
@@ -446,8 +518,10 @@
             "supportMusic": true,
             "support17FX": false,
             "support9FX": false,
-            "minCCT": 32,
-            "maxCCT": 56
+            "cctRange": {
+                "min": 32,
+                "max": 56
+            }
         },
         {
             "type": 50,
@@ -458,8 +532,10 @@
             "supportMusic": true,
             "support17FX": false,
             "support9FX": false,
-            "minCCT": 32,
-            "maxCCT": 56
+            "cctRange": {
+                "min": 32,
+                "max": 56
+            }
         },
         {
             "type": 51,
@@ -470,8 +546,10 @@
             "supportMusic": true,
             "support17FX": false,
             "support9FX": false,
-            "minCCT": 32,
-            "maxCCT": 56
+            "cctRange": {
+                "min": 32,
+                "max": 56
+            }
         },
         {
             "type": 52,
@@ -482,8 +560,10 @@
             "supportMusic": true,
             "support17FX": false,
             "support9FX": false,
-            "minCCT": 32,
-            "maxCCT": 56
+            "cctRange": {
+                "min": 32,
+                "max": 56
+            }
         },
         {
             "type": 53,
@@ -494,8 +574,10 @@
             "supportMusic": true,
             "support17FX": false,
             "support9FX": false,
-            "minCCT": 32,
-            "maxCCT": 56
+            "cctRange": {
+                "min": 32,
+                "max": 56
+            }
         },
         {
             "type": 54,
@@ -506,8 +588,10 @@
             "supportMusic": true,
             "support17FX": false,
             "support9FX": false,
-            "minCCT": 32,
-            "maxCCT": 56
+            "cctRange": {
+                "min": 32,
+                "max": 56
+            }
         },
         {
             "type": 55,
@@ -518,8 +602,10 @@
             "supportMusic": true,
             "support17FX": false,
             "support9FX": false,
-            "minCCT": 32,
-            "maxCCT": 56
+            "cctRange": {
+                "min": 32,
+                "max": 56
+            }
         },
         {
             "type": 56,
@@ -530,8 +616,10 @@
             "supportMusic": true,
             "support17FX": false,
             "support9FX": false,
-            "minCCT": 32,
-            "maxCCT": 56
+            "cctRange": {
+                "min": 32,
+                "max": 56
+            }
         },
         {
             "type": 57,
@@ -542,8 +630,10 @@
             "supportMusic": true,
             "support17FX": false,
             "support9FX": false,
-            "minCCT": 32,
-            "maxCCT": 56
+            "cctRange": {
+                "min": 32,
+                "max": 56
+            }
         },
         {
             "type": 58,
@@ -554,8 +644,10 @@
             "supportMusic": true,
             "support17FX": false,
             "support9FX": false,
-            "minCCT": 32,
-            "maxCCT": 56
+            "cctRange": {
+                "min": 32,
+                "max": 56
+            }
         },
         {
             "type": 59,
@@ -566,8 +658,10 @@
             "supportMusic": true,
             "support17FX": false,
             "support9FX": false,
-            "minCCT": 32,
-            "maxCCT": 56
+            "cctRange": {
+                "min": 32,
+                "max": 56
+            }
         },
         {
             "type": 60,
@@ -578,8 +672,10 @@
             "supportMusic": true,
             "support17FX": false,
             "support9FX": false,
-            "minCCT": 32,
-            "maxCCT": 56
+            "cctRange": {
+                "min": 32,
+                "max": 56
+            }
         },
         {
             "type": 61,
@@ -590,8 +686,10 @@
             "supportMusic": true,
             "support17FX": false,
             "support9FX": false,
-            "minCCT": 32,
-            "maxCCT": 56
+            "cctRange": {
+                "min": 32,
+                "max": 56
+            }
         },
         {
             "type": 62,
@@ -602,8 +700,10 @@
             "supportMusic": true,
             "support17FX": true,
             "support9FX": false,
-            "minCCT": 32,
-            "maxCCT": 56
+            "cctRange": {
+                "min": 32,
+                "max": 56
+            }
         },
         {
             "type": 63,
@@ -614,8 +714,10 @@
             "supportMusic": true,
             "support17FX": false,
             "support9FX": false,
-            "minCCT": 32,
-            "maxCCT": 56
+            "cctRange": {
+                "min": 32,
+                "max": 56
+            }
         }
     ]
 }
