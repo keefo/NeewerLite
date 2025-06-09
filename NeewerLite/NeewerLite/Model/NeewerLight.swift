@@ -49,7 +49,7 @@ class NeewerLight: NSObject, ObservableNeewerLightProtocol {
     var satValue: Observable<Int> = Observable(+00) // Saturation range 0~100
     var gmmValue: Observable<Int> = Observable(-50) // GM, use name gmm for better code alignment, range -50~50
     var lastTab: String = ""
-
+    
     var maxChannel: UInt8 {
         return UInt8(supportedFX.count)
     }
@@ -126,13 +126,21 @@ class NeewerLight: NSObject, ObservableNeewerLightProtocol {
         }
         return false
     }
+    
+    var productLink: String? {
+        if let item = ContentManager.shared.fetchLightProperty(lightType: _lightType)
+        {
+            return item.link
+        }
+        return nil
+    }
 
     func CCTRange() -> (minCCT: Int, maxCCT: Int) {
         if let item = ContentManager.shared.fetchLightProperty(lightType: _lightType)
         {
-            if (item.minCCT != nil) && (item.maxCCT != nil)
+            if (item.cctRange != nil)
             {
-                return (item.minCCT!, item.maxCCT!)
+                return (item.cctRange!.min, item.cctRange!.max)
             }
         }
         return NeewerLightConstant.CCTRange(ligthType: _lightType, projectName: projectName)
@@ -459,7 +467,7 @@ class NeewerLight: NSObject, ObservableNeewerLightProtocol {
     // Set correlated color temperature and bulb brightness in CCT Mode
     public func setCCTLightValues(brr: CGFloat, cct: CGFloat, gmm: CGFloat) {
         var cmd: Data = Data()
-        Logger.debug("setCCTLightValues")
+        Logger.debug("setCCTLightValues brr: \(brr) cct: \(cct) gmm: \(gmm)")
 
         if supportGMRange.value {
             cmd = getCCTDATALightCommand(brightness: brr, correlatedColorTemperature: cct, gmm: gmm)

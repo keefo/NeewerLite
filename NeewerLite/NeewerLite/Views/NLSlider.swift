@@ -296,21 +296,17 @@ class NLSlider: NSView {
     func drawButtons(_ context: CGContext) {
         // Draw buttons on both sides with spacing
         let offy = (bounds.height - buttonWidth) / 2.0
-        let leftButtonRect = NSRect(x: 0, y: offy, width: buttonWidth, height: buttonWidth)
         let radius = buttonWidth / 2.0
-        let leftPath = NSBezierPath(roundedRect: leftButtonRect, xRadius: radius, yRadius: radius)
+        
+        let leftPath = NSBezierPath(roundedRect: NSRect(x: 0, y: offy, width: buttonWidth, height: buttonWidth), xRadius: radius, yRadius: radius)
         if mouseDownOnLeftBtn {
             buttonPressColor.setFill()
         } else {
             buttonColor.setFill()
         }
         leftPath.fill()
-        let minus = NSBezierPath(roundedRect: NSRect(x: 3, y: offy+6, width: buttonWidth-6, height: 1), xRadius: 0, yRadius: 0)
-        NSColor.tertiaryLabelColor.setFill()
-        minus.fill()
-
-        let rightButtonRect = NSRect(x: bounds.size.width - buttonWidth, y: offy, width: buttonWidth, height: buttonWidth)
-        let rightPath = NSBezierPath(roundedRect: rightButtonRect, xRadius: radius, yRadius: radius)
+       
+        let rightPath = NSBezierPath(roundedRect: NSRect(x: bounds.size.width - buttonWidth, y: offy, width: buttonWidth, height: buttonWidth), xRadius: radius, yRadius: radius)
         if mouseDownOnRightBtn {
             buttonPressColor.setFill()
         } else {
@@ -318,19 +314,19 @@ class NLSlider: NSView {
         }
         rightPath.fill()
 
-        NSColor.tertiaryLabelColor.setFill()
+        NSColor.labelColor.setFill()
+        let minus = NSBezierPath(roundedRect: NSRect(x: 3, y: offy+6, width: buttonWidth-6, height: 1), xRadius: 0, yRadius: 0)
+        minus.fill()
+        
         let cross = NSBezierPath()
-
         // Horizontal line
         let horizontalRect = NSRect(x: bounds.size.width - buttonWidth + 3, y: offy + 6, width: buttonWidth - 5, height: 1)
         let horizontalPath = NSBezierPath(roundedRect: horizontalRect, xRadius: 0, yRadius: 0)
         cross.append(horizontalPath)
-
         // Vertical line
         let verticalRect = NSRect(x: bounds.size.width - buttonWidth + buttonWidth / 2.0, y: 6, width: 1, height: buttonWidth - 5)
         let verticalPath = NSBezierPath(roundedRect: verticalRect, xRadius: 0, yRadius: 0)
         cross.append(verticalPath)
-
         cross.fill()
     }
 
