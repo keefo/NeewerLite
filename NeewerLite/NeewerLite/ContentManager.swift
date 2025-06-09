@@ -32,7 +32,12 @@ class ImageFetchOperation: Operation {
     }
 }
 
-struct LightItem: Decodable {
+struct ccTRange: Decodable {
+    let min: Int
+    let max: Int
+}
+
+struct NeewerLightDbItem: Decodable {
     let type: UInt8
     let link: String?
     let image: String
@@ -41,15 +46,14 @@ struct LightItem: Decodable {
     let supportMusic: Bool
     let support17FX: Bool
     let support9FX: Bool
-    let minCCT: Int?
-    let maxCCT: Int?
+    let cctRange: ccTRange?
     let newPowerLightCommand: Bool?
     let newRGBLightCommand: Bool?
 }
 
 struct Database: Decodable {
     let version: Int
-    let lights: [LightItem]
+    let lights: [NeewerLightDbItem]
 }
 
 
@@ -89,6 +93,36 @@ class ContentManager {
         operationQueue.maxConcurrentOperationCount = 10 // Adjust this as needed
     }
 
+    private func loadDatabaseFromDisk(){
+        if databaseCache == nil {
+            do {
+                if fileManager.fileExists(atPath: localDatabaseURL.path) {
+                    let data = try Data(contentsOf: localDatabaseURL)
+                    databaseCache = try JSONDecoder().decode(Database.self, from: data)
+                }
+            } catch {
+                Logger.error("Error reading or parsing JSON: \(error)")
+                do {
+                    try fileManager.removeItem(atPath: localDatabaseURL.path)
+                } catch {
+                }
+            }
+        }
+    }
+    
+    public func syncDatabase()
+    {
+        loadDatabaseFromDisk()
+        Task.detached(priority: .background) {
+            do {
+                try await self.downloadDatabaseIfNeeded()
+                Logger.info("✅ Database download completed.")
+            } catch {
+                Logger.error("❌ Failed to download database: \(error)")
+            }
+        }
+    }
+    
     // MARK: - JSON Database Management
     private func downloadDatabaseIfNeeded() async throws {
         if shouldDownloadDatabase() {
@@ -96,7 +130,7 @@ class ContentManager {
                 let (data, _) = try await session.data(from: jsonDatabaseURL)
                 try data.write(to: localDatabaseURL)
             } catch {
-                print("Error downloading the database: \(error)")
+                Logger.error("Error downloading the database: \(error)")
                 throw error
             }
             lastCheckedDate = Date()
@@ -107,6 +141,11 @@ class ContentManager {
         // Check if the local file exists and is valid
         if !fileManager.fileExists(atPath: localDatabaseURL.path) {
             return true
+        }
+        if let safeCache = databaseCache {
+            if safeCache.version == 1 {
+                return true
+            }
         }
         // Check if enough time has passed since the last check
         let updateInterval: TimeInterval = 28800 // For example, 8 hours
@@ -176,7 +215,7 @@ class ContentManager {
         return nil
     }
 
-    func fetchLightProperty(lightType: UInt8) -> LightItem? {
+    func fetchLightProperty(lightType: UInt8) -> NeewerLightDbItem? {
         if let safeCache = databaseCache {
             let lights = safeCache.lights
             if let found = lights.first(where: { $0.type == lightType }) {
@@ -195,21 +234,6 @@ class ContentManager {
     }
 
     private func fetchImageUrl(for lightType: UInt8) -> String? {
-        if databaseCache == nil {
-            if fileManager.fileExists(atPath: localDatabaseURL.path) {
-                do {
-                    let data = try Data(contentsOf: localDatabaseURL)
-                    databaseCache = try JSONDecoder().decode(Database.self, from: data)
-                } catch {
-                    Logger.error("Error reading or parsing JSON: \(error)")
-                    do {
-                        try fileManager.removeItem(atPath: localDatabaseURL.path)
-                    } catch {
-                    }
-                    return nil
-                }
-            }
-        }
         if let safeCache = databaseCache {
             let lights = safeCache.lights
             if let found = lights.first(where: { $0.type == lightType }) {

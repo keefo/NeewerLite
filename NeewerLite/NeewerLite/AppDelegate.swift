@@ -120,6 +120,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         audioSpectrogramView.mirror = true
         audioSpectrogramView.clearFrequency()
 
+        ContentManager.shared.syncDatabase()
         loadLightsFromDisk()
 
         self.updateUI()

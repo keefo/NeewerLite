@@ -57,14 +57,6 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
         // self.followMusicButton.state = .off
     }
 
-    @IBAction func forgetAction(_ sender: NSButton) {
-        if let dev = device {
-            if let app = NSApp.delegate as? AppDelegate {
-                app.forgetLight(dev)
-            }
-        }
-    }
-
     @IBAction func moreAction(_ sender: NSButton) {
         let menu = NSMenu(title: "MoreMenu")
         let item = NSMenuItem(title: NSLocalizedString("Rename Light", comment: ""),
@@ -72,17 +64,33 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
         item.target = self
         menu.addItem(item)
 
-//        item = NSMenuItem(title: NSLocalizedString("Forget Light", comment: ""),
-//                          action: #selector(forgetAction(_:)), keyEquivalent: "")
-//        item.target = self
-//        menu.addItem(item)
+        if let safeDev = self.device {
+            if let safeLink = safeDev.productLink {
+                if URL(string:safeLink) != nil {
+                    let item = NSMenuItem(title: NSLocalizedString("Open product page", comment: ""),
+                                      action: #selector(linkAction(_:)), keyEquivalent: "")
+                    item.target = self
+                    menu.addItem(item)
+                }
+            }
+        }
 
         var location = sender.bounds.origin
         location.y += 20
 
         menu.popUp(positioning: menu.item(at: 0), at: location, in: sender)
     }
-
+    
+    @objc func linkAction(_ sender: Any) {
+        if let safeDev = self.device {
+            if let safeLink = safeDev.productLink {
+                if let url = URL(string:safeLink) {
+                    NSWorkspace.shared.open(url)
+                }
+            }
+        }
+    }
+    
     @objc func renameAction(_ sender: Any) {
         if renameVC != nil {
             renameVC = nil
@@ -502,6 +510,7 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
         let valueItemWidth = 98.0
         // Define the gap between subviews
         let gap: CGFloat = 10
+        let sliderWidth: CGFloat = view.bounds.width - 80
 
         // Calculate the total width needed for all three subviews and two gaps
         let totalWidth = (valueItemWidth * Double(valueItem)) + (gap * 2.0)
@@ -558,7 +567,7 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
         }
 
         view.addSubview(createLabel("BRR"))
-        let brrSlide = NLSlider(frame: NSRect(x: offsetX, y: offsetY, width: view.bounds.width - 80, height: 20))
+        let brrSlide = NLSlider(frame: NSRect(x: offsetX, y: offsetY, width: sliderWidth, height: 20))
         brrSlide.autoresizingMask = [.width, .maxYMargin]
         brrSlide.tag = ControlTag.brr.rawValue
         brrSlide.type = .brr
@@ -573,14 +582,13 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
             }
         }
         view.addSubview(brrSlide)
-
         view.addSubview(createValueLabel("Brightness"))
         view.addSubview(createValueField(ControlTag.brr, formatBrrValue("\(dev.brrValue.value)", .center)))
 
         offsetY -= 30
 
         view.addSubview(createLabel("CCT"))
-        let cctSlide = NLSlider(frame: NSRect(x: offsetX, y: offsetY, width: view.bounds.width - 80, height: 20))
+        let cctSlide = NLSlider(frame: NSRect(x: offsetX, y: offsetY, width: sliderWidth, height: 20))
         cctSlide.autoresizingMask = [.width, .maxYMargin]
         cctSlide.tag = ControlTag.cct.rawValue
         cctSlide.type = .cct
@@ -589,7 +597,8 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
         cctSlide.currentValue = CGFloat(dev.cctValue.value)
         cctSlide.customBarDrawing = NLSlider.cttBar()
         cctSlide.callback = { val in
-            dev.setCCTLightValues(brr: CGFloat(dev.brrValue.value) / 100.0, cct: CGFloat(val), gmm: CGFloat(dev.gmmValue.value))
+            print("dev.brrValue.value: \(dev.brrValue.value)")
+            dev.setCCTLightValues(brr: CGFloat(dev.brrValue.value), cct: CGFloat(val), gmm: CGFloat(dev.gmmValue.value))
         }
         view.addSubview(cctSlide)
         view.addSubview(createValueLabel("CCT"))
@@ -599,7 +608,7 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
 
         if dev.supportGMRange.value {
             view.addSubview(createLabel("GM"))
-            let gmmSlide = NLSlider(frame: NSRect(x: offsetX, y: offsetY, width: view.bounds.width - 80, height: 20))
+            let gmmSlide = NLSlider(frame: NSRect(x: offsetX, y: offsetY, width: sliderWidth, height: 20))
             gmmSlide.autoresizingMask = [.width, .maxYMargin]
             gmmSlide.tag = ControlTag.gmm.rawValue
             gmmSlide.type = .gmm
@@ -610,7 +619,7 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
             gmmSlide.callback = { [weak self] val in
                 guard let safeSelf = self else { return }
                 if let safeDev = safeSelf.device {
-                    safeDev.setCCTLightValues(brr: CGFloat(safeDev.brrValue.value) / 100.0, cct: CGFloat(safeDev.cctValue.value), gmm: CGFloat(val))
+                    safeDev.setCCTLightValues(brr: CGFloat(safeDev.brrValue.value), cct: CGFloat(safeDev.cctValue.value), gmm: CGFloat(val))
                 }
             }
             view.addSubview(gmmSlide)
@@ -682,8 +691,6 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
         //view.wantsLayer = true
         //view.layer?.backgroundColor = NSColor.yellow.cgColor
 
-        let cctrange = dev.CCTRange()
-
         let createLabel: (CGFloat, String) -> NSTextField = { offsetY, stringValue in
             let label = NSTextField(frame: NSRect(x: 15, y: offsetY, width: 35, height: 20))
             label.autoresizingMask = [.minYMargin, .maxXMargin]
@@ -737,6 +744,7 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
     }
 
     @objc func sourceClicked(_ sender: NSPopUpButton) {
+        
         guard let dev = device else {
             return
         }
@@ -751,6 +759,7 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
         guard let safeFx = theFx else {
             return
         }
+        
         let cctrange = dev.CCTRange()
         guard let theView = sender.superview else {
             return
@@ -760,19 +769,40 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
                 subview.removeFromSuperview()
             }
         }
-
+        
         let fxsubview = FXView(frame: NSRect(x: 0, y: 0, width: theView.bounds.width, height: theView.bounds.height - 35))
         fxsubview.autoresizingMask = [.width, .height]
         //fxsubview.wantsLayer = true
         //fxsubview.layer?.backgroundColor = NSColor.green.cgColor
         theView.addSubview(fxsubview)
 
-        let offsetX = 55.0
+        let offsetX = 50.0
+        let topY = 90.0
         var offsetY = fxsubview.bounds.height - 26
-        let slideW = fxsubview.bounds.width - 110
+        let sliderWidth = fxsubview.bounds.width - 80
+        
+        let valueItemWidth = 98.0
+        // Define the gap between subviews
+        let gap: CGFloat = 10
+        var valueItem = 0
+        if safeFx.needBRR {
+            valueItem += 1
+        }
+        if safeFx.needCCT {
+            valueItem += 1
+        }
+        if safeFx.needGM  && dev.supportGMRange.value {
+            valueItem += 1
+        }
+        // Calculate the total width needed for all three subviews and two gaps
+        let totalWidth = (valueItemWidth * Double(valueItem)) + (gap * 2.0)
 
+        // Calculate the x-coordinate for the leftmost subview to center them
+        var topX = (fxsubview.frame.size.width - totalWidth) / 2.0
+        let topDX = valueItemWidth + gap
+        
         let createLabel: (CGFloat, String) -> NSTextField = { offsetY, stringValue in
-            let label = NSTextField(frame: NSRect(x: 15, y: offsetY, width: 35, height: 20))
+            let label = NSTextField(frame: NSRect(x: 5, y: offsetY, width: 35, height: 20))
             label.autoresizingMask = [.minYMargin, .maxXMargin]
             label.stringValue = stringValue
             label.alignment = .right
@@ -784,23 +814,42 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
             return label
         }
 
-        let createValueLabel: (CGFloat, String, Int) -> NSTextField = { offsetY, stringValue, tag in
-            let label = NSTextField(frame: NSRect(x: offsetX + slideW + 5, y: offsetY + 4, width: 50, height: 18))
-            label.autoresizingMask = [.maxYMargin, .minXMargin]
-            label.stringValue = stringValue
-            label.alignment = .left
+        let createBigValueField: (ControlTag, NSAttributedString) -> NSTextField = { tag, stringValue in
+            let label = NSTextField(frame: NSRect(x: topX, y: topY, width: valueItemWidth, height: 50))
+            label.autoresizingMask = [.minYMargin, .maxXMargin, .minXMargin]
+            label.attributedStringValue = stringValue
+            label.tag = tag.rawValue
+            label.alignment = .center
             label.isEditable = false
             label.isSelectable = false
             label.isBordered = false
             label.drawsBackground = false
-            label.font = NSFont.monospacedSystemFont(ofSize: 9, weight: .medium)
-            label.tag = tag
+            topX += topDX
             return label
         }
 
+        let createBigValueLabel: (String) -> NSTextField = { stringValue in
+            let label = NSTextField(frame: NSRect(x: topX, y: topY + 55, width: valueItemWidth, height: 19))
+            label.autoresizingMask = [.minYMargin, .maxXMargin, .minXMargin]
+            label.stringValue = stringValue
+            label.alignment = .center
+            label.isEditable = false
+            label.isSelectable = false
+            label.isBordered = false
+            label.drawsBackground = false
+            label.font = NSFont.systemFont(ofSize: 11)
+            return label
+        }
+        
+        offsetY -= 80
+        
         if safeFx.needBRR {
+            
+            fxsubview.addSubview(createBigValueLabel("Brightness"))
+            fxsubview.addSubview(createBigValueField(ControlTag.brr, formatBrrValue("\(dev.brrValue.value)", .center)))
+
             fxsubview.addSubview(createLabel(offsetY-4, "BRR"))
-            let slide = NLSlider(frame: NSRect(x: offsetX, y: offsetY, width: slideW, height: 20))
+            let slide = NLSlider(frame: NSRect(x: offsetX, y: offsetY, width: sliderWidth, height: 20))
             slide.autoresizingMask = [.width, .maxYMargin]
             slide.tag = ControlTag.brr.rawValue
             slide.type = .brr
@@ -808,29 +857,23 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
             slide.maxValue = 100.0
             slide.currentValue = CGFloat(safeFx.brrValue)
             slide.customBarDrawing = NLSlider.brightnessBar()
-            let valueField = createValueLabel(offsetY-4, "", slide.tag)
             slide.callback = { [weak self] val in
                 guard let safeSelf = self else { return }
                 if let safeDev = safeSelf.device {
                     safeFx.brrValue = val
-                    valueField.stringValue = "\(Int(val))%"
-                    Logger.debug("safeFx: \(safeFx.brrValue)")
-                    safeDev.setCCTLightValues(brr: safeFx.brrValue, cct: CGFloat(safeFx.cctValue), gmm: CGFloat(safeFx.gmValue))
-
-                    for sss in safeDev.supportedSource {
-                        Logger.debug("\(sss.name) \(sss.featureValues)")
-                    }
+                    safeDev.setCCTLightValues(brr: CGFloat(safeFx.brrValue), cct: CGFloat(safeFx.cctValue), gmm: CGFloat(safeFx.gmValue))
                 }
             }
             fxsubview.addSubview(slide)
-            fxsubview.addSubview(valueField)
-            valueField.stringValue = "\(Int(slide.currentValue))%"
             offsetY -= 30
         }
 
         if safeFx.needCCT {
+            fxsubview.addSubview(createBigValueLabel("CCT"))
+            fxsubview.addSubview(createBigValueField(ControlTag.cct, formatCCTValue("\(dev.cctValue.value)", .center)))
+
             fxsubview.addSubview(createLabel(offsetY-4, "CCT"))
-            let slide = NLSlider(frame: NSRect(x: offsetX, y: offsetY, width: slideW, height: 20))
+            let slide = NLSlider(frame: NSRect(x: offsetX, y: offsetY, width: sliderWidth, height: 20))
             slide.autoresizingMask = [.width, .maxYMargin]
             slide.tag = ControlTag.cct.rawValue
             slide.type = .cct
@@ -838,25 +881,23 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
             slide.maxValue = Double(cctrange.maxCCT)
             slide.currentValue = CGFloat(safeFx.cctValue)
             slide.customBarDrawing = NLSlider.cttBar()
-            let valueField = createValueLabel(offsetY-4, "", slide.tag)
             slide.callback = { [weak self] val in
                 guard let safeSelf = self else { return }
                 if let safeDev = safeSelf.device {
                     safeFx.cctValue = val
-                    valueField.stringValue = "\(Int(val))00k"
-                    Logger.debug("safeFx: \(safeFx)")
-                    safeDev.setCCTLightValues(brr: safeFx.brrValue, cct: CGFloat(safeFx.cctValue), gmm: CGFloat(safeFx.gmValue))
+                    safeDev.setCCTLightValues(brr: CGFloat(safeFx.brrValue), cct: CGFloat(safeFx.cctValue), gmm: CGFloat(safeFx.gmValue))
                 }
             }
             fxsubview.addSubview(slide)
-            fxsubview.addSubview(valueField)
-            valueField.stringValue = "\(Int(slide.currentValue))00k"
             offsetY -= 30
         }
 
         if safeFx.needGM  && dev.supportGMRange.value {
+            fxsubview.addSubview(createBigValueLabel("GM"))
+            fxsubview.addSubview(createBigValueField(ControlTag.gmm, formatCCTValue("\(dev.gmmValue.value)", .center)))
+
             fxsubview.addSubview(createLabel(offsetY-4, "GM"))
-            let slide = NLSlider(frame: NSRect(x: offsetX, y: offsetY, width: slideW, height: 20))
+            let slide = NLSlider(frame: NSRect(x: offsetX, y: offsetY, width: sliderWidth, height: 20))
             slide.autoresizingMask = [.width, .maxYMargin]
             slide.tag = ControlTag.gmm.rawValue
             slide.type = .gmm
@@ -864,23 +905,18 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
             slide.maxValue = 50.0
             slide.currentValue = CGFloat(safeFx.gmValue)
             slide.customBarDrawing = NLSlider.gmBar()
-            let valueField = createValueLabel(offsetY-4, "", slide.tag)
             slide.callback = { [weak self] val in
                 guard let safeSelf = self else { return }
                 if let safeDev = safeSelf.device {
                     safeFx.gmValue = val
-                    valueField.stringValue = "\(Int(val))"
-                    Logger.debug("safeFx: \(safeFx)")
-                    safeDev.setCCTLightValues(brr: safeFx.brrValue, cct: CGFloat(safeFx.cctValue), gmm: CGFloat(safeFx.gmValue))
+                    safeDev.setCCTLightValues(brr: CGFloat(safeFx.brrValue), cct: CGFloat(safeFx.cctValue), gmm: CGFloat(safeFx.gmValue))
                 }
             }
             fxsubview.addSubview(slide)
-            fxsubview.addSubview(valueField)
-            valueField.stringValue = "\(Int(slide.currentValue))"
             offsetY -= 30
         }
 
-        dev.setCCTLightValues(brr: safeFx.brrValue, cct: CGFloat(safeFx.cctValue), gmm: CGFloat(safeFx.gmValue))
+        dev.setCCTLightValues(brr: CGFloat(safeFx.brrValue), cct: CGFloat(safeFx.cctValue), gmm: CGFloat(safeFx.gmValue))
     }
 
     @objc func fxClicked(_ sender: NSPopUpButton) {
@@ -902,7 +938,6 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
             return
         }
         let cctrange = dev.CCTRange()
-        Logger.debug("\(sender.superview)")
         guard let theView = sender.superview else {
             return
         }
@@ -1497,16 +1532,16 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
                     if idf == TabId.cct.rawValue || tabViewItem?.label == "CCT" {
                         // CCT mode
                         let val = getCCTValuesFromView()
-                        dev.setCCTLightValues(brr: CGFloat(val.brr) / 100.0, cct: CGFloat(val.cct), gmm: CGFloat(val.gmm))
+                        dev.setCCTLightValues(brr: CGFloat(val.brr), cct: CGFloat(val.cct), gmm: CGFloat(val.gmm))
                     } else if idf == TabId.source.rawValue || tabViewItem?.label == "Light Source" {
                         // CCT mode
                         let val = getCCTValuesFromView()
-                        dev.setCCTLightValues(brr: CGFloat(val.brr) / 100.0, cct: CGFloat(val.cct), gmm: CGFloat(val.gmm))
+                        dev.setCCTLightValues(brr: CGFloat(val.brr), cct: CGFloat(val.cct), gmm: CGFloat(val.gmm))
                     } else if idf == TabId.hsi.rawValue || tabViewItem?.label == "HSI" {
                         // HSI mode
                         if dev.supportRGB {
                             let val = getHSIValuesFromView()
-                            dev.setRGBLightValues(brr: CGFloat(val.brr) / 100.0, hue: val.hue, hue360: val.hue * 360.0, sat: val.sat)
+                            dev.setRGBLightValues(brr: CGFloat(val.brr), hue: val.hue, hue360: val.hue * 360.0, sat: val.sat)
                         }
                     } else if idf == TabId.scene.rawValue || tabViewItem?.label == "FX" {
                         // scene mode
