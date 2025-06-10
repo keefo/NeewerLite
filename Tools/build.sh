@@ -64,9 +64,7 @@ codesign -vvv --deep --strict $APP_PATH/Products/Applications/NeewerLite.app
 ./package_and_build_appcast.sh ./build/NeewerLite.xcarchive/Products/Applications/
 
 xcrun notarytool submit "NeewerLite.dmg" --keychain-profile "AC_PASSWORD" --wait 
-
 xcrun stapler staple NeewerLite.dmg
-
 stapler validate NeewerLite.dmg
 
 #
