@@ -455,10 +455,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         }))
 
         commandHandler.register(command: Command(type: .setLightScene, action: { cmdParameter in
-            var sceneId = cmdParameter.sceneId()
-            if sceneId == nil {
-                sceneId = cmdParameter.scene()
-            }
+            let sceneId = cmdParameter.sceneId() ?? cmdParameter.scene()
             let brr = cmdParameter.brightness()
 
             func act(_ viewObj: DeviceViewObject, showAlert: Bool) {
@@ -466,7 +463,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
                     if viewObj.device.supportRGB {
                         Task { @MainActor in
                             viewObj.changeToSCEMode()
-                            viewObj.changeToSCE(sceneId!, brr)
+                            viewObj.changeToSCE(sceneId, brr)
                         }
                     } else {
                         if showAlert {
@@ -546,7 +543,11 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
             Task { @MainActor in
                 let alert = NSAlert()
                 alert.messageText = "Log file not found"
-                alert.informativeText = "\(Logger.currentLogFileURL) log file does not exist."
+                if let url = Logger.currentLogFileURL {
+                    alert.informativeText = "\(url.path) log file does not exist."
+                } else {
+                    alert.informativeText = "Log file URL is unavailable."
+                }
                 alert.alertStyle = .warning
                 alert.runModal()
             }
