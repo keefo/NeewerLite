@@ -412,7 +412,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         }))
 
         commandHandler.register(command: Command(type: .setLightHSI, action: { cmdParameter in
-            var hueVal = 0.0
+            let hueVal: Double
             if let color = cmdParameter.RGB() {
                 hueVal = CGFloat(color.hueComponent * 360.0)
             } else if let hue = cmdParameter.HUE() {
