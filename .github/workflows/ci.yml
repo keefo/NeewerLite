@@ -34,6 +34,7 @@ jobs:
       
     - name: Build App
       run: pushd NeewerLite; xcodebuild -scheme NeewerLite build -configuration Debug clean; popd;
-    # - name: Run tests
-    #   run: pushd NeewerLite; xcodebuild test -scheme NeewerLite; popd;
+
+    - name: Run tests
+      run: pushd NeewerLite; xcodebuild -scheme NeewerLiteTests -configuration Debug test; popd;
 
