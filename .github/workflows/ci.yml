@@ -12,11 +12,6 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    - name: Build
-      run: pushd NeewerLite; xcodebuild -scheme NeewerLite build -configuration Debug clean; popd;
-    # - name: Run tests
-    #   run: pushd NeewerLite; xcodebuild test -scheme NeewerLite; popd;
-
     - name: Setup Node.js
       uses: actions/setup-node@v3
       with:
@@ -36,3 +31,9 @@ jobs:
     - name: Balidate Stream Deck plugin
       working-directory: NeewerLiteStreamDeck/neewerlite
       run: streamdeck validate com.beyondcow.neewerlite.sdPlugin
+      
+    - name: Build App
+      run: pushd NeewerLite; xcodebuild -scheme NeewerLite build -configuration Debug clean; popd;
+    # - name: Run tests
+    #   run: pushd NeewerLite; xcodebuild test -scheme NeewerLite; popd;
+
