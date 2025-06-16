@@ -129,19 +129,16 @@ You can control NeewerLite from your Stream Deck in two different ways:
    - NeewerLite will prompt you to install the plugin automatically.
    - Click **Install** when prompted, then open the Stream Deck app—our plugin will appear in your actions list.
 
+<p>
+<img src="Docs/StreamDeck_dial_ui.png" width="300px" />
+<img src="Docs/StreamDeck_dial.jpg" width="300px" />
+</p>
+
 2. **Bind a custom script to a Stream Deck button**
    - Write a simple shell, Python, or Node.js script that sends commands to NeewerLite’s open schema.
    - In the Stream Deck software, use the **System → Open** action (or **Run** action) to point at your script.
    - Assign your button an icon and label, then you’re ready to go!
    - Read this [Integrate with Elgato Stream Deck](./Docs/Integrate-with-streamdeck.md) for details.
-
-<p>
-<img src="Docs/StreamDeck_dial_ui.png" width="300px" />
-</p>
-
-<p>
-<img src="Docs/StreamDeck_dial.jpg" width="300px" />
-</p>
 
 ## How to use script to integrate with macOS Shortcuts?
 
