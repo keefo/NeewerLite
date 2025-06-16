@@ -59,6 +59,9 @@ if [[ ! $answer =~ ^[Yy]$ ]]; then
     exit 1
 fi
 
+# Prompt for a release note
+read -p "Enter release notes: " releaseNotes
+
 # 4. Upload to your website
 echo "Uploading appcast to $NEEWERLITE_REMOTE_USER_NAME:$NEEWERLITE_REMOTE_FOLDER..."
 ssh $NEEWERLITE_REMOTE_USER_NAME "rm $NEEWERLITE_REMOTE_FOLDER/appcast.xml"
@@ -70,7 +73,7 @@ echo "Creating GitHub release for $TAG_NAME..."
 gh release create "$TAG_NAME" \
   --repo "keefo/NeewerLite" \
   --title "$RELEASE_TITLE" \
-  --notes "Auto-generated release for $RELEASE_TITLE" \
+  --notes $'Auto-generated release for '"$RELEASE_TITLE"$'\n'"$releaseNotes" \
   "$ZIP_PATH" \
   "$DMG_PATH" 
 

@@ -34,7 +34,9 @@
 		A75310A12AFF2A19009F533C /* ContentManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A75310A02AFF2A19009F533C /* ContentManager.swift */; };
 		A76C38632DFD4B64006B7C38 /* Swifter in Frameworks */ = {isa = PBXBuildFile; productRef = A76C38622DFD4B64006B7C38 /* Swifter */; };
 		A76C38692DFFFCFA006B7C38 /* Utils.swift in Sources */ = {isa = PBXBuildFile; fileRef = A76C38682DFFFCFA006B7C38 /* Utils.swift */; };
-		A76C386D2E00097C006B7C38 /* com.beyondcow.neewerlite.streamDeckPlugin in Resources */ = {isa = PBXBuildFile; fileRef = A76C386C2E00097C006B7C38 /* com.beyondcow.neewerlite.streamDeckPlugin */; };
+		A76C386F2E002B95006B7C38 /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = A76C386E2E002B95006B7C38 /* Sparkle */; };
+		A76C38712E002B98006B7C38 /* Atomics in Frameworks */ = {isa = PBXBuildFile; productRef = A76C38702E002B98006B7C38 /* Atomics */; };
+		A76C38732E002B9A006B7C38 /* Swifter in Frameworks */ = {isa = PBXBuildFile; productRef = A76C38722E002B9A006B7C38 /* Swifter */; };
 		A76C4B6D275474FA00D2F145 /* AudioSpectrogram.swift in Sources */ = {isa = PBXBuildFile; fileRef = A76C4B6C275474FA00D2F145 /* AudioSpectrogram.swift */; };
 		A76E1F21266496FC00E5788B /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = A76E1F20266496FC00E5788B /* Sparkle */; };
 		A76E1F2326649F2A00E5788B /* Credits.rtf in Resources */ = {isa = PBXBuildFile; fileRef = A76E1F2226649F2A00E5788B /* Credits.rtf */; };
@@ -91,7 +93,6 @@
 		A753109E2AFCAA25009F533C /* NeewerLightSource.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NeewerLightSource.swift; sourceTree = "<group>"; };
 		A75310A02AFF2A19009F533C /* ContentManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentManager.swift; sourceTree = "<group>"; };
 		A76C38682DFFFCFA006B7C38 /* Utils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Utils.swift; sourceTree = "<group>"; };
-		A76C386C2E00097C006B7C38 /* com.beyondcow.neewerlite.streamDeckPlugin */ = {isa = PBXFileReference; lastKnownFileType = file; path = com.beyondcow.neewerlite.streamDeckPlugin; sourceTree = "<group>"; };
 		A76C4B6C275474FA00D2F145 /* AudioSpectrogram.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioSpectrogram.swift; sourceTree = "<group>"; };
 		A76E1F2226649F2A00E5788B /* Credits.rtf */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.rtf; path = Credits.rtf; sourceTree = "<group>"; };
 		A77414D12AEA2C8D0085F149 /* BlockingOverlayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlockingOverlayView.swift; sourceTree = "<group>"; };
@@ -121,6 +122,9 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A76C38732E002B9A006B7C38 /* Swifter in Frameworks */,
+				A76C386F2E002B95006B7C38 /* Sparkle in Frameworks */,
+				A76C38712E002B98006B7C38 /* Atomics in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -232,7 +236,6 @@
 			children = (
 				A730F7FF2AE7B8C0009CA529 /* digital-7-mono.ttf */,
 				A731DD3525A57D0B00302E25 /* Assets.xcassets */,
-				A76C386C2E00097C006B7C38 /* com.beyondcow.neewerlite.streamDeckPlugin */,
 				A731DD8E25A592CC00302E25 /* CollectionViewItem.xib */,
 				A731DD3725A57D0B00302E25 /* MainMenu.xib */,
 				A76E1F2226649F2A00E5788B /* Credits.rtf */,
@@ -352,7 +355,6 @@
 				A730F8002AE7B8C0009CA529 /* digital-7-mono.ttf in Resources */,
 				A731DD3925A57D0B00302E25 /* MainMenu.xib in Resources */,
 				A731DD8F25A592CC00302E25 /* CollectionViewItem.xib in Resources */,
-				A76C386D2E00097C006B7C38 /* com.beyondcow.neewerlite.streamDeckPlugin in Resources */,
 				A76E1F2326649F2A00E5788B /* Credits.rtf in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -735,6 +737,21 @@
 			productName = Atomics;
 		};
 		A76C38622DFD4B64006B7C38 /* Swifter */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A7B4822A2DFD49C200EB4450 /* XCRemoteSwiftPackageReference "swifter" */;
+			productName = Swifter;
+		};
+		A76C386E2E002B95006B7C38 /* Sparkle */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A76E1F1F266496FC00E5788B /* XCRemoteSwiftPackageReference "Sparkle" */;
+			productName = Sparkle;
+		};
+		A76C38702E002B98006B7C38 /* Atomics */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A71B39B8275726800005E271 /* XCRemoteSwiftPackageReference "swift-atomics" */;
+			productName = Atomics;
+		};
+		A76C38722E002B9A006B7C38 /* Swifter */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = A7B4822A2DFD49C200EB4450 /* XCRemoteSwiftPackageReference "swifter" */;
 			productName = Swifter;

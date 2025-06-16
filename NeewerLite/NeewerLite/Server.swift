@@ -3,6 +3,16 @@ import AppKit
 import Swifter
 
 
+extension DeviceViewObject {
+    /// Matches a lightId against userLightName, rawName, or identifier (case-insensitive)
+    func matches(lightId: String) -> Bool {
+        let lower = lightId.lowercased()
+        return device.userLightName.value.lowercased() == lower
+            || device.rawName.lowercased()          == lower
+            || device.identifier.lowercased()       == lower
+    }
+}
+
 final class NeewerLiteServer {
     private let server = HttpServer()
     private let port: in_port_t
@@ -90,10 +100,9 @@ final class NeewerLiteServer {
             // Perform your switch logic here
             Logger.info(LogTag.server, "Switching lights: \(payload.lights) state: \(payload.state)")
             for light in payload.lights {
-                self.appDelegate?.viewObjects.forEach { viewObj in
-                    if light.caseInsensitiveCompare(viewObj.device.userLightName.value) == .orderedSame ||
-                        light.caseInsensitiveCompare(viewObj.device.rawName) == .orderedSame ||
-                        light.caseInsensitiveCompare(viewObj.device.identifier) == .orderedSame {
+                self.appDelegate?.viewObjects
+                    .filter { $0.matches(lightId: light) }
+                    .forEach { viewObj in
                         Task { @MainActor in
                             if payload.state {
                                 if !viewObj.isON {
@@ -107,7 +116,6 @@ final class NeewerLiteServer {
                             }
                         }
                     }
-                }
             }
             // Respond with success and echoed list
             return HttpResponse.ok(.json(["success": true, "switched": payload.lights]))
@@ -129,15 +137,13 @@ final class NeewerLiteServer {
             // Perform your switch logic here
             for light in payload.lights {
                 Logger.info(LogTag.server, "light: \(light)")
-                self.appDelegate?.viewObjects.forEach { viewObj in
-                    if light.caseInsensitiveCompare(viewObj.device.userLightName.value) == .orderedSame ||
-                        light.caseInsensitiveCompare(viewObj.device.rawName) == .orderedSame ||
-                        light.caseInsensitiveCompare(viewObj.device.identifier) == .orderedSame {
+                self.appDelegate?.viewObjects
+                    .filter { $0.matches(lightId: light) }
+                    .forEach { viewObj in
                         Task { @MainActor in
                             viewObj.device.setBRRLightValues(payload.brightness)
                         }
                     }
-                }
             }
             // Respond with success and echoed list
             return HttpResponse.ok(.json(["success": true, "switched": payload.lights]))
@@ -159,15 +165,13 @@ final class NeewerLiteServer {
             // Perform your switch logic here
             for light in payload.lights {
                 Logger.info(LogTag.server, "light: \(light)")
-                self.appDelegate?.viewObjects.forEach { viewObj in
-                    if light.caseInsensitiveCompare(viewObj.device.userLightName.value) == .orderedSame ||
-                        light.caseInsensitiveCompare(viewObj.device.rawName) == .orderedSame ||
-                        light.caseInsensitiveCompare(viewObj.device.identifier) == .orderedSame {
-                        Task { @MainActor in
+                self.appDelegate?.viewObjects
+                    .filter { $0.matches(lightId: light) }
+                    .forEach { viewObj in
+                       Task { @MainActor in
                             viewObj.device.setCCTLightValues(brr: CGFloat(viewObj.device.brrValue.value), cct: CGFloat(payload.temperature), gmm: CGFloat(viewObj.device.gmmValue.value))
                         }
                     }
-                }
             }
             // Respond with success and echoed list
             return HttpResponse.ok(.json(["success": true, "switched": payload.lights]))
@@ -189,16 +193,14 @@ final class NeewerLiteServer {
             }
             // Perform your switch logic here
             for light in payload.lights {
-                self.appDelegate?.viewObjects.forEach { viewObj in
-                    if light.caseInsensitiveCompare(viewObj.device.userLightName.value) == .orderedSame ||
-                        light.caseInsensitiveCompare(viewObj.device.rawName) == .orderedSame ||
-                        light.caseInsensitiveCompare(viewObj.device.identifier) == .orderedSame {
-                        Task { @MainActor in
+                self.appDelegate?.viewObjects
+                    .filter { $0.matches(lightId: light) }
+                    .forEach { viewObj in
+                         Task { @MainActor in
                             viewObj.changeToCCTMode()
                             viewObj.device.setCCTLightValues(brr: CGFloat(payload.brightness), cct: CGFloat(payload.temperature), gmm: CGFloat(viewObj.device.gmmValue.value))
                         }
                     }
-                }
             }
             // Respond with success and echoed list
             return HttpResponse.ok(.json(["success": true, "switched": payload.lights]))
@@ -224,10 +226,9 @@ final class NeewerLiteServer {
             let satVal = CGFloat(payload.saturation / 100.0)
             // Perform your switch logic here
             for light in payload.lights {
-                self.appDelegate?.viewObjects.forEach { viewObj in
-                    if light.caseInsensitiveCompare(viewObj.device.userLightName.value) == .orderedSame ||
-                        light.caseInsensitiveCompare(viewObj.device.rawName) == .orderedSame ||
-                        light.caseInsensitiveCompare(viewObj.device.identifier) == .orderedSame {
+                self.appDelegate?.viewObjects
+                    .filter { $0.matches(lightId: light) }
+                    .forEach { viewObj in
                         if viewObj.device.supportRGB {
                             Task { @MainActor in
                                 viewObj.changeToHSIMode()
@@ -235,7 +236,6 @@ final class NeewerLiteServer {
                             }
                         }
                     }
-                }
             }
             // Respond with success and echoed list
             return HttpResponse.ok(.json(["success": true, "switched": payload.lights]))
@@ -257,18 +257,15 @@ final class NeewerLiteServer {
             let hueVal = payload.hue / 100.0 * 360.0
             // Perform your switch logic here
             for light in payload.lights {
-                self.appDelegate?.viewObjects.forEach { viewObj in
-                    if light.caseInsensitiveCompare(viewObj.device.userLightName.value) == .orderedSame ||
-                        light.caseInsensitiveCompare(viewObj.device.rawName) == .orderedSame ||
-                        light.caseInsensitiveCompare(viewObj.device.identifier) == .orderedSame {
-                        if viewObj.device.supportRGB {
-                            Task { @MainActor in
-                                viewObj.changeToHSIMode()
-                                viewObj.updateHSI(hue: hueVal, sat: CGFloat(viewObj.device.satValue.value), brr: CGFloat(viewObj.device.brrValue.value))
-                            }
+                self.appDelegate?.viewObjects
+                    .filter { $0.matches(lightId: light) }
+                    .filter { $0.device.supportRGB }
+                    .forEach { viewObj in
+                        Task { @MainActor in
+                            viewObj.changeToHSIMode()
+                            viewObj.updateHSI(hue: hueVal, sat: CGFloat(viewObj.device.satValue.value), brr: CGFloat(viewObj.device.brrValue.value))
                         }
                     }
-                }
             }
             // Respond with success and echoed list
             return HttpResponse.ok(.json(["success": true, "switched": payload.lights]))
@@ -291,18 +288,15 @@ final class NeewerLiteServer {
             let satVal = CGFloat(payload.saturation / 100.0)
             Logger.info(LogTag.server, "cct lights: \(payload.lights) saturation: \(payload.saturation) satVal: \(satVal)")
             for light in payload.lights {
-                self.appDelegate?.viewObjects.forEach { viewObj in
-                    if light.caseInsensitiveCompare(viewObj.device.userLightName.value) == .orderedSame ||
-                        light.caseInsensitiveCompare(viewObj.device.rawName) == .orderedSame ||
-                        light.caseInsensitiveCompare(viewObj.device.identifier) == .orderedSame {
-                        if viewObj.device.supportRGB {
-                            Task { @MainActor in
-                                viewObj.changeToHSIMode()
-                                viewObj.updateHSI(hue: CGFloat(viewObj.device.hueValue.value), sat: satVal, brr: CGFloat(viewObj.device.brrValue.value))
-                            }
+                self.appDelegate?.viewObjects
+                    .filter { $0.matches(lightId: light) }
+                    .filter { $0.device.supportRGB }
+                    .forEach { viewObj in
+                        Task { @MainActor in
+                            viewObj.changeToHSIMode()
+                            viewObj.updateHSI(hue: CGFloat(viewObj.device.hueValue.value), sat: satVal, brr: CGFloat(viewObj.device.brrValue.value))
                         }
                     }
-                }
             }
             // Respond with success and echoed list
             return HttpResponse.ok(.json(["success": true, "switched": payload.lights]))
@@ -325,11 +319,10 @@ final class NeewerLiteServer {
             // Perform your switch logic here
             Logger.debug(LogTag.server, "cct lights: \(payload.lights) fx9: \(payload.fx9) fx17: \(payload.fx17)")
             for light in payload.lights {
-                self.appDelegate?.viewObjects.forEach { viewObj in
-                    if light.caseInsensitiveCompare(viewObj.device.userLightName.value) == .orderedSame ||
-                        light.caseInsensitiveCompare(viewObj.device.rawName) == .orderedSame ||
-                        light.caseInsensitiveCompare(viewObj.device.identifier) == .orderedSame {
-                        if viewObj.device.maxChannel == 9 {
+                self.appDelegate?.viewObjects
+                    .filter { $0.matches(lightId: light) }
+                    .forEach { viewObj in
+                         if viewObj.device.maxChannel == 9 {
                             if payload.fx9 > 0 && payload.fx9 <= viewObj.device.maxChannel {
                                 Task { @MainActor in
                                     viewObj.changeToSCEMode()
@@ -346,7 +339,6 @@ final class NeewerLiteServer {
                             }
                         }
                     }
-                }
             }
             // Respond with success and echoed list
             return HttpResponse.ok(.json(["success": true, "switched": payload.lights]))

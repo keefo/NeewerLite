@@ -55,7 +55,7 @@
 	<key>SUPublicEDKey</key>
 	<string>alhbxGGFpHXtfz+awtP9zxxYb29sl+p9DC7rTJK1OL8=</string>
 	<key>SDPluginVersion</key>
-	<string>0.1.2.0</string>
+	<string>0.1.3.0</string>
 	<key>NSAppTransportSecurity</key>
 	<dict>
 		<key>NSExceptionDomains</key>
