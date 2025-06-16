@@ -613,6 +613,16 @@ class NeewerLightConstant {
     class func getFakeLightConfigs() -> [[String: CodableValue]] {
         var lights: [[String: CodableValue]] = []
         if true {
+            // NEEWER CB60B 70W Bi-Color LED Video Light
+            // https://neewer.com/products/neewer-cb60b-bi-color-70w-led-video-light-66602613
+            var cfg: [String: CodableValue] = [:]
+            cfg["fake"] = CodableValue.boolValue(true)
+            cfg["mac"] = CodableValue.stringValue("DF:34:3A:BB:A6:CD")
+            cfg["rawname"] = CodableValue.stringValue("NW-20220014&00000000")
+            cfg["identifier"] = CodableValue.stringValue("AEE0BA8C-D9B4-B7DB-0FD2-4531C7E5B053")
+            lights.append(cfg)
+        }
+        if true {
             // NEEWER 18" RGB LED Round Panel Video Light
             // https://www.amazon.ca/NEEWER-2500K-8500K-Photography-Recording-GR18C/dp/B0D2GWGR9Y?th=1
             var cfg: [String: CodableValue] = [:]

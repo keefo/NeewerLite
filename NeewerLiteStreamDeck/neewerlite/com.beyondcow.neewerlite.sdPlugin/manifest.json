@@ -1,32 +1,207 @@
 {
-	"Name": "neewerlite",
-	"Version": "0.1.0.0",
+	"$schema": "https://schemas.elgato.com/streamdeck/plugins/manifest.json",
+	"Name": "Neewerlite",
+	"Version": "0.1.1.0",
 	"Author": "keefo",
+	"Category": "Neewerlite",
+	"CategoryIcon": "imgs/plugin/category-icon",
+	"CodePath": "bin/plugin.js",
+	"Description": "NeewerLite is a unofficial macOS app designed for controlling Neewer LED lights.",
+	"Icon": "imgs/plugin/neewerlite",
+	"SDKVersion": 2,
+	"URL": "https://github.com/keefo/NeewerLite",
 	"Actions": [
 		{
-			"Name": "Counter",
-			"UUID": "com.beyondcow.neewerlite.increment",
-			"Icon": "imgs/actions/counter/icon",
-			"Tooltip": "Displays a count, which increments by one on press.",
-			"PropertyInspectorPath": "ui/increment-counter.html",
+			"UUID": "com.beyondcow.neewerlite.lightcontrol.switch",
+			"Name": "On/Off",
+			"Tooltip": "Turn on/off your lights",
+			"Icon": "imgs/actions/light_onoff/off",
+			"SupportedInMultiActions": false,
 			"Controllers": [
 				"Keypad"
 			],
 			"States": [
 				{
-					"Image": "imgs/actions/counter/key",
+					"Image": "imgs/actions/light_onoff/off",
+					"TitleAlignment": "middle"
+				},
+				{
+					"Image": "imgs/actions/light_onoff/on",
 					"TitleAlignment": "middle"
 				}
-			]
+			],
+			"PropertyInspectorPath": "ui/switch.html"
+		},
+		{
+			"UUID": "com.beyondcow.neewerlite.lightcontrol.brightness",
+			"Name": "Brightness",
+			"Tooltip": "Control your lights brightness",
+			"Icon": "imgs/actions/brightness/icon",
+			"SupportedInMultiActions": false,
+			"Controllers": [
+				"Encoder"
+			],
+			"Encoder": {
+				"layout": "$B1"
+			},
+			"States": [
+				{
+					"Image": "imgs/actions/brightness/icon",
+					"TitleAlignment": "middle"
+				},
+				{
+					"Image": "imgs/actions/brightness/icon_on",
+					"TitleAlignment": "middle"
+				}
+			],
+			"PropertyInspectorPath": "ui/brightness.html"
+		},
+		{
+			"UUID": "com.beyondcow.neewerlite.lightcontrol.temperature",
+			"Name": "Temperature",
+			"Tooltip": "Control your lights temperature",
+			"Icon": "imgs/actions/temperature/icon",
+			"SupportedInMultiActions": false,
+			"Controllers": [
+				"Encoder"
+			],
+			"Encoder": {
+				"layout": "$B2"
+			},
+			"States": [
+				{
+					"Image": "imgs/actions/temperature/icon",
+					"TitleAlignment": "middle"
+				}
+			],
+			"PropertyInspectorPath": "ui/temperature.html"
+		},
+		{
+			"UUID": "com.beyondcow.neewerlite.lightcontrol.brightness.key",
+			"Name": "Brightness",
+			"Tooltip": "Control your lights brightness",
+			"Icon": "imgs/actions/brightness/icon",
+			"SupportedInMultiActions": false,
+			"Controllers": [
+				"Keypad"
+			],
+			"States": [
+				{
+					"Image": "imgs/actions/brightness/icon",
+					"TitleAlignment": "middle"
+				},
+				{
+					"Image": "imgs/actions/brightness/icon_on",
+					"TitleAlignment": "middle"
+				}
+			],
+			"PropertyInspectorPath": "ui/brightness.key.html"
+		},
+		{
+			"UUID": "com.beyondcow.neewerlite.lightcontrol.temperature.key",
+			"Name": "Temperature",
+			"Tooltip": "Control your lights temperature",
+			"Icon": "imgs/actions/temperature/icon",
+			"SupportedInMultiActions": false,
+			"Controllers": [
+				"Keypad"
+			],
+			"States": [
+				{
+					"Image": "imgs/actions/temperature/icon",
+					"TitleAlignment": "middle"
+				}
+			],
+			"PropertyInspectorPath": "ui/temperature.key.html"
+		},
+		{
+			"UUID": "com.beyondcow.neewerlite.lightcontrol.cct.key",
+			"Name": "CCT",
+			"Tooltip": "Control your lights CCT",
+			"Icon": "imgs/actions/cct/icon",
+			"SupportedInMultiActions": false,
+			"Controllers": [
+				"Keypad"
+			],
+			"States": [
+				{
+					"Image": "imgs/actions/cct/icon"
+				}
+			],
+			"PropertyInspectorPath": "ui/cct.key.html"
+		},
+		{
+			"UUID": "com.beyondcow.neewerlite.lightcontrol.hst.key",
+			"Name": "HST",
+			"Tooltip": "Control your lights HST",
+			"Icon": "imgs/actions/hst/icon",
+			"SupportedInMultiActions": false,
+			"Controllers": [
+				"Keypad"
+			],
+			"States": [
+				{
+					"Image": "imgs/actions/hst/icon"
+				}
+			],
+			"PropertyInspectorPath": "ui/hst.key.html"
+		},
+		{
+			"UUID": "com.beyondcow.neewerlite.lightcontrol.fx.key",
+			"Name": "FX",
+			"Tooltip": "Control your lights FX",
+			"Icon": "imgs/actions/fx/icon",
+			"SupportedInMultiActions": false,
+			"Controllers": [
+				"Keypad"
+			],
+			"States": [
+				{
+					"Image": "imgs/actions/fx/icon"
+				}
+			],
+			"PropertyInspectorPath": "ui/fx.key.html"
+		},
+		{
+			"UUID": "com.beyondcow.neewerlite.lightcontrol.hue",
+			"Name": "HUE",
+			"Tooltip": "Control your lights HUE",
+			"Icon": "imgs/actions/hue/icon",
+			"SupportedInMultiActions": false,
+			"Controllers": [
+				"Encoder"
+			],
+			"Encoder": {
+				"layout": "$B2"
+			},
+			"States": [
+				{
+					"Image": "imgs/actions/hue/icon",
+					"TitleAlignment": "middle"
+				}
+			],
+			"PropertyInspectorPath": "ui/hue.html"
+		},
+		{
+			"UUID": "com.beyondcow.neewerlite.lightcontrol.sat",
+			"Name": "Saturation",
+			"Tooltip": "Control your lights saturation",
+			"Icon": "imgs/actions/sat/icon",
+			"SupportedInMultiActions": false,
+			"Controllers": [
+				"Encoder"
+			],
+			"Encoder": {
+				"layout": "$B2"
+			},
+			"States": [
+				{
+					"Image": "imgs/actions/sat/icon"
+				}
+			],
+			"PropertyInspectorPath": "ui/sat.html"
 		}
 	],
-	"Category": "neewerlite",
-	"CategoryIcon": "imgs/plugin/category-icon",
-	"CodePath": "bin/plugin.js",
-	"Description": "test",
-	"Icon": "imgs/plugin/marketplace",
-	"SDKVersion": 2,
-	"URL": "https://github.com/keefo/NeewerLite",
 	"Software": {
 		"MinimumVersion": "6.5"
 	},

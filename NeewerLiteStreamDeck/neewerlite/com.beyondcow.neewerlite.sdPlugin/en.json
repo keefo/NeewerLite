@@ -1,0 +1,41 @@
+{
+	"Name": "Neewerlite",
+	"Description": "A Neewerlite plugin",
+	"com.beyondcow.neewerlite.lightcontrol.switch": {
+		"Name": "On/Off",
+		"Tooltip": "On/Off"
+	},
+	"com.beyondcow.neewerlite.lightcontrol.brightness": {
+		"Name": "Brightness",
+		"Tooltip": "Brightness"
+	},
+	"com.beyondcow.neewerlite.lightcontrol.temperature": {
+		"Name": "Temperature",
+		"Tooltip": "Temperature"
+	},
+	"com.beyondcow.neewerlite.lightcontrol.brightness.key": {
+		"Name": "Brightness",
+		"Tooltip": "Brightness"
+	},
+	"com.beyondcow.neewerlite.lightcontrol.hue": {
+		"Name": "HUE",
+		"Tooltip": "HUE"
+	},
+	"com.beyondcow.neewerlite.lightcontrol.sat": {
+		"Name": "Saturation",
+		"Tooltip": "Saturation"
+	},
+	"com.beyondcow.neewerlite.lightcontrol.fx.key": {
+		"Name": "FX",
+		"Tooltip": "Scenes"
+	},
+	"Localization": {
+		"brightness": "Brightness",
+		"temperature": "Temperature",
+		"on": "ON",
+		"off": "OFF",
+		"hue": "HUE",
+		"sat": "Saturation",
+		"fx": "FX"
+	}
+}
