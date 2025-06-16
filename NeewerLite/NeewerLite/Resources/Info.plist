@@ -17,9 +17,9 @@
 	<key>CFBundlePackageType</key>
 	<string>$(PRODUCT_BUNDLE_PACKAGE_TYPE)</string>
 	<key>CFBundleShortVersionString</key>
-	<string>1.6.3</string>
+	<string>1.6.4</string>
 	<key>CFBundleVersion</key>
-	<string>19</string>
+	<string>21</string>
 	<key>LSApplicationCategoryType</key>
 	<string>public.app-category.utilities</string>
 	<key>LSMinimumSystemVersion</key>
@@ -55,7 +55,7 @@
 	<key>SUPublicEDKey</key>
 	<string>alhbxGGFpHXtfz+awtP9zxxYb29sl+p9DC7rTJK1OL8=</string>
 	<key>SDPluginVersion</key>
-	<string>0.1.1.0</string>
+	<string>0.1.2.0</string>
 	<key>NSAppTransportSecurity</key>
 	<dict>
 		<key>NSExceptionDomains</key>
