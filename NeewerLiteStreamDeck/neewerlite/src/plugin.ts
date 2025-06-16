@@ -1,17 +1,16 @@
-import streamDeck, { LogLevel } from "@elgato/streamdeck";
+import streamDeck, { LogLevel } from '@elgato/streamdeck';
 
-import { startHeartbeat } from "./ipc";
-import { SwitchLightControl } from "./actions/switch";
-import { BrightnessControl } from "./actions/brightness";
-import { TemperatureControl } from "./actions/temperature";
-import { BrightnessKeyControl } from "./actions/brightness_key";
-import { TemperatureKeyControl } from "./actions/temperature_key";
-import { CCTKeyControl } from "./actions/cct_key";
-import { HSTKeyControl } from "./actions/hst_key";
-import { HUEControl } from "./actions/hue";
-import { SATControl } from "./actions/sat";
-import { FXKeyControl } from "./actions/fx_key";
-
+import { startHeartbeat } from './ipc';
+import { SwitchLightControl } from './actions/switch';
+import { BrightnessControl } from './actions/brightness';
+import { TemperatureControl } from './actions/temperature';
+import { BrightnessKeyControl } from './actions/brightness_key';
+import { TemperatureKeyControl } from './actions/temperature_key';
+import { CCTKeyControl } from './actions/cct_key';
+import { HSTKeyControl } from './actions/hst_key';
+import { HUEControl } from './actions/hue';
+import { SATControl } from './actions/sat';
+import { FXKeyControl } from './actions/fx_key';
 
 // We can enable "trace" logging so that all messages between the Stream Deck, and the plugin are recorded. When storing sensitive information
 streamDeck.logger.setLevel(LogLevel.INFO);
@@ -32,4 +31,3 @@ streamDeck.actions.registerAction(new FXKeyControl());
 streamDeck.connect();
 
 startHeartbeat();
-

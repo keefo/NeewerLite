@@ -1,34 +1,46 @@
-import streamDeck, { action, KeyAction, DialRotateEvent, DialUpEvent, DidReceiveSettingsEvent, SingletonAction, WillAppearEvent, type JsonValue, type KeyDownEvent, type SendToPluginEvent } from "@elgato/streamdeck";
-import type { GlobalSettings, Light, DataSourcePayload, DataSourceResult } from "../sdpi";
-import { setLightsBrightness, toggleLights } from "../ipc";
+import streamDeck, {
+    action,
+    KeyAction,
+    DialRotateEvent,
+    DialUpEvent,
+    DidReceiveSettingsEvent,
+    SingletonAction,
+    WillAppearEvent,
+    type JsonValue,
+    type KeyDownEvent,
+    type SendToPluginEvent,
+} from '@elgato/streamdeck';
+import type { GlobalSettings, Light, DataSourcePayload, DataSourceResult } from '../sdpi';
+import { setLightsBrightness, toggleLights } from '../ipc';
 
-
-@action({ UUID: "com.beyondcow.neewerlite.lightcontrol.brightness.key" })
+@action({ UUID: 'com.beyondcow.neewerlite.lightcontrol.brightness.key' })
 export class BrightnessKeyControl extends SingletonAction<CounterSettings> {
-
     override async onWillAppear(ev: WillAppearEvent<CounterSettings>): Promise<void> {
         if (!ev.action.isKey()) return;
         let settings = ev.payload.settings;
+        if (settings.selectedLights == undefined) {
+            settings.selectedLights = [];
+        }
         ev.action.setSettings(settings);
     }
 
-	override onKeyDown(ev: KeyDownEvent<CounterSettings>): Promise<void> | void {
+    override onKeyDown(ev: KeyDownEvent<CounterSettings>): Promise<void> | void {
         let settings = ev.payload.settings;
         if (settings.selectedLights.length <= 0) {
-            streamDeck.logger.warn("No lights selected to toggle.");
+            streamDeck.logger.warn('No lights selected to toggle.');
             return;
         }
-        streamDeck.logger.warn("onKeyDown: ", settings);
+        streamDeck.logger.warn('onKeyDown: ', settings);
         setLightsBrightness(settings.selectedLights, settings.brightness)
-            .then(response => {
+            .then((response) => {
                 if (response.body && response.body.success) {
-                    streamDeck.logger.info("Brightness set successfully:", response.body.switched);
+                    streamDeck.logger.info('Brightness set successfully:', response.body.switched);
                 } else {
-                    streamDeck.logger.warn("Failed to set Brightness lights:", response.body);
+                    streamDeck.logger.warn('Failed to set Brightness lights:', response.body);
                 }
             })
-            .catch(err => {
-                streamDeck.logger.error("toggleLights failed:", err);
+            .catch((err) => {
+                streamDeck.logger.error('toggleLights failed:', err);
             });
     }
 
@@ -37,18 +49,18 @@ export class BrightnessKeyControl extends SingletonAction<CounterSettings> {
      * @param ev Event information.
      */
     override async onSendToPlugin(ev: SendToPluginEvent<JsonValue, CounterSettings>): Promise<void> {
-        streamDeck.logger.debug("Received message from property inspector:", ev);
+        streamDeck.logger.debug('Received message from property inspector:', ev);
         // Check if the payload is requesting a data source, i.e. the structure is { event: string }
-        if (ev.payload instanceof Object && "event" in ev.payload && ev.payload.event === "deviceList") {
+        if (ev.payload instanceof Object && 'event' in ev.payload && ev.payload.event === 'deviceList') {
             let { lights = [] } = await streamDeck.settings.getGlobalSettings<GlobalSettings>();
-            let ui_lights = lights.map(light => ({
+            let ui_lights = lights.map((light) => ({
                 label: light.name,
                 value: light.id,
-                disabled: light.state == -1
+                disabled: light.state == -1,
             }));
-            streamDeck.logger.debug("Sending device list to property inspector:", ui_lights);
+            streamDeck.logger.debug('Sending device list to property inspector:', ui_lights);
             streamDeck.ui.current?.sendToPropertyInspector({
-                event: "deviceList",
+                event: 'deviceList',
                 items: ui_lights,
             });
         }
@@ -59,9 +71,8 @@ export class BrightnessKeyControl extends SingletonAction<CounterSettings> {
  * Settings for {@link IncrementCounter}.
  */
 type CounterSettings = {
-	value: number;
-	light: number;
-	brightness: number | 0 ;
-	selectedLights: string[];
+    value: number;
+    light: number;
+    brightness: number;
+    selectedLights: string[];
 };
-
