@@ -2,6 +2,11 @@
 Tools/*.dmg
 Tools/build
 *.xcbkptlist
-*.xcuserstate
-*.xcsettings
-*.xcworkspacedata
+
+# Xcode workspace
+!*.xcworkspace/contents.xcworkspacedata
+!*.xcworkspace/xcshareddata/**
+
+# ignore user-specific workspace settings
+*.xcworkspace/xcuserdata/
+
