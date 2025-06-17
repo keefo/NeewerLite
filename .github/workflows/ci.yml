@@ -33,17 +33,19 @@ jobs:
         run: streamdeck validate com.beyondcow.neewerlite.sdPlugin
 
       - name: List available schemes
-        run: pushd NeewerLite; xcodebuild -project NeewerLite.xcodeproj -list; popd;
+        working-directory: NeewerLite
+        run: xcodebuild -project NeewerLite.xcodeproj -list;
 
       - name: Build App
-        run: pushd NeewerLite; xcodebuild -scheme NeewerLite build -configuration Debug clean; popd;
+        working-directory: NeewerLite
+        run: xcodebuild -scheme NeewerLite build -configuration Debug clean;
 
       - name: Run unit tests
+        working-directory: NeewerLite
         run: |
-          pushd NeewerLite
           xcodebuild \
             -project NeewerLite.xcodeproj \
             -scheme NeewerLiteTests \
             -configuration Debug \
             test
-          popd
+            
