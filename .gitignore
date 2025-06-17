@@ -1,12 +1,4 @@
 .DS_Store
 Tools/*.dmg
 Tools/build
-*.xcbkptlist
-
-# Xcode workspace
-!*.xcworkspace/contents.xcworkspacedata
-!*.xcworkspace/xcshareddata/**
-
-# ignore user-specific workspace settings
-*.xcworkspace/xcuserdata/
-
+.build
