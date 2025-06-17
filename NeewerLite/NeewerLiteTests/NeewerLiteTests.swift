@@ -140,6 +140,11 @@ class NeewerLiteTests: XCTestCase {
         XCTAssertEqual(name.nickName, "BH-30S RGB-3D69EC")
         XCTAssertEqual(name.projectName, "BH-30S RGB")
         XCTAssertEqual(NeewerLightConstant.getLightType(nickName: name.nickName, rawname: "NW-20230021&00000000", projectName: name.projectName), 42, "")
+        
+        name = NeewerLightConstant.getLightNames(rawName: "NW-20220014&00000000", identifier: "DEE0BA8C-D9B4-B7DB-0FD2-2531C7E4B053")
+        XCTAssertEqual(name.nickName, "CB60B-E4B053")
+        XCTAssertEqual(name.projectName, "CB60B")
+        XCTAssertEqual(NeewerLightConstant.getLightType(nickName: name.nickName, rawname: "", projectName: name.projectName), 31, "")
     }
 
     func test_fxCommand() throws {

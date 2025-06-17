@@ -21,6 +21,7 @@
                 <outlet property="collectionView" destination="QRn-Qa-fcm" id="KUB-iH-3m7"/>
                 <outlet property="gainValueField" destination="gAT-1j-0jx" id="47h-54-Ta7"/>
                 <outlet property="mylightTableView" destination="Vxv-wz-mUA" id="yqH-1d-rye"/>
+                <outlet property="scanButton" destination="hmi-Hy-1iJ" id="IfU-kt-AmN"/>
                 <outlet property="scanTableView" destination="7EQ-pZ-iT4" id="vSR-Pp-1Ug"/>
                 <outlet property="scanningStatus" destination="Gh9-aB-eda" id="Mbi-B2-EmN"/>
                 <outlet property="screenImageView" destination="j37-uF-caV" id="9Jc-Fl-eku"/>
@@ -684,9 +685,22 @@
                     <modifierMask key="keyEquivalentModifierMask"/>
                     <menu key="submenu" title="Help" systemMenu="help" id="F2S-fz-NVQ">
                         <items>
-                            <menuItem title="NeewerLite Help" keyEquivalent="?" id="FKE-Sm-Kum">
+                            <menuItem title="Sync Database" id="FKE-Sm-Kum">
+                                <modifierMask key="keyEquivalentModifierMask"/>
                                 <connections>
-                                    <action selector="showHelp:" target="-1" id="y7X-2Q-9no"/>
+                                    <action selector="syncDatabaseAction:" target="Voe-Tx-rLC" id="vOS-JF-l4g"/>
+                                </connections>
+                            </menuItem>
+                            <menuItem title="Check Logs" id="fIL-aU-mdT">
+                                <modifierMask key="keyEquivalentModifierMask"/>
+                                <connections>
+                                    <action selector="checklogAction:" target="Voe-Tx-rLC" id="Pz0-Od-gSP"/>
+                                </connections>
+                            </menuItem>
+                            <menuItem isSeparatorItem="YES" id="LCy-Dr-cN0"/>
+                            <menuItem title="NeewerLite Help" keyEquivalent="?" id="7LF-HP-G57">
+                                <connections>
+                                    <action selector="showHelp:" target="-1" id="BN1-Ac-jL2"/>
                                 </connections>
                             </menuItem>
                         </items>
@@ -1057,7 +1071,7 @@
                     </connections>
                 </splitView>
             </subviews>
-            <point key="canvasLocation" x="-386.5" y="-1298.5"/>
+            <point key="canvasLocation" x="-714" y="-1279"/>
         </customView>
         <customView id="XLe-ur-ztr" userLabel="view2">
             <rect key="frame" x="0.0" y="0.0" width="639" height="424"/>

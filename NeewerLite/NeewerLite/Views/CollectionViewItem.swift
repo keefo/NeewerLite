@@ -302,6 +302,7 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
         self.nameField.attributedStringValue = finalString
     }
 
+    @MainActor
     func selectTabViewItemSafely(withIdentifier identifier: Any) {
         guard let tabView = self.lightModeTabView else {
             return

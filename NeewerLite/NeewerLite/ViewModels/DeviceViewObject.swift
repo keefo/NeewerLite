@@ -180,7 +180,7 @@ class DeviceViewObject: NSObject {
         return device.lightMode == .SCEMode
     }
 
-    public func changeToMode(_ mode: TabId) {
+    @MainActor public func changeToMode(_ mode: TabId) {
         guard !self.initing else {
             return
         }
@@ -189,7 +189,7 @@ class DeviceViewObject: NSObject {
         }
     }
 
-    public func changeToCCTMode() {
+    @MainActor public func changeToCCTMode() {
         guard !self.initing else {
             return
         }
@@ -198,7 +198,7 @@ class DeviceViewObject: NSObject {
         }
     }
 
-    public func changeToHSIMode() {
+    @MainActor public func changeToHSIMode() {
         guard !self.initing else {
             return
         }
@@ -209,7 +209,7 @@ class DeviceViewObject: NSObject {
         }
     }
 
-    public func changeToSCEMode() {
+    @MainActor public func changeToSCEMode() {
         guard !self.initing else {
             return
         }

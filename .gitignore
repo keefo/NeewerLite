@@ -1,3 +1,4 @@
-Tools/*.dmg
 .DS_Store
+Tools/*.dmg
 Tools/build
+.build

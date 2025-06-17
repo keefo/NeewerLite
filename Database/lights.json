@@ -311,8 +311,8 @@
         },
         {
             "type": 31,
-            "image": "",
-            "link": "",
+            "image": "https://github.com/keefo/NeewerLite/blob/main/Database/light_images/cb60b.png?raw=true",
+            "link": "https://neewer.com/products/neewer-cb60b-bi-color-70w-led-video-light-66602613",
             "supportRGB": false,
             "supportCCTGM": false,
             "supportMusic": true,

@@ -12,15 +12,19 @@ echo $BUILD_FOLDER
 #rm -rf build
 mkdir build
 
-pushd ../NeewerLite
-
-xcodebuild -list -project NeewerLite.xcodeproj
-xcodebuild -scheme NeewerLite build -configuration Release clean -archivePath $APP_PATH archive
-
-#xcrun altool -t osx -f build/Release/NeewerLite.xcarchive --primary-bundle-id com.beyondcow.neewerlite --output-format xml --notarize-app
-
+# build plugin
+pushd ../NeewerLiteStreamDeck/
+./build.sh
 popd
 
+# build app
+pushd ../NeewerLite
+xcodebuild -list -project NeewerLite.xcodeproj
+xcodebuild -scheme NeewerLite build -configuration Release clean -archivePath $APP_PATH archive
+#xcrun altool -t osx -f build/Release/NeewerLite.xcarchive --primary-bundle-id com.beyondcow.neewerlite --output-format xml --notarize-app
+popd
+
+mv ../NeewerLiteStreamDeck/neewerlite/com.beyondcow.neewerlite.streamDeckPlugin $APP_PATH/Products/Applications/NeewerLite.app/Contents/Resources/
 
 ITEMS=""
 
@@ -63,9 +67,11 @@ codesign -vvv --deep --strict $APP_PATH/Products/Applications/NeewerLite.app
 
 ./package_and_build_appcast.sh ./build/NeewerLite.xcarchive/Products/Applications/
 
-xcrun notarytool submit "NeewerLite.dmg" --keychain-profile "AC_PASSWORD" --wait 
-xcrun stapler staple NeewerLite.dmg
-stapler validate NeewerLite.dmg
+mv NeewerLite.dmg ./build/NeewerLite.xcarchive/Products/Applications/
+
+xcrun notarytool submit "./build/NeewerLite.xcarchive/Products/Applications/NeewerLite.dmg" --keychain-profile "AC_PASSWORD" --wait 
+xcrun stapler staple ./build/NeewerLite.xcarchive/Products/Applications/NeewerLite.dmg
+stapler validate ./build/NeewerLite.xcarchive/Products/Applications/NeewerLite.dmg
 
 #
 # xcrun notarytool submit "$ZIP_PATH" --keychain-profile "AC_PASSWORD" --wait 
@@ -74,5 +80,4 @@ stapler validate NeewerLite.dmg
 # 
 # xcrun notarytool info 51c277db-0710-4667-8525-83abcbcb23c5 --keychain-profile "AC_PASSWORD"
 # xcrun notarytool log 51c277db-0710-4667-8525-83abcbcb23c5 --keychain-profile "AC_PASSWORD"
-# 
 # 

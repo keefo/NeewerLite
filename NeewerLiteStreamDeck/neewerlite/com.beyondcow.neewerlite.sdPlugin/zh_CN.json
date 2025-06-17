@@ -1,0 +1,41 @@
+{
+	"Name": "Neewerlite",
+	"Description": "A Neewerlite plugin",
+	"com.beyondcow.neewerlite.lightcontrol.switch": {
+		"Name": "开关",
+		"Tooltip": "开关"
+	},
+	"com.beyondcow.neewerlite.lightcontrol.brightness": {
+		"Name": "亮度",
+		"Tooltip": "亮度"
+	},
+	"com.beyondcow.neewerlite.lightcontrol.temperature": {
+		"Name": "色温",
+		"Tooltip": "色温"
+	},
+	"com.beyondcow.neewerlite.lightcontrol.brightness.key": {
+		"Name": "亮度",
+		"Tooltip": "亮度"
+	},
+	"com.beyondcow.neewerlite.lightcontrol.hue": {
+		"Name": "色相",
+		"Tooltip": "色相"
+	},
+	"com.beyondcow.neewerlite.lightcontrol.sat": {
+		"Name": "饱和度",
+		"Tooltip": "饱和度"
+	},
+	"com.beyondcow.neewerlite.lightcontrol.fx.key": {
+		"Name": "场景",
+		"Tooltip": "场景"
+	},
+	"Localization": {
+		"brightness": "亮度",
+		"temperature": "色温",
+		"on": "ON",
+		"off": "OFF",
+		"hue": "色相",
+		"sat": "饱和度",
+		"fx": "场景"
+	}
+}

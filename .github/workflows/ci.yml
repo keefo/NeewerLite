@@ -2,18 +2,50 @@ name: CI
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
+    branches: [main]
 
 jobs:
   build:
-
     runs-on: macos-latest
 
     steps:
-    - uses: actions/checkout@v2
-    - name: Build
-      run: pushd NeewerLite; xcodebuild -scheme NeewerLite build -configuration Debug clean; popd;
-    # - name: Run tests
-    #   run: pushd NeewerLite; xcodebuild test -scheme NeewerLite; popd;
+      - uses: actions/checkout@v2
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: "20"
+
+      - name: Install Elgato CLI globally
+        run: npm install -g @elgato/cli
+
+      - name: Install Stream Deck plugin deps
+        working-directory: NeewerLiteStreamDeck/neewerlite
+        run: npm ci
+
+      - name: Build Stream Deck plugin
+        working-directory: NeewerLiteStreamDeck/neewerlite
+        run: npm run build
+
+      - name: Balidate Stream Deck plugin
+        working-directory: NeewerLiteStreamDeck/neewerlite
+        run: streamdeck validate com.beyondcow.neewerlite.sdPlugin
+
+      - name: List available schemes
+        working-directory: NeewerLite
+        run: xcodebuild -project NeewerLite.xcodeproj -list;
+
+      - name: Build App
+        working-directory: NeewerLite
+        run: xcodebuild -scheme NeewerLite build -configuration Debug clean;
+
+      - name: Run unit tests
+        working-directory: NeewerLite
+        run: |
+          xcodebuild \
+            -project NeewerLite.xcodeproj \
+            -scheme NeewerLiteTests \
+            -configuration Debug \
+            test
+            
