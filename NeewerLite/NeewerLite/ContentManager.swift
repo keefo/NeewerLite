@@ -58,7 +58,17 @@ struct Database: Decodable {
 
 
 class ContentManager {
+    
+    static let databaseUpdatedNotification = Notification.Name("LightDatabaseUpdated")
+    static let databaseUpdatedCountdownNotification = Notification.Name("LightDatabaseSyncCountdown")
+
+    enum DBUpdateStatus {
+        case success
+        case failure(Error)
+    }
+    
     static let shared = ContentManager()
+    
     private let fileManager = FileManager.default
     private let session = URLSession(configuration: .default)
     private var failedURLs = Set<URL>()
@@ -85,15 +95,47 @@ class ContentManager {
     // JSON Database URL
     private let jsonDatabaseURL = URL(string: "https://raw.githubusercontent.com/keefo/NeewerLite/main/Database/lights.json")!
     private var localDatabaseURL: URL {
-        cacheDirectory.appendingPathComponent("database.json")
+        let appSupportURL = fileManager.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
+        let cacheURL = appSupportURL.appendingPathComponent("NeewerLite/database.json")        
+        return cacheURL
+    }
+    private var ttlTimer: Timer?
+    private let ttlInterval: TimeInterval = 28800 // 8 hours
+    private var nextDownloadDate: Date? {
+        guard let last = lastCheckedDate else { return nil }
+        return last.addingTimeInterval(ttlInterval)
+    }
+    public var remainingTTL: TimeInterval? {
+        guard let next = nextDownloadDate else { return nil }
+        return max(next.timeIntervalSinceNow, 0)
     }
 
     private init() {
         operationQueue = OperationQueue()
         operationQueue.maxConcurrentOperationCount = 10 // Adjust this as needed
+        ttlTimer = Timer.scheduledTimer(withTimeInterval: 10, repeats: true) { [weak self] _ in
+            self?.checkTTL()
+        }
+        RunLoop.main.add(ttlTimer!, forMode: .common)
     }
-
-    private func loadDatabaseFromDisk(){
+    
+    private func checkTTL() {
+        guard let remaining = remainingTTL else { return }
+        NotificationCenter.default.post(name: ContentManager.databaseUpdatedCountdownNotification, object: nil, userInfo: ["remaining": remaining])
+        if remaining <= 0 {
+            if self.shouldDownloadDatabase() {
+                Task.detached(priority: .background) {
+                    do {
+                        try await self.downloadDatabaseNow()
+                    } catch {
+                        Logger.error("❌ Failed to download database: \(error)")
+                    }
+                }
+            }
+        }
+    }
+    
+    public func loadDatabaseFromDisk(){
         if databaseCache == nil {
             do {
                 if fileManager.fileExists(atPath: localDatabaseURL.path) {
@@ -110,13 +152,25 @@ class ContentManager {
         }
     }
     
-    public func syncDatabase()
+    public func downloadDatabase(force: Bool)
     {
-        loadDatabaseFromDisk()
+        if !force && !self.shouldDownloadDatabase() {
+            return
+        }
         Task.detached(priority: .background) {
             do {
-                try await self.downloadDatabaseIfNeeded()
-                Logger.info("✅ Database download completed.")
+                try await self.downloadDatabaseNow()
+                if force
+                {
+                    Task { @MainActor in
+                        let alert = NSAlert()
+                        alert.messageText = "Finish"
+                        alert.informativeText = "The database is up to date."
+                        alert.alertStyle = .informational
+                        alert.addButton(withTitle: "OK")
+                        alert.runModal()
+                    }
+                }
             } catch {
                 Logger.error("❌ Failed to download database: \(error)")
             }
@@ -124,16 +178,27 @@ class ContentManager {
     }
     
     // MARK: - JSON Database Management
-    private func downloadDatabaseIfNeeded() async throws {
-        if shouldDownloadDatabase() {
-            do {
-                let (data, _) = try await session.data(from: jsonDatabaseURL)
-                try data.write(to: localDatabaseURL)
-            } catch {
-                Logger.error("Error downloading the database: \(error)")
-                throw error
-            }
-            lastCheckedDate = Date()
+    private func downloadDatabaseNow() async throws {
+        lastCheckedDate = Date()
+        do {
+            Logger.info("Download database...")
+            let (data, _) = try await session.data(from: jsonDatabaseURL)
+            Logger.info("Download content: \(String(data: data, encoding: .utf8) ?? "<binary>")")
+            databaseCache = try JSONDecoder().decode(Database.self, from: data)
+            try data.write(to: localDatabaseURL)
+            NotificationCenter.default.post(
+                                name: Self.databaseUpdatedNotification,
+                                object: nil,
+                                userInfo: ["status": Self.DBUpdateStatus.success]
+                            )
+        }
+        catch {
+            NotificationCenter.default.post(
+                                name: Self.databaseUpdatedNotification,
+                                object: nil,
+                                userInfo: ["status": Self.DBUpdateStatus.failure(error)]
+                            )
+            throw error
         }
     }
 
@@ -226,7 +291,6 @@ class ContentManager {
     }
     
     func fetchLightImage(lightType: UInt8) async throws -> NSImage? {
-        try await downloadDatabaseIfNeeded()
         guard let imageUrl = fetchImageUrl(for: lightType) else {
             throw NSError(domain: "NoImageURLFound", code: Int(lightType), userInfo: nil)
         }

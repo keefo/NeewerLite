@@ -4,36 +4,19 @@
 //
 //  Created by Xu Lian on 1/16/21.
 //
-
 import Foundation
+import UniformTypeIdentifiers
+import CoreServices  // for LSCopyDefaultRoleHandlerForContentType
 
-extension Data {
-    struct HexEncodingOptions: OptionSet {
-        let rawValue: Int
-        static let upperCase = HexEncodingOptions(rawValue: 1 << 0)
+func defaultBundleID(forFileExtension ext: String) -> String? {
+    // 1. Get the UTI for that extension
+    guard let utType = UTType(filenameExtension: ext)?.identifier else {
+        return nil
     }
-
-    func hexEncodedString(options: HexEncodingOptions = []) -> String {
-        let format = options.contains(.upperCase) ? "%02hhX" : "%02hhx"
-        return map { String(format: format, $0) }.joined(separator: ",")
-    }
-}
-
-extension Comparable {
-    func clamped(to limits: ClosedRange<Self>) -> Self {
-        return min(max(self, limits.lowerBound), limits.upperBound)
-    }
-}
-
-#if swift(<5.1)
-extension Strideable where Stride: SignedInteger {
-    func clamped(to limits: CountableClosedRange<Self>) -> Self {
-        return min(max(self, limits.lowerBound), limits.upperBound)
-    }
-}
-#endif
-
-
-enum ButtonState {
-    case on, off
+    // 2. Ask LaunchServices for the default handler's bundle ID
+    let handler = LSCopyDefaultRoleHandlerForContentType(
+        utType as CFString,
+        LSRolesMask.all
+    )?.takeRetainedValue() as String?
+    return handler
 }

@@ -10,13 +10,13 @@
 
 [![CI](https://github.com/keefo/NeewerLite/actions/workflows/ci.yml/badge.svg)](https://github.com/keefo/NeewerLite/actions/workflows/ci.yml)
 
-NeewerLite is a unofficial macOS app designed for controlling Neewer LED lights. 
+NeewerLite is a unofficial macOS app designed for controlling Neewer LED lights.
 
-While [Neewer](https://neewer.com/) provides official Android and [iOS app](https://apps.apple.com/us/app/neewer/id1455948340) for controlling their high-CRI LED lights via Bluetooth, they do not offer a means of control from a PC or Mac. 
+While [Neewer](https://neewer.com/) provides official Android and [iOS app](https://apps.apple.com/us/app/neewer/id1455948340) for controlling their high-CRI LED lights via Bluetooth, they do not offer a means of control from a PC or Mac.
 
 This project aims to fill that gap by creating a macOS app that allows you to control your Bluetooth-enabled Neewer LED lights from your Mac. With NeewerLite, you can even integrate light control into your [Elgato Stream Deck](https://www.elgato.com/en/gaming/stream-deck) or shortcuts for better experince.
 
-Here is a video I made to demo the scene: 
+Here is a video I made to demo the scene:
 
 <p>
 <a align="left" href="https://youtu.be/pbNi6HZTDEc">
@@ -53,34 +53,39 @@ open "neewerlite://turnOnLight"
 ```
 
 Turn off all lights:
+
 ```bash
 open "neewerlite://turnOffLight"
 ```
 
 Toggle all lights:
+
 ```bash
 open "neewerlite://toggleLight"
 ```
 
 Scan all lights:
+
 ```bash
 open "neewerlite://scanLight"
 ```
 
 Set lights CCT:
+
 ```bash
 open "neewerlite://setLightCCT?CCT=3200&Brightness=100"
 ```
 
 Set lights CCT+GM:
+
 ```bash
 open "neewerlite://setLightCCT?CCT=3200&GM=-50&Brightness=100"
 ```
 
 Most of light model support CCT range 3200K to 5600K, Some lights support long CCT range 3200K to 8500K. And some newer model of light support GM.
 
-
 Set lights Hue and Saturation and Brightness:
+
 ```bash
 open "neewerlite://setLightHSI?RGB=ff00ff&Saturation=100&Brightness=100"
 ```
@@ -115,36 +120,48 @@ The 'left' is the name I give one of my light. You could change your light's nam
 
 Another way to test these commands is to copy a command(the string in the double quote) into your browser address bar, and press enter.
 
-For example, 
+## Using the Elgato Stream Deck
 
+You can control NeewerLite from your Stream Deck in two different ways:
 
-### How to use script to integrate with Elgato Stream Deck?
+1. **Install the built-in Stream Deck plugin**
 
-Read this [Integrate with Elgato Stream Deck](./Docs/Integrate-with-streamdeck.md)
+   - NeewerLite will prompt you to install the plugin automatically.
+   - Click **Install** when prompted, then open the Stream Deck app—our plugin will appear in your actions list.
 
-### How to use script to integrate with macOS Shortcuts?
+<p>
+<img src="Docs/StreamDeck_dial_ui.png" width="300px" />
+<img src="Docs/StreamDeck_dial.jpg" width="300px" />
+</p>
+
+2. **Bind a custom script to a Stream Deck button**
+   - Write a simple shell, Python, or Node.js script that sends commands to NeewerLite’s open schema.
+   - In the Stream Deck software, use the **System → Open** action (or **Run** action) to point at your script.
+   - Assign your button an icon and label, then you’re ready to go!
+   - Read this [Integrate with Elgato Stream Deck](./Docs/Integrate-with-streamdeck.md) for details.
+
+## How to use script to integrate with macOS Shortcuts?
 
 Read this [Integrate with Shortcuts](./Docs/Integrate-with-shortcut.md)
 
-### Voice Control Interaction
+## Voice Control Interaction
 
-You could integrate these commands into Voice Control. 
+You could integrate these commands into Voice Control.
 
-Open “System Preferences” -> “Accessibility” -> “Voice Control” -> “Commands”, Click the “+” button to create a new command, give a name to your new command such as “Meow” and choose “Any Application” then choose perform “Open URL”.  Type in “neewerlite://toggleLight” for example. 
+Open “System Preferences” -> “Accessibility” -> “Voice Control” -> “Commands”, Click the “+” button to create a new command, give a name to your new command such as “Meow” and choose “Any Application” then choose perform “Open URL”. Type in “neewerlite://toggleLight” for example.
 
 Now, when you say “Meow” voice control will switch on/off your LED lights.
 
 # Tested Lights
 
-* [Neewer CB60 RGB Light](https://neewer.com/products/neewer-led-video-light-66601007)
-* [Neewer 660 RGB Light](https://neewer.com/products/neewer-led-light-10096807)
-* [Neewer 480 RGB Light](https://neewer.com/collections/rgb-led-panel-light/products/neewer-led-light-10096594)
-* [Neewer RGB176 Light](https://neewer.com/products/neewer-rgb176-video-light-with-app-control-10098961)
-* [Neewer RGB 530 PRO Light](https://www.amazon.ca/360%C2%B0Full-Streaming-Broadcasting-Conference-Photography/dp/B08MVTJTVQ)
-* [Neewer RGB1-A Magnetic Handheld Light Stick](https://ca.neewer.com/products/neewer-cri98-rgb1-handheld-led-video-light-66601508)
-* [Neewer SL90 Pro Aluminum Alloy RGB Panel Video Light](https://ca.neewer.com/products/neewer-sl90-12w-on-camera-rgb-panel-video-light-66600927)
-* [Neewer BH-30S RGB LED Tube Light Wand](https://ca.neewer.com/products/neewer-bh30s-rgb-led-tube-light-wand-66602411)
-
+- [Neewer CB60 RGB Light](https://neewer.com/products/neewer-led-video-light-66601007)
+- [Neewer 660 RGB Light](https://neewer.com/products/neewer-led-light-10096807)
+- [Neewer 480 RGB Light](https://neewer.com/collections/rgb-led-panel-light/products/neewer-led-light-10096594)
+- [Neewer RGB176 Light](https://neewer.com/products/neewer-rgb176-video-light-with-app-control-10098961)
+- [Neewer RGB 530 PRO Light](https://www.amazon.ca/360%C2%B0Full-Streaming-Broadcasting-Conference-Photography/dp/B08MVTJTVQ)
+- [Neewer RGB1-A Magnetic Handheld Light Stick](https://ca.neewer.com/products/neewer-cri98-rgb1-handheld-led-video-light-66601508)
+- [Neewer SL90 Pro Aluminum Alloy RGB Panel Video Light](https://ca.neewer.com/products/neewer-sl90-12w-on-camera-rgb-panel-video-light-66600927)
+- [Neewer BH-30S RGB LED Tube Light Wand](https://ca.neewer.com/products/neewer-bh30s-rgb-led-tube-light-wand-66602411)
 
 # TO DO LIST
 
@@ -192,5 +209,3 @@ You can send bitcoin to this address:
 ```
 1A4mwftoNpuNCLbS8dHpk9XHrcyvtExrYF
 ```
-
-

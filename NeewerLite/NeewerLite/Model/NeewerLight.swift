@@ -51,6 +51,10 @@ class NeewerLight: NSObject, ObservableNeewerLightProtocol {
     var lastTab: String = ""
     
     var maxChannel: UInt8 {
+        let fxs = NeewerLightConstant.getLightFX(lightType: _lightType)
+        if supportedFX.isEmpty {
+            supportedFX = fxs
+        }
         return UInt8(supportedFX.count)
     }
 
@@ -486,7 +490,7 @@ class NeewerLight: NSObject, ObservableNeewerLightProtocol {
     // Set RBG light in HSV Mode
     public func setRGBLightValues(brr: CGFloat, hue: CGFloat, hue360: CGFloat, sat: CGFloat) {
         var cmd: Data = Data()
-        // Logger.debug("hue: \(hue) sat: \(sat)")
+        // Logger.debug("hue: \(hue) hue360: \(hue360) sat: \(sat)")
 
         var useNew = false
         if let item = ContentManager.shared.fetchLightProperty(lightType: _lightType)

@@ -33,6 +33,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     @IBOutlet weak var audioDriveSwitch: NSSwitch!
     @IBOutlet weak var gainValueField: NSTextField!
     @IBOutlet weak var screenImageView: NSImageView!
+    @IBOutlet weak var scanButton: NSButton!
 
     @IBOutlet var view0: NSView!
     @IBOutlet var view1: NSView!
@@ -74,8 +75,10 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         }
     }
     var scanningTimer: Timer?
+    var server: NeewerLiteServer?
     var launching: Bool = true
-
+    var commonJobTimer: Timer?
+    
     var statusItemIcon: ButtonState = .off {
         didSet {
             if let button = statusItem.button {
@@ -89,9 +92,10 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         }
     }
 
+    
     func applicationDidFinishLaunching(_ aNotification: Notification) {
 
-        Logger.initializeTimer()
+        Logger.initialize()
 
         NSApp.setActivationPolicy(.regular)
         // NSApp.setActivationPolicy(.accessory)
@@ -120,20 +124,38 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         audioSpectrogramView.mirror = true
         audioSpectrogramView.clearFrequency()
 
-        ContentManager.shared.syncDatabase()
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleDatabaseUpdate(_:)),
+            name: ContentManager.databaseUpdatedNotification,
+            object: nil
+        )
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleDatabaseCountdown(_:)),
+            name: ContentManager.databaseUpdatedCountdownNotification,
+            object: nil
+        )
+        ContentManager.shared.loadDatabaseFromDisk()
+        ContentManager.shared.downloadDatabase(force: false)
+        
         loadLightsFromDisk()
-
         self.updateUI()
 
         cbCentralManager = CBCentralManager(delegate: self, queue: nil)
-
         keepLightConnectionAlive()
-
         cbCentralManager = CBCentralManager(delegate: self, queue: nil)
 
         self.switchViewAction(self.viewsButton)
 
+        server = NeewerLiteServer(appDelegate: self)
+        server!.start()
+        commonJobTimer = Timer.scheduledTimer(withTimeInterval: 3600, repeats: true) { [weak self] _ in
+            self?.commonJob()
+        }
         launching = false
+        
+        sync_sp_plugin()
     }
 
     func applicationShouldHandleReopen(_ sender: NSApplication,
@@ -163,6 +185,102 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         showWindowAction(self)
     }
 
+    @objc func handleDatabaseCountdown(_ notification: Notification) {
+        // reload image or refresh UI
+        guard let remaining = notification.userInfo?["remaining"] as? TimeInterval else { return }
+        Logger.info("Database sync in \(remaining) seconds.")
+    }
+    
+    @objc func handleDatabaseUpdate(_ notification: Notification) {
+        // reload image or refresh UI
+        guard let status = notification.userInfo?["status"] as? ContentManager.DBUpdateStatus else { return }
+
+        switch status {
+        case .success:
+            Logger.info("✅ Database download completed.")
+            Task { @MainActor in
+                self.updateUI()
+            }
+        case .failure(let error):
+            Logger.error("❌ Database Update failed: \(error.localizedDescription)")
+            Task { @MainActor in
+                let alert = NSAlert()
+                alert.messageText = "Database Update Failed"
+                alert.informativeText = error.localizedDescription
+                alert.alertStyle = .warning
+                alert.runModal()
+            }
+        }
+    }
+    
+    func commonJob()
+    {
+        sync_sp_plugin()
+    }
+    
+    func sync_sp_plugin()
+    {
+        struct Holder {
+            static var hasRun = false
+        }
+        guard !Holder.hasRun else {
+            return
+        }
+        var sp_installed_version = ""
+        var sp_bundled_version = ""
+        do {
+          let appSupport = FileManager.default
+            .urls(for: .applicationSupportDirectory, in: .userDomainMask)
+            .first!
+          let manifestURL = appSupport
+            .appendingPathComponent("com.elgato.StreamDeck")
+            .appendingPathComponent("Plugins")
+            .appendingPathComponent("com.beyondcow.neewerlite.sdPlugin")
+            .appendingPathComponent("manifest.json")
+          
+          let data = try Data(contentsOf: manifestURL)
+          if let json = try JSONSerialization.jsonObject(with: data) as? [String: Any] {
+              sp_installed_version = json["Version"] as! String
+          }
+        } catch {
+            Logger.error(LogTag.app, "Failed to read manifest: \(error)")
+        }
+        
+        if let info = Bundle.main.infoDictionary {
+            if let sp_plugin_version = info["SDPluginVersion"] as? String {
+                sp_bundled_version = sp_plugin_version
+            }
+        }
+
+        if sp_installed_version != sp_bundled_version {
+            if let bundleID = defaultBundleID(forFileExtension: "streamDeckPlugin") {
+                if bundleID == "com.elgato.StreamDeck" {
+                    if let pluginURL = Bundle.main.url(forResource: "com.beyondcow.neewerlite", withExtension: "streamDeckPlugin") {
+                        Holder.hasRun = true
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 5) {
+                            let alert = NSAlert()
+                            if sp_installed_version.isEmpty {
+                                alert.messageText = "You have Stream Deck"
+                                alert.informativeText = "Do you want to install the Neewerlite Stream Deck plugin?"
+                            }
+                            else{
+                                alert.messageText = "Found an old Neewerlite Stream Deck plugin"
+                                alert.informativeText = "Do you want to update the Neewerlite Stream Deck plugin from \(sp_installed_version) to \(sp_bundled_version)?"
+                            }
+                            alert.alertStyle = .informational
+                            alert.addButton(withTitle: "Yes")
+                            alert.addButton(withTitle: "No")
+                            if alert.runModal() == .alertFirstButtonReturn
+                            {
+                                NSWorkspace.shared.open(pluginURL)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
     func loadLightsFromDisk() {
 
         if debugFakeLights {
@@ -223,8 +341,12 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
 
     func registerCommands() {
         commandHandler.register(command: Command(type: .scanLight, action: { _ in
-
-            self.scanAction(self)
+            // from open command neewerlite://scanLight
+            self.viewsButton.selectSegment(withTag: 0)
+            self.switchViewAction(self.viewsButton)
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                self.forceScanAction(self.scanButton)
+            }
         }))
 
         commandHandler.register(command: Command(type: .turnOnLight, action: { cmdParameter in
@@ -272,8 +394,10 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
             let gmm = cmdParameter.GMM()
             func act(_ viewObj: DeviceViewObject) {
                 if viewObj.isON {
-                    viewObj.changeToCCTMode()
-                    viewObj.updateCCT(cct, gmm, brr)
+                    Task { @MainActor in
+                        viewObj.changeToCCTMode()
+                        viewObj.updateCCT(cct, gmm, brr)
+                    }
                 }
             }
 
@@ -288,7 +412,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         }))
 
         commandHandler.register(command: Command(type: .setLightHSI, action: { cmdParameter in
-            var hueVal = 0.0
+            let hueVal: Double
             if let color = cmdParameter.RGB() {
                 hueVal = CGFloat(color.hueComponent * 360.0)
             } else if let hue = cmdParameter.HUE() {
@@ -301,16 +425,20 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
             func act(_ viewObj: DeviceViewObject, showAlert: Bool) {
                 if viewObj.isON {
                     if viewObj.device.supportRGB {
-                        viewObj.changeToHSIMode()
-                        viewObj.updateHSI(hue: hueVal, sat: sat, brr: brr)
+                        Task { @MainActor in
+                            viewObj.changeToHSIMode()
+                            viewObj.updateHSI(hue: hueVal, sat: sat, brr: brr)
+                        }
                     } else {
                         if showAlert {
-                            let alert = NSAlert()
-                            alert.messageText = "This light does not support RGB"
-                            alert.informativeText = "\(viewObj.device.nickName)"
-                            alert.alertStyle = .informational
-                            alert.addButton(withTitle: "OK")
-                            alert.runModal()
+                            Task { @MainActor in
+                                let alert = NSAlert()
+                                alert.messageText = "This light does not support RGB"
+                                alert.informativeText = "\(viewObj.device.nickName)"
+                                alert.alertStyle = .informational
+                                alert.addButton(withTitle: "OK")
+                                alert.runModal()
+                            }
                         }
                     }
                 }
@@ -327,25 +455,26 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         }))
 
         commandHandler.register(command: Command(type: .setLightScene, action: { cmdParameter in
-            var sceneId = cmdParameter.sceneId()
-            if sceneId == nil {
-                sceneId = cmdParameter.scene()
-            }
+            let sceneId = cmdParameter.sceneId() ?? cmdParameter.scene()
             let brr = cmdParameter.brightness()
 
             func act(_ viewObj: DeviceViewObject, showAlert: Bool) {
                 if viewObj.isON {
                     if viewObj.device.supportRGB {
-                        viewObj.changeToSCEMode()
-                        viewObj.changeToSCE(sceneId!, brr)
+                        Task { @MainActor in
+                            viewObj.changeToSCEMode()
+                            viewObj.changeToSCE(sceneId, brr)
+                        }
                     } else {
                         if showAlert {
-                            let alert = NSAlert()
-                            alert.messageText = "This light does not support RGB"
-                            alert.informativeText = "\(viewObj.device.nickName)"
-                            alert.alertStyle = .informational
-                            alert.addButton(withTitle: "OK")
-                            alert.runModal()
+                            Task { @MainActor in
+                                let alert = NSAlert()
+                                alert.messageText = "This light does not support RGB"
+                                alert.informativeText = "\(viewObj.device.nickName)"
+                                alert.alertStyle = .informational
+                                alert.addButton(withTitle: "OK")
+                                alert.runModal()
+                            }
                         }
                     }
                 }
@@ -381,7 +510,54 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         audioDriveSwitch?.state = self.viewObjects.contains(where: { $0.followMusic }) ? .on : .off
         toggleAudioDriver(audioDriveSwitch!)
     }
-
+    
+    @IBAction func checklogAction(_ sender: NSMenuItem) {
+        Logger.syncToFile()
+        if let fileURL = Logger.currentLogFileURL,
+           FileManager.default.fileExists(atPath: fileURL.path) {
+            if let consoleAppURL = NSWorkspace.shared.urlForApplication(withBundleIdentifier: "com.apple.Console")
+            {
+                let config = NSWorkspace.OpenConfiguration()
+                NSWorkspace.shared.open([fileURL], withApplicationAt: consoleAppURL, configuration: config) { app, error in
+                    if let error = error {
+                        Task { @MainActor in
+                            let alert = NSAlert()
+                            alert.messageText = "Failed to open log file"
+                            alert.informativeText = "Failed to open log file in Console. \(error)"
+                            alert.alertStyle = .warning
+                            alert.runModal()
+                        }
+                    }
+                }
+            }
+            else {
+                Task { @MainActor in
+                    let alert = NSAlert()
+                    alert.messageText = "Console app not found"
+                    alert.informativeText = "Console app not found, unable to open the log file. \(fileURL)"
+                    alert.alertStyle = .warning
+                    alert.runModal()
+                }
+            }
+        } else {
+            Task { @MainActor in
+                let alert = NSAlert()
+                alert.messageText = "Log file not found"
+                if let url = Logger.currentLogFileURL {
+                    alert.informativeText = "\(url.path) log file does not exist."
+                } else {
+                    alert.informativeText = "Log file URL is unavailable."
+                }
+                alert.alertStyle = .warning
+                alert.runModal()
+            }
+        }
+    }
+    
+    @IBAction func syncDatabaseAction(_ sender: NSMenuItem) {
+        ContentManager.shared.downloadDatabase(force: true)
+    }
+    
     @IBAction func toggleScreenDriver(_ sender: NSSwitch) {
         if sender.state == .on {
 
@@ -530,6 +706,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     }
 
     @IBAction func scanAction(_ sender: AnyObject) {
+        
         if scanning {
             // stop scanning
             cbCentralManager?.stopScan()
@@ -606,6 +783,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         }
     }
 
+    @MainActor
     public func updateUI() {
         statusItem.button?.alignment = .center
         statusItem.button?.imagePosition = .imageOverlaps
@@ -643,7 +821,9 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         }
         if found {
             saveLightsToDisk()
-            self.updateUI()
+            Task { @MainActor in
+                self.updateUI()
+            }
         }
     }
 
@@ -691,7 +871,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
             }
 
             if update {
-                DispatchQueue.main.async {
+                Task { @MainActor in
                     self.updateUI()
                 }
             }
@@ -702,7 +882,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         if let targetViewObject = viewObjects.first(where: { $0.deviceIdentifier == "\(identifier)"  }) {
             Logger.info("grayoutLightViewObject \(identifier)")
             targetViewObject.device.setPeripheral(nil, nil, nil)
-            DispatchQueue.main.async {
+            Task { @MainActor in
                 self.updateUI()
             }
         }
