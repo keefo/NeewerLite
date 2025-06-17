@@ -1,12 +1,13 @@
 // swift-tools-version: 5.10
 // Package.swift
+// Github CodeQL action need this
 import PackageDescription
 
 let package = Package(
     name: "NeewerLite",
     defaultLocalization: "en",
     platforms: [
-        .macOS(.v11)
+        .macOS(.v13)
     ],
     products: [
         .library(name: "NeewerLite", targets: ["NeewerLite"]),
