@@ -1,13 +1,15 @@
+// swift-tools-version: 5.10
 // Package.swift
 import PackageDescription
 
 let package = Package(
     name: "NeewerLite",
+    defaultLocalization: "en",
     platforms: [
         .macOS(.v11)
     ],
     products: [
-        .executable(name: "NeewerLite", targets: ["NeewerLite"]),
+        .library(name: "NeewerLite", targets: ["NeewerLite"]),
     ],
     dependencies: [
         .package(url: "https://github.com/httpswift/swifter.git", from: "1.5.0"),
@@ -17,7 +19,12 @@ let package = Package(
     targets: [
         .target(
             name: "NeewerLite",
-            dependencies: ["Swifter", "Sparkle", "swift-atomics"]
+            dependencies: [
+                .product(name: "Swifter", package: "swifter"),
+                .product(name: "Sparkle", package: "Sparkle"),
+                .product(name: "Atomics", package: "swift-atomics")
+            ],
+            path: "NeewerLite"
         )
     ]
 )
