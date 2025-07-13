@@ -71,7 +71,7 @@ final class NeewerLiteServer {
                 lights.append(item)
             }
             let payload: [String: Any] = ["lights": lights]
-            Logger.info(LogTag.server, "Received /listLights payload: \(payload)")
+            // Logger.debug(LogTag.server, "Received /listLights payload: \(payload)")
             return HttpResponse.ok(.json(payload))
         }
 

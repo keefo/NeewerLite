@@ -1187,3 +1187,39 @@ extension AppDelegate: NSTableViewDataSource, NSTableViewDelegate {
         }
     }
 }
+
+extension AppDelegate: Sparkle.SUUpdaterDelegate {
+    
+    func updaterMayCheck(forUpdates updater: SUUpdater) -> Bool {
+        return true
+    }
+    func updater(_ updater: SUUpdater, failedToDownloadUpdate item: SUAppcastItem, error: any Error) {
+        Logger.error("updater failedToDownloadUpdate error: \(error)")
+    }
+    
+    func updater(_ updater: SUUpdater, didDownloadUpdate item: SUAppcastItem) {
+        Logger.info("updater didDownloadUpdate \(item)")
+    }
+    
+    func updater(_ updater: SUUpdater, didAbortWithError error: any Error) {
+        Logger.error("updater didAbortWithError \(error)")
+    }
+    
+    func updater(_ updater: SUUpdater, didFinishLoading appcast: SUAppcast) {
+        Logger.info("updater didFinishLoading \(appcast)")
+        if let items = appcast.items
+        {
+            for item in items {
+                if let app = item as? SUAppcastItem
+                {
+                    Logger.info("app.title \(app.title ?? "")")
+                    Logger.info("app.dateString \(app.dateString ?? "")")
+                    Logger.info("app.displayVersionString \(app.displayVersionString ?? "")")
+                    Logger.info("app.versionString \(app.versionString ?? "")")
+                    Logger.info("app.itemDescription \(app.itemDescription ?? "")")
+                }
+            }
+        }
+    }
+}
+

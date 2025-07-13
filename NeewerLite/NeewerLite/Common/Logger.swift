@@ -247,6 +247,18 @@ public class Logger {
         logQueue.sync {
             fileHandle?.closeFile()
             fileHandle = nil
+            // Re-initialize fileHandle
+            if let url = logFileURL {
+                FileManager.default.createFile(atPath: url.path, contents: nil)
+                do {
+                    let handle = try FileHandle(forUpdating: url)
+                    handle.seekToEndOfFile()
+                    currentLogFileURL = url
+                    fileHandle = handle
+                } catch {
+                    print("Logger rotate error:", error)
+                }
+            }
         }
     }
     
@@ -258,7 +270,10 @@ public class Logger {
     
     private static func writeToFile(_ string: String) {
         logQueue.sync {
-            guard let handle = fileHandle else { return }
+            guard let handle = fileHandle else {
+                print("Logger error: fileHandle is nil")
+                return
+            }
             let timestamp = ISO8601DateFormatter().string(from: Date())
             let entry = "\(timestamp) - \(string)\n"
             if let data = entry.data(using: .utf8) {
@@ -268,9 +283,6 @@ public class Logger {
                 } catch {
                     print("Logger write error:", error)
                 }
-            }
-            if let data = ("\(timestamp) - " + string + "\n").data(using: .utf8) {
-                handle.write(data)
             }
             if let size = try? handle.offset(), size >= maxLogFileSize {
                 rotateLogFile()
