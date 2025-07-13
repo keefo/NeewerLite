@@ -790,14 +790,18 @@
             </items>
             <point key="canvasLocation" x="-685" y="-509"/>
         </menu>
-        <customObject id="WJC-nf-vfx" customClass="SUUpdater"/>
+        <customObject id="WJC-nf-vfx" customClass="SUUpdater">
+            <connections>
+                <outlet property="delegate" destination="Voe-Tx-rLC" id="SFf-II-Oxk"/>
+            </connections>
+        </customObject>
         <viewController id="vKd-6S-GXf" customClass="SpectrogramViewController" customModule="NeewerLite" customModuleProvider="target"/>
         <scrollView wantsLayer="YES" autohidesScrollers="YES" horizontalLineScroll="10" horizontalPageScroll="10" verticalLineScroll="10" verticalPageScroll="10" hasHorizontalScroller="NO" usesPredominantAxisScrolling="NO" id="SPf-4G-nTF" userLabel="view1">
             <rect key="frame" x="0.0" y="0.0" width="859" height="477"/>
             <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
             <clipView key="contentView" id="jZY-dn-pja">
                 <rect key="frame" x="1" y="1" width="857" height="475"/>
-                <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                <autoresizingMask key="autoresizingMask"/>
                 <subviews>
                     <collectionView id="QRn-Qa-fcm">
                         <rect key="frame" x="0.0" y="0.0" width="857" height="475"/>
@@ -849,7 +853,7 @@
                                     <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                     <clipView key="contentView" drawsBackground="NO" id="uYz-LH-hh6">
                                         <rect key="frame" x="0.0" y="0.0" width="388" height="377"/>
-                                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                                        <autoresizingMask key="autoresizingMask"/>
                                         <subviews>
                                             <tableView verticalHuggingPriority="750" allowsExpansionToolTips="YES" columnAutoresizingStyle="lastColumnOnly" autosaveColumns="NO" rowHeight="57" rowSizeStyle="automatic" viewBased="YES" id="Vxv-wz-mUA">
                                                 <rect key="frame" x="0.0" y="0.0" width="388" height="377"/>
@@ -954,7 +958,7 @@
                                     <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                     <clipView key="contentView" drawsBackground="NO" id="R1C-6r-ewg">
                                         <rect key="frame" x="0.0" y="0.0" width="279" height="392"/>
-                                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                                        <autoresizingMask key="autoresizingMask"/>
                                         <subviews>
                                             <tableView verticalHuggingPriority="750" allowsExpansionToolTips="YES" columnAutoresizingStyle="lastColumnOnly" columnReordering="NO" multipleSelection="NO" autosaveColumns="NO" rowHeight="59" rowSizeStyle="automatic" viewBased="YES" id="7EQ-pZ-iT4">
                                                 <rect key="frame" x="0.0" y="0.0" width="279" height="392"/>

@@ -12,6 +12,75 @@ echo $BUILD_FOLDER
 #rm -rf build
 mkdir build
 
+# check version in info.plist against appcast.xml
+INFO_PLIST="../NeewerLite/NeewerLite/Resources/Info.plist"
+
+# Extract Sparkle appcast URL from Info.plist
+APPCAST_URL=$(/usr/libexec/PlistBuddy -c "Print :SUFeedURL" "$INFO_PLIST")
+
+# Download or use local appcast.xml
+if [[ "$APPCAST_URL" =~ ^http ]]; then
+    curl -s -o appcast.xml "$APPCAST_URL"
+    APPCAST="appcast.xml"
+else
+    APPCAST="$APPCAST_URL"
+fi
+
+# Extract versions from Info.plist
+PLIST_VERSION=$(/usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" "$INFO_PLIST")
+PLIST_BUILD=$(/usr/libexec/PlistBuddy -c "Print :CFBundleVersion" "$INFO_PLIST")
+
+# Extract version from appcast.xml (assumes version is in sparkle:shortVersionString attribute)
+# Extract sparkle:version from appcast.xml (for CFBundleVersion)
+APPCAST_VERSION=$(grep -o 'sparkle:shortVersionString="[^"]*"' "$APPCAST" | head -1 | sed 's/.*="\([^"]*\)".*/\1/')
+APPCAST_BUILD=$(grep -o 'sparkle:version="[^"]*"' "$APPCAST" | head -1 | sed 's/.*="\([^"]*\)".*/\1/')
+
+echo "Info.plist CFBundleShortVersionString: $PLIST_VERSION"
+echo "Info.plist CFBundleVersion: $PLIST_BUILD"
+echo "appcast.xml version: $APPCAST_VERSION"
+echo "appcast.xml sparkle:version: $APPCAST_BUILD"
+
+# If APPCAST_BUILD is not a number, default to 0
+if ! [[ "$APPCAST_BUILD" =~ ^[0-9]+$ ]]; then
+    APPCAST_BUILD=0
+    echo "❌ appcast.xml sparkle:version is not a number, defaulting to 0."
+    exit 1
+fi
+
+# Increment sparkle:version by 1 for new CFBundleVersion
+# Update Info.plist
+NEW_BUILD=$((APPCAST_BUILD + 1))
+echo "Updating CFBundleVersion in Info.plist to $NEW_BUILD"
+/usr/libexec/PlistBuddy -c "Set :CFBundleVersion $NEW_BUILD" "$INFO_PLIST"
+
+# check version update
+# Suggest next version by incrementing the patch number
+IFS='.' read -r major minor patch <<< "$APPCAST_VERSION"
+if [[ -z "$major" || -z "$minor" || -z "$patch" ]]; then
+    # fallback if version is not in x.y.z format
+    SUGGESTED_VERSION="$APPCAST_VERSION"
+else
+    patch=$((patch + 1))
+    SUGGESTED_VERSION="$major.$minor.$patch"
+fi
+
+echo "Current appcast.xml version: $APPCAST_VERSION"
+echo "Suggested next version: $SUGGESTED_VERSION"
+read -p "Enter new CFBundleShortVersionString (or press Enter to use $SUGGESTED_VERSION): " NEW_VERSION
+
+if [[ -z "$NEW_VERSION" ]]; then
+    NEW_VERSION="$SUGGESTED_VERSION"
+fi
+
+echo "Updating CFBundleShortVersionString in Info.plist to $NEW_VERSION"
+/usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString $NEW_VERSION" "$INFO_PLIST"
+
+# Re-extract PLIST_VERSION for further checks
+PLIST_VERSION=$(/usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" "$INFO_PLIST")
+echo "Info.plist CFBundleShortVersionString (after update): $PLIST_VERSION"
+
+rm appcast.xml
+
 # build plugin
 pushd ../NeewerLiteStreamDeck/
 ./build.sh
