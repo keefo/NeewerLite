@@ -718,6 +718,20 @@
                 "min": 32,
                 "max": 56
             }
+        },
+        {
+            "type": 67,
+            "image": "https://github.com/keefo/NeewerLite/blob/main/Database/light_images/tl40.png?raw=true",
+            "link": "https://neewer.com/products/neewer-tl40-led-streaming-light-bar-light-66605046",
+            "supportRGB": false,
+            "supportCCTGM": false,
+            "supportMusic": true,
+            "support17FX": false,
+            "support9FX": false,
+            "cctRange": {
+                "min": 32,
+                "max": 56
+            }
         }
     ]
 }
