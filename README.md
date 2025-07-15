@@ -176,8 +176,8 @@ If you find a way to implement these features, feel free to create a pull reques
 If you are unable to find your Neewer light using NeewerLite, you can easily add support for it by following these steps:
 
 1. Find your light bluetooth raw name.
-2. Use find light type value from `NeewerLightConstant.getLightType` function.
-3. Add light to `Database/lights.json` file.
+2. Find light type value from `NeewerLightConstant.getLightType` function from bluetooth raw name.
+3. Add new light type to the `Database/lights.json` file.
 
 Here is an example of adding [neewer-tl21c-rgb-magnetic-light-wand](https://neewer.com/products/neewer-tl21c-rgb-magnetic-light-wand-with-app-control-66604585)
 
