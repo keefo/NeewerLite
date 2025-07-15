@@ -206,11 +206,10 @@ Add this into database json file. Make sure it reflects what this LED light supp
 
 If you are have a Neewer RGB light but, the app does not show it as RGB light, then you could follow these steps:
 
-1. Use a Bluetooth app to find the name of your light.
-2. Use the name to add a test in **NeewerLite/NeewerLiteTests/NeewerLiteTests.swift**.
-3. Run test to see what is the light type based on name.
-4. If you got light type is 62 in step 3, then goto **NeewerLite/NeewerLite/Model/NeewerLightConstant.swift** and add this number into getRGBLightTypes function.
-5. Compile and run to test.
+1. Use a Bluetooth app to find the raw name of your light.
+2. Check `Database/lights.json` file to find the light type section.
+3. Check if `supportRGB` value is true.
+4. If not, you need to rise a PR to update this value. Once PR is merged, app will get new database from github.
 
 # License
 
