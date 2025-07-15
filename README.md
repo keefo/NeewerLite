@@ -175,12 +175,32 @@ If you find a way to implement these features, feel free to create a pull reques
 
 If you are unable to find your Neewer light using NeewerLite, you can easily add support for it by following these steps:
 
-1. Use a Bluetooth app to find the name of your light.
-2. Add the name to the **isValidPeripheralName** function in the Model/NeewerLight.swift file.
-3. Recompile the app and test your light to ensure that it is working properly.
-4. If the light is working as expected, create a pull request on the project's GitHub repository to submit your changes.
+1. Find your light bluetooth raw name.
+2. Use find light type value from `NeewerLightConstant.getLightType` function.
+3. Add light to `Database/lights.json` file.
 
-By following these steps, you can quickly add support for your Neewer light and start controlling it using NeewerLite.
+Here is an example of adding [neewer-tl21c-rgb-magnetic-light-wand](https://neewer.com/products/neewer-tl21c-rgb-magnetic-light-wand-with-app-control-66604585)
+
+The bluetooth raw name is should contain `tl21c` by checking `NeewerLightConstant.getLightType` function, it converts to light type 69.
+
+Add this into database json file. Make sure it reflects what this LED light supports including, cct range, rgb support and scene effect support.
+
+```
+{
+   "type": 69,
+   "image": "https://github.com/keefo/NeewerLite/blob/main/Database/light_images/tl21c.png?raw=true",
+   "link": "https://neewer.com/products/neewer-tl21c-rgb-magnetic-light-wand-with-app-control-66604585",
+   "supportRGB": true,
+   "supportCCTGM": false,
+   "supportMusic": true,
+   "support17FX": true,
+   "support9FX": false,
+   "cctRange": {
+         "min": 25,
+         "max": 85
+   }
+}
+```
 
 # It does not recognize my RGB light as RGB light, what to do?
 

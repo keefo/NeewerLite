@@ -729,8 +729,22 @@
             "support17FX": false,
             "support9FX": false,
             "cctRange": {
-                "min": 32,
-                "max": 56
+                "min": 29,
+                "max": 70
+            }
+        },
+        {
+            "type": 69,
+            "image": "https://github.com/keefo/NeewerLite/blob/main/Database/light_images/tl21c.png?raw=true",
+            "link": "https://neewer.com/products/neewer-tl21c-rgb-magnetic-light-wand-with-app-control-66604585",
+            "supportRGB": true,
+            "supportCCTGM": false,
+            "supportMusic": true,
+            "support17FX": true,
+            "support9FX": false,
+            "cctRange": {
+                "min": 25,
+                "max": 85
             }
         }
     ]
