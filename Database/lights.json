@@ -1,5 +1,5 @@
 {
-    "version": 2,
+    "version": 3,
     "lights": [
         {
             "type": 3,
@@ -10,9 +10,10 @@
             "supportMusic": false,
             "support17FX": false,
             "support9FX": true,
-            "cctRange": {
-                "min": 32,
-                "max": 56
+            "commandPatterns": {
+                "power": "{cmdtag} {powertag} {size} {state:uint8:enum(1=on,2=off)} {checksum}",
+                "cct": "{cmdtag} {ccttag} {size} {brr:uint8:range(0,100)} {cct:uint8:range(32,56)} 0x32 0x00 0x00 {checksum}",
+                "hsi": "{cmdtag} {hsitag} {size} {hue:uint16_le:range(0,360)} {sat:uint8:range(0,100)} {brr:uint8:range(0,100)} {checksum}"
             }
         },
         {
@@ -24,9 +25,9 @@
             "supportMusic": false,
             "support17FX": false,
             "support9FX": false,
-            "cctRange": {
-                "min": 32,
-                "max": 56
+            "commandPatterns": {
+                "power": "{cmdtag} {powertag} {size} {state:uint8:enum(1=on,2=off)} {checksum}",
+                "cct": "{cmdtag} {ccttag} {size} {brr:uint8:range(0,100)} {cct:uint8:range(32,56)} 0x32 0x00 0x00 {checksum}"
             }
         },
         {
@@ -38,9 +39,10 @@
             "supportMusic": false,
             "support17FX": false,
             "support9FX": true,
-            "cctRange": {
-                "min": 32,
-                "max": 56
+            "commandPatterns": {
+                "power": "{cmdtag} {powertag} {size} {state:uint8:enum(1=on,2=off)} {checksum}",
+                "cct": "{cmdtag} {ccttag} {size} {brr:uint8:range(0,100)} {cct:uint8:range(32,56)} 0x32 0x00 0x00 {checksum}",
+                "hsi": "{cmdtag} {hsitag} {size} {hue:uint16_le:range(0,360)} {sat:uint8:range(0,100)} {brr:uint8:range(0,100)} {checksum}"
             }
         },
         {
@@ -52,9 +54,9 @@
             "supportMusic": false,
             "support17FX": false,
             "support9FX": false,
-            "cctRange": {
-                "min": 32,
-                "max": 56
+            "commandPatterns": {
+                "power": "{cmdtag} {powertag} {size} {state:uint8:enum(1=on,2=off)} {checksum}",
+                "cct": "{cmdtag} {ccttag} {size} {brr:uint8:range(0,100)} {cct:uint8:range(32,56)} 0x32 0x00 0x00 {checksum}"
             }
         },
         {
@@ -66,9 +68,10 @@
             "supportMusic": true,
             "support17FX": true,
             "support9FX": false,
-            "cctRange": {
-                "min": 32,
-                "max": 56
+            "commandPatterns": {
+                "power": "{cmdtag} {powertag} {size} {state:uint8:enum(1=on,2=off)} {checksum}",
+                "cct": "{cmdtag} {ccttag} {size} {brr:uint8:range(0,100)} {cct:uint8:range(32,56)} 0x32 0x00 0x00 {checksum}",
+                "hsi": "{cmdtag} {hsitag} {size} {hue:uint16_le:range(0,360)} {sat:uint8:range(0,100)} {brr:uint8:range(0,100)} {checksum}"
             }
         },
         {
@@ -80,9 +83,10 @@
             "supportMusic": false,
             "support17FX": false,
             "support9FX": false,
-            "cctRange": {
-                "min": 32,
-                "max": 56
+            "commandPatterns": {
+                "power": "{cmdtag} {powertag} {size} {state:uint8:enum(1=on,2=off)} {checksum}",
+                "cct": "{cmdtag} {ccttag} {size} {brr:uint8:range(0,100)} {cct:uint8:range(32,56)} 0x32 0x00 0x00 {checksum}",
+                "hsi": "{cmdtag} {hsitag} {size} {hue:uint16_le:range(0,360)} {sat:uint8:range(0,100)} {brr:uint8:range(0,100)} {checksum}"
             }
         },
         {
@@ -94,9 +98,10 @@
             "supportMusic": false,
             "support17FX": false,
             "support9FX": false,
-            "cctRange": {
-                "min": 32,
-                "max": 56
+            "commandPatterns": {
+                "power": "{cmdtag} {powertag} {size} {state:uint8:enum(1=on,2=off)} {checksum}",
+                "cct": "{cmdtag} {ccttag} {size} {brr:uint8:range(0,100)} {cct:uint8:range(32,56)} 0x32 0x00 0x00 {checksum}",
+                "hsi": "{cmdtag} {hsitag} {size} {hue:uint16_le:range(0,360)} {sat:uint8:range(0,100)} {brr:uint8:range(0,100)} {checksum}"
             }
         },
         {
@@ -108,9 +113,10 @@
             "supportMusic": false,
             "support17FX": false,
             "support9FX": false,
-            "cctRange": {
-                "min": 32,
-                "max": 56
+            "commandPatterns": {
+                "power": "{cmdtag} {powertag} {size} {state:uint8:enum(1=on,2=off)} {checksum}",
+                "cct": "{cmdtag} {ccttag} {size} {brr:uint8:range(0,100)} {cct:uint8:range(32,56)} 0x32 0x00 0x00 {checksum}",
+                "hsi": "{cmdtag} {hsitag} {size} {hue:uint16_le:range(0,360)} {sat:uint8:range(0,100)} {brr:uint8:range(0,100)} {checksum}"
             }
         },
         {
@@ -122,9 +128,9 @@
             "supportMusic": true,
             "support17FX": false,
             "support9FX": false,
-            "cctRange": {
-                "min": 32,
-                "max": 56
+            "commandPatterns": {
+                "power": "{cmdtag} {powertag} {size} {state:uint8:enum(1=on,2=off)} {checksum}",
+                "cct": "{cmdtag} {ccttag} {size} {brr:uint8:range(0,100)} {cct:uint8:range(32,56)} 0x32 0x00 0x00 {checksum}"
             }
         },
         {
@@ -136,9 +142,10 @@
             "supportMusic": false,
             "support17FX": false,
             "support9FX": false,
-            "cctRange": {
-                "min": 32,
-                "max": 56
+            "commandPatterns": {
+                "power": "{cmdtag} {powertag} {size} {state:uint8:enum(1=on,2=off)} {checksum}",
+                "cct": "{cmdtag} {ccttag} {size} {brr:uint8:range(0,100)} {cct:uint8:range(32,56)} 0x32 0x00 0x00 {checksum}",
+                "hsi": "{cmdtag} {hsitag} {size} {hue:uint16_le:range(0,360)} {sat:uint8:range(0,100)} {brr:uint8:range(0,100)} {checksum}"
             }
         },
         {
@@ -150,9 +157,10 @@
             "supportMusic": true,
             "support17FX": true,
             "support9FX": false,
-            "cctRange": {
-                "min": 32,
-                "max": 56
+            "commandPatterns": {
+                "power": "{cmdtag} {powertag} {size} {state:uint8:enum(1=on,2=off)} {checksum}",
+                "cct": "{cmdtag} {ccttag} {size} {brr:uint8:range(0,100)} {cct:uint8:range(32,56)} 0x32 0x00 0x00 {checksum}",
+                "hsi": "{cmdtag} {hsitag} {size} {hue:uint16_le:range(0,360)} {sat:uint8:range(0,100)} {brr:uint8:range(0,100)} {checksum}"
             }
         },
         {
@@ -164,9 +172,10 @@
             "supportMusic": true,
             "support17FX": false,
             "support9FX": false,
-            "cctRange": {
-                "min": 32,
-                "max": 56
+            "commandPatterns": {
+                "power": "{cmdtag} {powertag} {size} {state:uint8:enum(1=on,2=off)} {checksum}",
+                "cct": "{cmdtag} {ccttag} {size} {brr:uint8:range(0,100)} {cct:uint8:range(32,56)} 0x32 0x00 0x00 {checksum}",
+                "hsi": "{cmdtag} {hsitag} {size} {hue:uint16_le:range(0,360)} {sat:uint8:range(0,100)} {brr:uint8:range(0,100)} {checksum}"
             }
         },
         {
@@ -178,9 +187,10 @@
             "supportMusic": true,
             "support17FX": false,
             "support9FX": false,
-            "cctRange": {
-                "min": 32,
-                "max": 56
+            "commandPatterns": {
+                "power": "{cmdtag} {powertag} {size} {state:uint8:enum(1=on,2=off)} {checksum}",
+                "cct": "{cmdtag} {ccttag} {size} {brr:uint8:range(0,100)} {cct:uint8:range(32,56)} 0x32 0x00 0x00 {checksum}",
+                "hsi": "{cmdtag} {hsitag} {size} {hue:uint16_le:range(0,360)} {sat:uint8:range(0,100)} {brr:uint8:range(0,100)} {checksum}"
             }
         },
         {
@@ -192,9 +202,10 @@
             "supportMusic": true,
             "support17FX": true,
             "support9FX": false,
-            "cctRange": {
-                "min": 32,
-                "max": 56
+            "commandPatterns": {
+                "power": "{cmdtag} {powertag} {size} {state:uint8:enum(1=on,2=off)} {checksum}",
+                "cct": "{cmdtag} {ccttag} {size} {brr:uint8:range(0,100)} {cct:uint8:range(32,56)} 0x32 0x00 0x00 {checksum}",
+                "hsi": "{cmdtag} {hsitag} {size} {hue:uint16_le:range(0,360)} {sat:uint8:range(0,100)} {brr:uint8:range(0,100)} {checksum}"
             }
         },
         {
@@ -206,9 +217,10 @@
             "supportMusic": true,
             "support17FX": false,
             "support9FX": false,
-            "cctRange": {
-                "min": 32,
-                "max": 56
+            "commandPatterns": {
+                "power": "{cmdtag} {powertag} {size} {state:uint8:enum(1=on,2=off)} {checksum}",
+                "cct": "{cmdtag} {ccttag} {size} {brr:uint8:range(0,100)} {cct:uint8:range(32,56)} 0x32 0x00 0x00 {checksum}",
+                "hsi": "{cmdtag} {hsitag} {size} {hue:uint16_le:range(0,360)} {sat:uint8:range(0,100)} {brr:uint8:range(0,100)} {checksum}"
             }
         },
         {
@@ -223,6 +235,10 @@
             "cctRange": {
                 "min": 27,
                 "max": 65
+            },
+            "commandPatterns": {
+                "power": "{cmdtag} {powertag} {size} {state:uint8:enum(1=on,2=off)} {checksum}",
+                "cct": "{cmdtag} {ccttag} {size} {brr:uint8:range(0,100)} {cct:uint8:range(27,65)} {gm:uint8:range(0,100)} 0x00 0x00 {checksum}"
             }
         },
         {
@@ -321,6 +337,10 @@
             "cctRange": {
                 "min": 32,
                 "max": 56
+            },
+            "commandPatterns": {
+                "power": "{cmdtag} {powertag} {size} {state:uint8:enum(1=on,2=off)} {checksum}",
+                "cct": "{cmdtag} {ccttag} {size} {brr:uint8:range(0,100)} {cct:uint8:range(32,56)} 0x32 0x00 0x00 {checksum}"
             }
         },
         {
@@ -335,6 +355,10 @@
             "cctRange": {
                 "min": 32,
                 "max": 56
+            },
+            "commandPatterns": {
+                "power": "{cmdtag} {powertag} {size} {state:uint8:enum(1=on,2=off)} {checksum}",
+                "cct": "{cmdtag} {ccttag} {size} {brr:uint8:range(0,100)} {cct:uint8:range(32,56)} 0x32 0x00 0x00 {checksum}"
             }
         },
         {
@@ -349,6 +373,9 @@
             "cctRange": {
                 "min": 29,
                 "max": 70
+            },
+            "commandPatterns": {
+                "power": "{cmdtag} {powertag} {size} {state:uint8:enum(1=on,2=off)} {checksum}"
             }
         },
         {
@@ -402,26 +429,26 @@
             "supportMusic": true,
             "support17FX": false,
             "support9FX": false,
-            "cctRange": {
-                "min": 29,
-                "max": 70
+            "commandPatterns": {
+                "power": "{cmdtag} {powertag} {size} {state:uint8:enum(1=on,2=off)} {checksum}",
+                "cct": "{cmdtag} {ccttag} {size} {brr:uint8:range(0,100)} {cct:uint8:range(29,70)} 0x32 0x00 0x00 {checksum}",
+                "hsi": "{cmdtag} {hsitag} {size} {hue:uint16_le:range(0,360)} {sat:uint8:range(0,100)} {brr:uint8:range(0,100)} {checksum}"
             }
         },
         {
             "type": 40,
             "image": "https://github.com/keefo/NeewerLite/blob/main/Database/light_images/rgb62.png?raw=true",
-            "link": "",
-            "supportRGB": true,
+            "link": "https://neewer.com/products/neewer-rgb62-magnetic-rgb-video-light-66603000",
+            "supportRGB": false,
             "supportCCTGM": false,
             "supportMusic": true,
             "support17FX": true,
             "support9FX": false,
-            "cctRange": {
-                "min": 25,
-                "max": 84
-            },
-            "newPowerLightCommand": true,
-            "newRGBLightCommand": true
+            "commandPatterns": {
+                "power": "{cmdtag} {powertag} {size} {state:uint8:enum(1=on,2=off)} {checksum}",
+                "cct": "{cmdtag} {ccttag} {size} {brr:uint8:range(0,100)} {cct:uint8:range(25,85)} {gm:uint8:range(0,100)} 0x00 0x00 {checksum}",
+                "hsi": "{cmdtag} {hsitag} {size} {hue:uint16_le:range(0,360)} {sat:uint8:range(0,100)} {brr:uint8:range(0,100)} {checksum}"
+            }
         },
         {
             "type": 42,
@@ -661,6 +688,11 @@
             "cctRange": {
                 "min": 32,
                 "max": 56
+            },
+            "commandPatterns": {
+                "power": "{cmdtag} {powertag} {size} {state:uint8:enum(1=on,2=off)} {checksum}",
+                "cct": "{cmdtag} {ccttag} {size} {brr:uint8:range(0,100)} {cct:uint8:range(32,56)} 0x32 0x00 0x00 {checksum}",
+                "hsi": "{cmdtag} {hsitag} {size} {hue:uint16_le:range(0,360)} {sat:uint8:range(0,100)} {brr:uint8:range(0,100)} {checksum}"
             }
         },
         {
@@ -703,6 +735,11 @@
             "cctRange": {
                 "min": 32,
                 "max": 56
+            },
+            "commandPatterns": {
+                "power": "{cmdtag} {powertag} {size} {state:uint8:enum(1=on,2=off)} {checksum}",
+                "cct": "{cmdtag} {ccttag} {size} {brr:uint8:range(0,100)} {cct:uint8:range(32,56)} 0x32 0x00 0x00 {checksum}",
+                "hsi": "{cmdtag} {hsitag} {size} {hue:uint16_le:range(0,360)} {sat:uint8:range(0,100)} {brr:uint8:range(0,100)} {checksum}"
             }
         },
         {
@@ -731,6 +768,10 @@
             "cctRange": {
                 "min": 29,
                 "max": 70
+            },
+            "commandPatterns": {
+                "power": "{cmdtag} {powertag} {size} {state:uint8:enum(1=on,2=off)} {checksum}",
+                "cct": "{cmdtag} {ccttag} {size} {brr:uint8:range(0,100)} {cct:uint8:range(29,70)} 0x32 0x00 0x00 {checksum}"
             }
         },
         {

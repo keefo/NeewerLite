@@ -18,6 +18,7 @@ INFO_PLIST="../NeewerLite/NeewerLite/Resources/Info.plist"
 # Extract Sparkle appcast URL from Info.plist
 APPCAST_URL=$(/usr/libexec/PlistBuddy -c "Print :SUFeedURL" "$INFO_PLIST")
 
+echo "Using appcast URL: $APPCAST_URL"
 # Download or use local appcast.xml
 if [[ "$APPCAST_URL" =~ ^http ]]; then
     curl -s -o appcast.xml "$APPCAST_URL"
