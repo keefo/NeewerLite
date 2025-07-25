@@ -8,6 +8,8 @@
 import Foundation
 import Cocoa
 
+fileprivate let supportedVersion: Double = 3.0
+
 class ImageFetchOperation: Operation {
     var lightType: UInt8
     var completionHandler: ((NSImage?) -> Void)?
@@ -39,21 +41,40 @@ struct ccTRange: Decodable {
 
 struct NeewerLightDbItem: Decodable {
     let type: UInt8
-    let link: String?
     let image: String
-    let supportRGB: Bool
-    let supportCCTGM: Bool
-    let supportMusic: Bool
-    let support17FX: Bool
-    let support9FX: Bool
+    let link: String?
+    let supportRGB: Bool?
+    let supportCCTGM: Bool?
+    let supportMusic: Bool?
+    let support17FX: Bool?
+    let support9FX: Bool?
     let cctRange: ccTRange?
     let newPowerLightCommand: Bool?
     let newRGBLightCommand: Bool?
+    let commandPatterns: [String: String]?
 }
 
 struct Database: Decodable {
-    let version: Int
+    let version: Double
     let lights: [NeewerLightDbItem]
+
+    enum CodingKeys: String, CodingKey {
+        case version
+        case lights
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        let version = try container.decode(Double.self, forKey: .version)
+        self.version = version
+
+        guard version <= supportedVersion else {
+            self.lights = []
+            throw DecodingError.dataCorruptedError(forKey: .version, in: container, debugDescription: "Unsupported database version: \(version)")
+        }
+
+        self.lights = try container.decode([NeewerLightDbItem].self, forKey: .lights)
+    }
 }
 
 
@@ -134,10 +155,19 @@ class ContentManager {
             }
         }
     }
-    
-    public func loadDatabaseFromDisk(){
-        if databaseCache == nil {
+
+    public func loadDatabaseFromDisk(reload: Bool = false) {
+        if databaseCache == nil || reload {
             do {
+                #if DEBUG
+                // Try to load from resources in debug build
+                if let resourceURL = Bundle.main.url(forResource: "lights", withExtension: "json") {
+                    let data = try Data(contentsOf: resourceURL)
+                    databaseCache = try JSONDecoder().decode(Database.self, from: data)
+                    return
+                }
+                #endif
+                // Fallback to local cache file
                 if fileManager.fileExists(atPath: localDatabaseURL.path) {
                     let data = try Data(contentsOf: localDatabaseURL)
                     databaseCache = try JSONDecoder().decode(Database.self, from: data)
@@ -148,10 +178,23 @@ class ContentManager {
                     try fileManager.removeItem(atPath: localDatabaseURL.path)
                 } catch {
                 }
+                
+                if case let DecodingError.dataCorrupted(context) = error,
+                    context.debugDescription.contains("Unsupported database version") 
+                {
+                    Task { @MainActor in
+                        let alert = NSAlert()
+                        alert.messageText = "Database Error"
+                        alert.informativeText = "\(context.debugDescription).\nPlease update to the latest version of the app."
+                        alert.alertStyle = .critical
+                        alert.addButton(withTitle: "OK")
+                        alert.runModal()
+                    }
+                }
             }
         }
     }
-    
+
     public func downloadDatabase(force: Bool)
     {
         if !force && !self.shouldDownloadDatabase() {
@@ -184,8 +227,8 @@ class ContentManager {
             Logger.info("Download database...")
             let (data, _) = try await session.data(from: jsonDatabaseURL)
             Logger.info("Download content: \(String(data: data, encoding: .utf8) ?? "<binary>")")
-            databaseCache = try JSONDecoder().decode(Database.self, from: data)
             try data.write(to: localDatabaseURL)
+            loadDatabaseFromDisk(reload: true)
             NotificationCenter.default.post(
                                 name: Self.databaseUpdatedNotification,
                                 object: nil,
@@ -281,13 +324,7 @@ class ContentManager {
     }
 
     func fetchLightProperty(lightType: UInt8) -> NeewerLightDbItem? {
-        if let safeCache = databaseCache {
-            let lights = safeCache.lights
-            if let found = lights.first(where: { $0.type == lightType }) {
-                return found
-            }
-        }
-        return nil
+        return databaseCache?.lights.first(where: { $0.type == lightType })
     }
     
     func fetchLightImage(lightType: UInt8) async throws -> NSImage? {

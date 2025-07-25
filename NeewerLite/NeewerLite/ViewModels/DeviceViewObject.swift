@@ -245,7 +245,7 @@ class DeviceViewObject: NSObject {
             cctVal = cctVal.clamped(to: Double(cctrange.minCCT)...Double(cctrange.maxCCT))
 
             var gmmValue = Double(gmm)
-            if device.supportGMRange.value {
+            if device.supportCCTGM {
                 gmmValue = gmmValue.clamped(to: -50...50)
             } else {
                 gmmValue = 0.0

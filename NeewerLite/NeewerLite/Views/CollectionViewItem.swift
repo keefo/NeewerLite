@@ -23,6 +23,8 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
     var nameObservation: NSKeyValueObservation?
     private var overlay: BlockingOverlayView?
     private let valueTextColor: NSColor = NSColor.secondaryLabelColor
+    // Add this property to your class
+    private var patternEditor: PatternEditorPanel?
 
     var device: NeewerLight?
 
@@ -59,17 +61,54 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
 
     @IBAction func moreAction(_ sender: NSButton) {
         let menu = NSMenu(title: "MoreMenu")
-        let item = NSMenuItem(title: NSLocalizedString("Rename Light", comment: ""),
+        
+        var item = NSMenuItem(title: NSLocalizedString("Rename Light", comment: ""),
                               action: #selector(renameAction(_:)), keyEquivalent: "")
         item.target = self
         menu.addItem(item)
-
+        
+        menu.addItem(NSMenuItem.separator())
+        
+        if let safeDev = self.device {
+        
+            item = NSMenuItem(title: NSLocalizedString("Update command patterns", comment: ""),
+                                  action: #selector(updateCmdPatternAction(_:)), keyEquivalent: "")
+            item.target = self
+            menu.addItem(item)
+        
+            if !safeDev.hasPowerCommandPattern
+            {
+                var newPower = safeDev.supportNewPowerCommand
+                if safeDev.altPowerComand {
+                    newPower = !newPower
+                }
+                item = NSMenuItem(title: NSLocalizedString("Use new power command", comment: ""),
+                                      action: #selector(togglePowerCmdAction(_:)), keyEquivalent: "")
+                item.state = newPower ? .on : .mixed
+                item.target = self
+                menu.addItem(item)
+            }
+            if !safeDev.hasHSICommandPattern
+            {
+                var newHSI = safeDev.supportNewHSICommand
+                if safeDev.altHSICommand {
+                    newHSI = !newHSI
+                }
+                item = NSMenuItem(title: NSLocalizedString("Use HSI command", comment: ""),
+                                      action: #selector(toggleHSICmdAction(_:)), keyEquivalent: "")
+                item.state = newHSI ? .on : .mixed
+                item.target = self
+                menu.addItem(item)
+            }
+        }
+        
         if let safeDev = self.device {
             if let safeLink = safeDev.productLink {
                 if URL(string:safeLink) != nil {
                     let item = NSMenuItem(title: NSLocalizedString("Open product page", comment: ""),
                                       action: #selector(linkAction(_:)), keyEquivalent: "")
                     item.target = self
+                    menu.addItem(NSMenuItem.separator())
                     menu.addItem(item)
                 }
             }
@@ -79,6 +118,70 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
         location.y += 20
 
         menu.popUp(positioning: menu.item(at: 0), at: location, in: sender)
+    }
+    
+    // Parse newPattern (String) into [String: String]
+    func parseCommandPatterns(from newPattern: String) -> [String: String]? {
+        guard let data = newPattern.data(using: .utf8) else { return nil }
+        return try? JSONDecoder().decode([String: String].self, from: data)
+    }
+
+    func stableJSONString(from dict: [String: String]) -> String? {
+        // Sort keys for stability
+        let sortedKeys = dict.keys.sorted()
+        var sortedDict: [String: String] = [:]
+        for key in sortedKeys {
+            sortedDict[key] = dict[key]
+        }
+        // Use JSONSerialization for pretty printing
+        if let data = try? JSONSerialization.data(withJSONObject: sortedDict, options: [.prettyPrinted]),
+        let jsonString = String(data: data, encoding: .utf8) {
+            return jsonString
+        }
+        return nil
+    }
+
+    @objc func updateCmdPatternAction(_ sender: Any) {
+        guard let safeDev = self.device else { return }
+        var currentPattern = ""
+        
+        if let patterns = safeDev.temporaryCommandPatterns {
+            currentPattern = self.stableJSONString(from: patterns) ?? ""
+        }
+        else if let item = ContentManager.shared.fetchLightProperty(lightType: safeDev.lightType),
+           let patterns = item.commandPatterns {
+            currentPattern = self.stableJSONString(from: patterns) ?? ""
+        }
+        let editor = PatternEditorPanel(initialPattern: currentPattern) { [weak self] newPattern in
+            guard let self = self else { return }
+            // Save newPattern as needed
+            if newPattern != nil {
+                Logger.debug(newPattern)
+                if newPattern == "reset"
+                {
+                    safeDev.temporaryCommandPatterns = nil
+                }
+                else if let patterns = self.parseCommandPatterns(from: newPattern!) {
+                    // You can assign it to commandPatterns
+                    safeDev.temporaryCommandPatterns = patterns
+                }
+            }
+            self.patternEditor = nil // Release after closing
+        }
+        self.patternEditor = editor // Retain the editor
+        editor.show()
+    }
+
+    @objc func togglePowerCmdAction(_ sender: Any) {
+        if let safeDev = self.device {
+            safeDev.altPowerComand = !safeDev.altPowerComand
+        }
+    }
+    
+    @objc func toggleHSICmdAction(_ sender: Any) {
+        if let safeDev = self.device {
+            safeDev.altHSICommand = !safeDev.altHSICommand
+        }
     }
     
     @objc func linkAction(_ sender: Any) {
@@ -408,7 +511,7 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
             if let safeDev = safeSelf.device {
                 if safeDev.supportRGB {
                     safeDev.lightMode = .HSIMode
-                    safeDev.setRGBLightValues(brr: CGFloat(safeDev.brrValue.value) / 100.0, hue: hue, hue360: hue * 360.0, sat: sat)
+                    safeDev.setHSILightValues(brr100: CGFloat(safeDev.brrValue.value), hue: hue, hue360: hue * 360.0, sat: sat)
                 }
             }
         }
@@ -506,7 +609,7 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
 
         let cctrange = dev.CCTRange()
 
-        let valueItem = dev.supportGMRange.value ? 3 : 2
+        let valueItem = dev.supportCCTGM ? 3 : 2
         var topY = 100.0
         let valueItemWidth = 98.0
         // Define the gap between subviews
@@ -522,7 +625,7 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
 
         let offsetX = 50.0
         var offsetY = 50.0
-        if dev.supportGMRange.value {
+        if dev.supportCCTGM {
             offsetY = 70.0
             topY = 110
         }
@@ -607,7 +710,7 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
 
         offsetY -= 30
 
-        if dev.supportGMRange.value {
+        if dev.supportCCTGM {
             view.addSubview(createLabel("GM"))
             let gmmSlide = NLSlider(frame: NSRect(x: offsetX, y: offsetY, width: sliderWidth, height: 20))
             gmmSlide.autoresizingMask = [.width, .maxYMargin]
@@ -792,7 +895,7 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
         if safeFx.needCCT {
             valueItem += 1
         }
-        if safeFx.needGM  && dev.supportGMRange.value {
+        if safeFx.needGM  && dev.supportCCTGM {
             valueItem += 1
         }
         // Calculate the total width needed for all three subviews and two gaps
@@ -893,7 +996,7 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
             offsetY -= 30
         }
 
-        if safeFx.needGM  && dev.supportGMRange.value {
+        if safeFx.needGM  && dev.supportCCTGM {
             fxsubview.addSubview(createBigValueLabel("GM"))
             fxsubview.addSubview(createBigValueField(ControlTag.gmm, formatCCTValue("\(dev.gmmValue.value)", .center)))
 
@@ -1499,7 +1602,7 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
                     brrSlide.currentValue = brrValue * brrSlide.maxValue
                     brrSlide.pauseNotify = false
                 }
-                dev.setRGBLightValues(brr: brrValue, hue: hueVal, hue360: hue, sat: sat)
+                dev.setHSILightValues(brr100: brrValue * 100.0, hue: hueVal, hue360: hue, sat: sat)
             }
         }
     }
@@ -1542,7 +1645,7 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
                         // HSI mode
                         if dev.supportRGB {
                             let val = getHSIValuesFromView()
-                            dev.setRGBLightValues(brr: CGFloat(val.brr), hue: val.hue, hue360: val.hue * 360.0, sat: val.sat)
+                            dev.setHSILightValues(brr100: CGFloat(val.brr), hue: val.hue, hue360: val.hue * 360.0, sat: val.sat)
                         }
                     } else if idf == TabId.scene.rawValue || tabViewItem?.label == "FX" {
                         // scene mode
