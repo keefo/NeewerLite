@@ -28,7 +28,7 @@ Install neewer iOS app, and Connect your iPhone your dev macbook.
 
 Download and install [iOSBluetoothLogging.mobileconfig](https://tc-downloads.s3.amazonaws.com/support/iOSBluetoothLogging.mobileconfig) on your iPhone.
 
-Download PacketLogger.app on your macbook from Apple Developer portal.
+Download PacketLogger.app on your macbook from Apple Developer portal or download [here](./PacketLogger.zip).
 
 https://twocanoes.com/knowledge-base/capture-bluetooth-packet-trace-on-ios/
 
