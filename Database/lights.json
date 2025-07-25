@@ -235,6 +235,10 @@
             "cctRange": {
                 "min": 27,
                 "max": 65
+            },
+            "commandPatterns": {
+                "power": "{cmdtag} {powertag} {size} {state:uint8:enum(1=on,2=off)} {checksum}",
+                "cct": "{cmdtag} {ccttag} {size} {brr:uint8:range(0,100)} {cct:uint8:range(27,65)} {gm:uint8:range(0,100)} 0x00 0x00 {checksum}"
             }
         },
         {
@@ -333,6 +337,10 @@
             "cctRange": {
                 "min": 32,
                 "max": 56
+            },
+            "commandPatterns": {
+                "power": "{cmdtag} {powertag} {size} {state:uint8:enum(1=on,2=off)} {checksum}",
+                "cct": "{cmdtag} {ccttag} {size} {brr:uint8:range(0,100)} {cct:uint8:range(32,56)} 0x32 0x00 0x00 {checksum}"
             }
         },
         {
@@ -347,6 +355,10 @@
             "cctRange": {
                 "min": 32,
                 "max": 56
+            },
+            "commandPatterns": {
+                "power": "{cmdtag} {powertag} {size} {state:uint8:enum(1=on,2=off)} {checksum}",
+                "cct": "{cmdtag} {ccttag} {size} {brr:uint8:range(0,100)} {cct:uint8:range(32,56)} 0x32 0x00 0x00 {checksum}"
             }
         },
         {
@@ -361,6 +373,9 @@
             "cctRange": {
                 "min": 29,
                 "max": 70
+            },
+            "commandPatterns": {
+                "power": "{cmdtag} {powertag} {size} {state:uint8:enum(1=on,2=off)} {checksum}"
             }
         },
         {
