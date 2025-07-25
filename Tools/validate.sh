@@ -28,6 +28,7 @@ VERBOSE=false
 SKIP_ZIP=false
 SKIP_DMG=false
 SKIP_APPCAST=false
+SKIP_LIGHTS_DB=false
 
 # Function to show help
 show_help() {
@@ -42,6 +43,7 @@ show_help() {
     echo "  --skip-appcast    Skip appcast.xml validation"
     echo "  --skip-zip        Skip ZIP file validation"
     echo "  --skip-dmg        Skip DMG file validation"
+    echo "  --skip-lights-db  Skip lights database validation"
     echo
     echo "Environment variables (optional):"
     echo "  NEEWERLITE_REMOTE_FOLDER      - Remote folder path (for legacy SCP method)"
@@ -53,6 +55,7 @@ show_help() {
     echo "  $0                           # Run all validations"
     echo "  $0 --skip-zip               # Skip ZIP validation"
     echo "  $0 -v --skip-appcast        # Verbose mode, skip appcast"
+    echo "  $0 --skip-lights-db         # Skip lights database validation"
 }
 
 # Parse command line arguments
@@ -76,6 +79,10 @@ while [[ $# -gt 0 ]]; do
             ;;
         --skip-dmg)
             SKIP_DMG=true
+            shift
+            ;;
+        --skip-lights-db)
+            SKIP_LIGHTS_DB=true
             shift
             ;;
         *)
@@ -329,6 +336,202 @@ validate_dmg_from_github() {
     fi
 }
 
+# Function to validate lights database
+validate_lights_database() {
+    print_status "Validating Database/lights.json..."
+    
+    local lights_db_path="../Database/lights.json"
+    
+    # Check if file exists
+    if [ ! -f "$lights_db_path" ]; then
+        print_error "lights.json not found at $lights_db_path"
+        return 1
+    fi
+    
+    print_success "Found lights.json file"
+    
+    # Check if it's valid JSON
+    if ! jq empty "$lights_db_path" 2>/dev/null; then
+        print_error "lights.json is not valid JSON"
+        return 1
+    fi
+    
+    print_success "lights.json is valid JSON"
+    
+    # Validate JSON structure
+    local validation_errors=0
+    
+    # Check for required top-level fields
+    local version=$(jq -r '.version' "$lights_db_path" 2>/dev/null)
+    if [ "$version" = "null" ] || [ -z "$version" ]; then
+        print_error "Missing or invalid 'version' field"
+        validation_errors=$((validation_errors + 1))
+    else
+        print_success "Found version: $version"
+    fi
+    
+    # Check if lights array exists
+    local lights_count=$(jq -r '.lights | length' "$lights_db_path" 2>/dev/null)
+    if [ "$lights_count" = "null" ] || [ "$lights_count" -eq 0 ] 2>/dev/null; then
+        print_error "Missing or empty 'lights' array"
+        validation_errors=$((validation_errors + 1))
+    else
+        print_success "Found $lights_count light definitions"
+    fi
+    
+    # Validate each light entry
+    local light_index=0
+    local required_fields=("type" "supportRGB" "supportCCTGM" "supportMusic" "support17FX" "support9FX")
+    local required_command_patterns=("power")
+    
+    while IFS= read -r light; do
+        if [ "$VERBOSE" = true ]; then
+            print_status "  Validating light #$light_index..."
+        fi
+        
+        # Check required fields
+        for field in "${required_fields[@]}"; do
+            local field_value=$(echo "$light" | jq -r ".$field" 2>/dev/null)
+            if [ "$field_value" = "null" ]; then
+                print_error "  Light #$light_index: Missing required field '$field'"
+                validation_errors=$((validation_errors + 1))
+            fi
+        done
+        
+        # Validate type is a number
+        local type_value=$(echo "$light" | jq -r '.type' 2>/dev/null)
+        if ! [[ "$type_value" =~ ^[0-9]+$ ]]; then
+            print_error "  Light #$light_index: 'type' must be a number, got: $type_value"
+            validation_errors=$((validation_errors + 1))
+        fi
+        
+        # Check command patterns (optional)
+        local command_patterns=$(echo "$light" | jq -r '.commandPatterns' 2>/dev/null)
+        if [ "$command_patterns" != "null" ]; then
+            # If commandPatterns exists, validate its structure
+            if [ "$VERBOSE" = true ]; then
+                print_success "  Light #$light_index: Has commandPatterns defined"
+            fi
+            
+            # Check required command patterns
+            for cmd in "${required_command_patterns[@]}"; do
+                local cmd_pattern=$(echo "$light" | jq -r ".commandPatterns.$cmd" 2>/dev/null)
+                if [ "$cmd_pattern" = "null" ]; then
+                    print_error "  Light #$light_index: Missing required command pattern '$cmd'"
+                    validation_errors=$((validation_errors + 1))
+                fi
+            done
+            
+            # Validate RGB support consistency (optional check)
+            local supports_rgb=$(echo "$light" | jq -r '.supportRGB' 2>/dev/null)
+            local has_hsi_pattern=$(echo "$light" | jq -r '.commandPatterns.hsi' 2>/dev/null)
+            
+            if [ "$supports_rgb" = "true" ] && [ "$has_hsi_pattern" = "null" ]; then
+                if [ "$VERBOSE" = true ]; then
+                    print_status "  Light #$light_index: supportRGB=true but no 'hsi' command pattern (optional)"
+                fi
+            fi
+        else
+            # commandPatterns is optional, just note it in verbose mode
+            if [ "$VERBOSE" = true ]; then
+                print_status "  Light #$light_index: No commandPatterns defined (optional)"
+            fi
+        fi
+        
+        # Validate image URL if present
+        local image_url=$(echo "$light" | jq -r '.image' 2>/dev/null)
+        if [ -n "$image_url" ] && [ "$image_url" != "null" ] && [ "$image_url" != "" ]; then
+            if [[ "$image_url" =~ ^https://github\.com/keefo/NeewerLite/blob/main/Database/light_images/.+\.png\?raw=true$ ]]; then
+                if [ "$VERBOSE" = true ]; then
+                    print_success "  Light #$light_index: Valid image URL format"
+                fi
+            else
+                print_error "  Light #$light_index: Invalid image URL format: $image_url"
+                validation_errors=$((validation_errors + 1))
+            fi
+        fi
+        
+        # Validate CCT range if present
+        local cct_range=$(echo "$light" | jq -r '.cctRange' 2>/dev/null)
+        if [ "$cct_range" != "null" ]; then
+            local cct_min=$(echo "$light" | jq -r '.cctRange.min' 2>/dev/null)
+            local cct_max=$(echo "$light" | jq -r '.cctRange.max' 2>/dev/null)
+            
+            if [ "$cct_min" = "null" ] || [ "$cct_max" = "null" ]; then
+                print_error "  Light #$light_index: cctRange must have both 'min' and 'max' values"
+                validation_errors=$((validation_errors + 1))
+            elif ! [[ "$cct_min" =~ ^[0-9]+$ ]] || ! [[ "$cct_max" =~ ^[0-9]+$ ]]; then
+                print_error "  Light #$light_index: cctRange min/max must be numbers"
+                validation_errors=$((validation_errors + 1))
+            elif [ "$cct_min" -ge "$cct_max" ]; then
+                print_error "  Light #$light_index: cctRange min ($cct_min) must be less than max ($cct_max)"
+                validation_errors=$((validation_errors + 1))
+            fi
+        fi
+        
+        light_index=$((light_index + 1))
+    done < <(jq -c '.lights[]' "$lights_db_path" 2>/dev/null)
+    
+    # Check for duplicate types
+    local duplicate_types=$(jq -r '.lights[].type' "$lights_db_path" | sort | uniq -d)
+    if [ -n "$duplicate_types" ]; then
+        print_error "Found duplicate light types: $duplicate_types"
+        validation_errors=$((validation_errors + 1))
+    else
+        print_success "No duplicate light types found"
+    fi
+    
+    # Validate referenced image files exist
+    print_status "Checking referenced image files..."
+    local missing_images=0
+    while IFS= read -r image_file; do
+        if [ -n "$image_file" ] && [ "$image_file" != "null" ] && [ "$image_file" != "" ]; then
+            # Extract filename from GitHub URL
+            local filename=$(echo "$image_file" | sed 's/.*\/\([^?]*\).*/\1/')
+            local local_image_path="../Database/light_images/$filename"
+            
+            if [ ! -f "$local_image_path" ]; then
+                print_error "  Referenced image file not found: $local_image_path"
+                missing_images=$((missing_images + 1))
+            fi
+        fi
+    done < <(jq -r '.lights[].image' "$lights_db_path" 2>/dev/null)
+    
+    if [ $missing_images -eq 0 ]; then
+        print_success "All referenced image files exist locally"
+    else
+        print_error "$missing_images referenced image files are missing"
+        validation_errors=$((validation_errors + 1))
+    fi
+    
+    # File size and statistics
+    local file_size=$(stat -f%z "$lights_db_path" 2>/dev/null || stat -c%s "$lights_db_path" 2>/dev/null)
+    print_success "Database file size: $file_size bytes"
+    
+    # Summary statistics
+    local rgb_lights=$(jq -r '[.lights[] | select(.supportRGB == true)] | length' "$lights_db_path")
+    local cct_lights=$(jq -r '[.lights[] | select(.supportCCTGM == true)] | length' "$lights_db_path")
+    local music_lights=$(jq -r '[.lights[] | select(.supportMusic == true)] | length' "$lights_db_path")
+    local fx17_lights=$(jq -r '[.lights[] | select(.support17FX == true)] | length' "$lights_db_path")
+    local fx9_lights=$(jq -r '[.lights[] | select(.support9FX == true)] | length' "$lights_db_path")
+    
+    print_success "Database statistics:"
+    print_success "  Total lights: $lights_count"
+    print_success "  RGB support: $rgb_lights"
+    print_success "  CCT+GM support: $cct_lights"
+    print_success "  Music support: $music_lights"
+    print_success "  17FX support: $fx17_lights"
+    print_success "  9FX support: $fx9_lights"
+    
+    if [ $validation_errors -eq 0 ]; then
+        print_success "lights.json validation passed"
+        return 0
+    else
+        print_error "lights.json validation failed with $validation_errors error(s)"
+        return 1
+    fi
+}
+
 # Function to compare versions
 compare_versions() {
     print_status "Comparing versions across sources..."
@@ -390,6 +593,7 @@ main() {
         print_status "Skip appcast: $SKIP_APPCAST"
         print_status "Skip ZIP: $SKIP_ZIP" 
         print_status "Skip DMG: $SKIP_DMG"
+        print_status "Skip lights DB: $SKIP_LIGHTS_DB"
     fi
     echo
     
@@ -451,12 +655,23 @@ main() {
         echo
     fi
     
+    # Validate lights database
+    if [ "$SKIP_LIGHTS_DB" = false ]; then
+        if ! validate_lights_database; then
+            validation_errors=$((validation_errors + 1))
+        fi
+        echo
+    else
+        print_status "Skipping lights database validation"
+        echo
+    fi
+    
     # Compare versions
     compare_versions
     echo
     
     # Summary
-    local total_checks=$((3 - $(($SKIP_APPCAST + $SKIP_ZIP + $SKIP_DMG))))
+    local total_checks=$((4 - $(($SKIP_APPCAST + $SKIP_ZIP + $SKIP_DMG + $SKIP_LIGHTS_DB))))
     local successful_checks=$((total_checks - validation_errors))
     
     if [ $validation_errors -eq 0 ]; then
@@ -465,6 +680,7 @@ main() {
         [ "$SKIP_APPCAST" = false ] && print_success "✅ appcast.xml is accessible and valid"
         [ "$SKIP_ZIP" = false ] && print_success "✅ ZIP file downloads and is valid"
         [ "$SKIP_DMG" = false ] && print_success "✅ DMG file downloads from GitHub and is valid"
+        [ "$SKIP_LIGHTS_DB" = false ] && print_success "✅ lights.json database is valid"
     else
         print_error "❌ $validation_errors out of $total_checks validation(s) failed"
         print_status "($successful_checks validation(s) passed)"
