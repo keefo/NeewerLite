@@ -78,3 +78,6 @@ gh release create "$TAG_NAME" \
   "$DMG_PATH" 
 
 echo "✅ Release $TAG_NAME published to GitHub and website."
+echo ""
+
+./validate.sh

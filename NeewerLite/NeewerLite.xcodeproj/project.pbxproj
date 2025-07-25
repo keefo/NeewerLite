@@ -7,6 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		A708F5822E32FAC900564DCF /* lights.json in Resources */ = {isa = PBXBuildFile; fileRef = A708F5812E32FAC900564DCF /* lights.json */; };
+		A708F58A2E33006E00564DCF /* CommandParserTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A708F5892E33006E00564DCF /* CommandParserTests.swift */; };
+		A708F58C2E3300A300564DCF /* CommandPatternParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = A708F58B2E3300A300564DCF /* CommandPatternParser.swift */; };
+		A708F5902E333E8E00564DCF /* PatternEditorPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A708F58F2E333E8E00564DCF /* PatternEditorPanel.swift */; };
 		A71B39B72756EBA20005E271 /* AudioSpectrogramView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A71B39B62756EBA20005E271 /* AudioSpectrogramView.swift */; };
 		A71B39BA275726800005E271 /* Atomics in Frameworks */ = {isa = PBXBuildFile; productRef = A71B39B9275726800005E271 /* Atomics */; };
 		A730F7FE2AE79173009CA529 /* NeewerLightConstant.swift in Sources */ = {isa = PBXBuildFile; fileRef = A730F7FD2AE79173009CA529 /* NeewerLightConstant.swift */; };
@@ -62,6 +66,10 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		A708F5812E32FAC900564DCF /* lights.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; name = lights.json; path = ../Database/lights.json; sourceTree = SOURCE_ROOT; };
+		A708F5892E33006E00564DCF /* CommandParserTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommandParserTests.swift; sourceTree = "<group>"; };
+		A708F58B2E3300A300564DCF /* CommandPatternParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommandPatternParser.swift; sourceTree = "<group>"; };
+		A708F58F2E333E8E00564DCF /* PatternEditorPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PatternEditorPanel.swift; sourceTree = "<group>"; };
 		A71B39B62756EBA20005E271 /* AudioSpectrogramView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AudioSpectrogramView.swift; sourceTree = "<group>"; };
 		A730F7FD2AE79173009CA529 /* NeewerLightConstant.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NeewerLightConstant.swift; sourceTree = "<group>"; };
 		A730F7FF2AE7B8C0009CA529 /* digital-7-mono.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "digital-7-mono.ttf"; sourceTree = "<group>"; };
@@ -171,6 +179,7 @@
 		A731DD4325A57D0B00302E25 /* NeewerLiteTests */ = {
 			isa = PBXGroup;
 			children = (
+				A708F5892E33006E00564DCF /* CommandParserTests.swift */,
 				A731DD4425A57D0B00302E25 /* NeewerLiteTests.swift */,
 				A731DD4625A57D0B00302E25 /* Info.plist */,
 			);
@@ -180,6 +189,7 @@
 		A731DD7F25A5921F00302E25 /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				A708F58F2E333E8E00564DCF /* PatternEditorPanel.swift */,
 				A731DD8025A5922A00302E25 /* CollectionViewItem.swift */,
 				A71B39B62756EBA20005E271 /* AudioSpectrogramView.swift */,
 				A77414D12AEA2C8D0085F149 /* BlockingOverlayView.swift */,
@@ -196,6 +206,7 @@
 		A731DD8A25A5925500302E25 /* Model */ = {
 			isa = PBXGroup;
 			children = (
+				A708F58B2E3300A300564DCF /* CommandPatternParser.swift */,
 				A731DD7325A5896B00302E25 /* NeewerLight.swift */,
 				A7311C4529A0BD5E009C03D8 /* Command.swift */,
 				A730F7FD2AE79173009CA529 /* NeewerLightConstant.swift */,
@@ -234,6 +245,7 @@
 		A731DDAC25A5A13000302E25 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				A708F5812E32FAC900564DCF /* lights.json */,
 				A730F7FF2AE7B8C0009CA529 /* digital-7-mono.ttf */,
 				A731DD3525A57D0B00302E25 /* Assets.xcassets */,
 				A731DD8E25A592CC00302E25 /* CollectionViewItem.xib */,
@@ -351,6 +363,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A708F5822E32FAC900564DCF /* lights.json in Resources */,
 				A731DD3625A57D0B00302E25 /* Assets.xcassets in Resources */,
 				A730F8002AE7B8C0009CA529 /* digital-7-mono.ttf in Resources */,
 				A731DD3925A57D0B00302E25 /* MainMenu.xib in Resources */,
@@ -401,7 +414,9 @@
 				A76C38692DFFFCFA006B7C38 /* Utils.swift in Sources */,
 				A731DD6C25A5891E00302E25 /* Logger.swift in Sources */,
 				A7770BF42AF6F7190046E571 /* RoundedScrollView.swift in Sources */,
+				A708F5902E333E8E00564DCF /* PatternEditorPanel.swift in Sources */,
 				A733AEC22933185900F37DDD /* AppDelegate.swift in Sources */,
+				A708F58C2E3300A300564DCF /* CommandPatternParser.swift in Sources */,
 				A749F6FA25B3AE7E0066EB06 /* DataExtensions.swift in Sources */,
 				A77414D22AEA2C8D0085F149 /* BlockingOverlayView.swift in Sources */,
 				A7FF36712AF84A690068022C /* CodableValue.swift in Sources */,
@@ -430,6 +445,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A708F58A2E33006E00564DCF /* CommandParserTests.swift in Sources */,
 				A731DD4525A57D0B00302E25 /* NeewerLiteTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

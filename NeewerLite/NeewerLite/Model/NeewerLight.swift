@@ -49,7 +49,19 @@ class NeewerLight: NSObject, ObservableNeewerLightProtocol {
     var satValue: Observable<Int> = Observable(+00) // Saturation range 0~100
     var gmmValue: Observable<Int> = Observable(-50) // GM, use name gmm for better code alignment, range -50~50
     var lastTab: String = ""
-    
+    var temporaryCommandPatterns: [String: String]?
+    {
+        didSet {
+            Logger.debug("temporaryCommandPatterns changed to: \(String(describing: temporaryCommandPatterns))")
+            if self.supportCCTGM {
+                Logger.debug("supportCCTGM")
+            }
+            else {
+                Logger.debug("not supportCCTGM")
+            }
+        }
+    }
+
     var maxChannel: UInt8 {
         let fxs = NeewerLightConstant.getLightFX(lightType: _lightType)
         if supportedFX.isEmpty {
@@ -124,10 +136,68 @@ class NeewerLight: NSObject, ObservableNeewerLightProtocol {
     // read only properties
     var supportRGB: Bool {
         // some lights are only Bi-Color which does not support RGB.
+        if let _ = findCommandPatternFromDB("hsi") {
+            return true
+        }
         if let item = ContentManager.shared.fetchLightProperty(lightType: _lightType)
         {
-            return item.supportRGB
+            if item.supportRGB ?? false {
+                return true
+            }
         }
+        return false
+    }
+    
+    var hasPowerCommandPattern: Bool {
+        if let item = findCommandPatternFromDB("power")
+        {
+            return true
+        }
+        return false
+    }
+    
+    var hasHSICommandPattern: Bool {
+        if let item = findCommandPatternFromDB("hsi")
+        {
+            return true
+        }
+        return false
+    }
+
+    var supportNewPowerCommand: Bool {
+        var useNew = false
+        if let item = ContentManager.shared.fetchLightProperty(lightType: _lightType)
+        {
+            useNew = item.newPowerLightCommand ?? false
+        }
+        return useNew
+    }
+    
+    var supportNewHSICommand: Bool {
+        var useNew = false
+        if let item = ContentManager.shared.fetchLightProperty(lightType: _lightType)
+        {
+            useNew = item.newRGBLightCommand ?? false
+        }
+        return useNew
+    }
+    
+    var supportCCTGM: Bool {
+        if let pattern = findCommandPatternFromDB("cct") {
+            if pattern.contains("gm:") {
+                supportGMRange.value = true
+                return true
+            }
+        }
+        if let item = ContentManager.shared.fetchLightProperty(lightType: self.ligthType)
+        {
+            if item.supportCCTGM ?? false
+            {
+                supportGMRange.value = true
+                return true
+            }
+        }
+        supportGMRange.value = false
         return false
     }
     
@@ -140,6 +210,19 @@ class NeewerLight: NSObject, ObservableNeewerLightProtocol {
     }
 
     func CCTRange() -> (minCCT: Int, maxCCT: Int) {
+        if let pattern = findCommandPatternFromDB("cct") {
+            if pattern.contains("cct:") {
+                let regex = try! NSRegularExpression(pattern: #"\{cct:[^:}]+:range\((\d+),\s*(\d+)\)\}"#, options: [])
+                let nsrange = NSRange(pattern.startIndex..<pattern.endIndex, in: pattern)
+                if let match = regex.firstMatch(in: pattern, options: [], range: nsrange),
+                let minRange = Range(match.range(at: 1), in: pattern),
+                let maxRange = Range(match.range(at: 2), in: pattern),
+                let min = Int(pattern[minRange]),
+                let max = Int(pattern[maxRange]) {
+                    return (min, max)
+                }
+            }
+        }
         if let item = ContentManager.shared.fetchLightProperty(lightType: _lightType)
         {
             if (item.cctRange != nil)
@@ -157,6 +240,9 @@ class NeewerLight: NSObject, ObservableNeewerLightProtocol {
         }
         return name
     }
+    
+    var altPowerComand: Bool = false
+    var altHSICommand: Bool = false
 
     var nickNameSuffix: String {
         // In andorid app the suffix is MAC address last 3 without :
@@ -297,13 +383,7 @@ class NeewerLight: NSObject, ObservableNeewerLightProtocol {
 
         if let safeMac = _macAddress {
             if (safeMac.lengthOfBytes(using: .utf8)) > 8 {
-                if let item = ContentManager.shared.fetchLightProperty(lightType: self.ligthType)
-                {
-                    if item.supportCCTGM
-                    {
-                        supportGMRange.value = true
-                    }
-                }
+                supportGMRange.value = self.supportCCTGM
             }
         }
 
@@ -380,63 +460,71 @@ class NeewerLight: NSObject, ObservableNeewerLightProtocol {
     }
 
     func sendPowerOnRequest(_ altCommand: Bool = false) {
-        Logger.debug("send powerOn")
-        isOn.value = true
-        guard let characteristic = deviceCtlCharacteristic else {
-            return
-        }
-        
-        var useNew = false
-        if let item = ContentManager.shared.fetchLightProperty(lightType: _lightType)
-        {
-            if item.newPowerLightCommand != nil
-            {
-                useNew = item.newPowerLightCommand ?? false
-            }
-        }
-        
-        if altCommand {
-            useNew = !useNew
-        }
-
-        if useNew {
-            Logger.debug("send new powerOn command")
-            write(data: getNewPowerCommand(true) as Data, to: characteristic)
-            return
-        }
-
-        Logger.debug("send old powerOn command")
-        self.write(data: NeewerLightConstant.BleCommand.powerOn as Data, to: characteristic)
+        sendPowerRequest(turnOn: true, altCommand: altCommand)
     }
 
     func sendPowerOffRequest(_ altCommand: Bool = false) {
-        Logger.debug("send powerOff")
-        isOn.value = false
+        sendPowerRequest(turnOn: false, altCommand: altCommand)
+    }
+
+    private func findCommandPatternFromDB(_ command: String) -> String? {
+        if temporaryCommandPatterns != nil {
+            if let pattern = temporaryCommandPatterns![command] {
+                return pattern
+            }
+        }
+        if let item = ContentManager.shared.fetchLightProperty(lightType: _lightType),
+            let patterns = item.commandPatterns,
+            let pattern = patterns[command] {
+            return pattern
+        }
+        return nil
+    }
+
+    private func sendPowerRequest(turnOn: Bool, altCommand: Bool = false) {
+        Logger.debug("send power \(turnOn ? "On" : "Off")")
+        isOn.value = turnOn
         guard let characteristic = deviceCtlCharacteristic else {
             return
         }
-        
-        var useNew = false
-        if let item = ContentManager.shared.fetchLightProperty(lightType: _lightType)
-        {
-            if item.newPowerLightCommand != nil
-            {
-                useNew = item.newPowerLightCommand ?? false
+
+        // 1. Try to use commandPatterns from database if available
+        let pattern = findCommandPatternFromDB("power")
+        if (pattern != nil) {
+            // Compose values for the pattern
+            Logger.debug("send power command via pattern: \(pattern!)")
+            var values: [String: Any] = [:]
+            values["state"] = turnOn ? "on" : "off"
+            let data = CommandPatternParser.buildCommand(from: pattern!, values: values)
+            if !data.isEmpty {
+                write(data: data, to: characteristic)
+                Logger.debug("send power command via pattern: \(pattern!) values: \(values) data: \(data.hexEncodedString())")
+                return
+            } else {
+                Logger.warn("Pattern-based power command failed, falling back to legacy logic.")
             }
         }
         
+        // 2. Fallback to legacy logic
+        var useNew = self.supportNewPowerCommand
+
         if altCommand {
             useNew = !useNew
+            Logger.info("user press alt key, to send \(useNew ? "new" : "old") power command")
+        } else if self.altPowerComand {
+            useNew = !useNew
+            Logger.info("user select alt menu, to send \(useNew ? "new" : "old") power command")
         }
 
         if useNew {
-            Logger.debug("send new powerOff command")
-            write(data: getNewPowerCommand(false) as Data, to: characteristic)
+            Logger.debug("send new power\(turnOn ? "On" : "Off") command")
+            write(data: getNewPowerCommand(turnOn) as Data, to: characteristic)
             return
         }
 
-        Logger.debug("send old powerOff command")
-        self.write(data: NeewerLightConstant.BleCommand.powerOff as Data, to: characteristic)
+        Logger.debug("send old power\(turnOn ? "On" : "Off") command")
+        let data = turnOn ? NeewerLightConstant.BleCommand.powerOn : NeewerLightConstant.BleCommand.powerOff
+        self.write(data: data as Data, to: characteristic)
     }
 
     func sendReadRequest() {
@@ -473,6 +561,37 @@ class NeewerLight: NSObject, ObservableNeewerLightProtocol {
         var cmd: Data = Data()
         Logger.debug("setCCTLightValues brr: \(brr) cct: \(cct) gmm: \(gmm)")
 
+        // 1. Try to use commandPatterns from database if available
+        if let pattern = findCommandPatternFromDB("cct") {
+            Logger.debug("send CCT command via pattern: \(pattern)")
+            // Compose values for the pattern
+            var values: [String: Any] = [:]
+            // Clamp and convert values as needed
+            let cctRange = CCTRange()
+            let newBrrValue = Int(brr).clamped(to: 0...100)
+            let newCctValue = Int(cct).clamped(to: cctRange.minCCT...cctRange.maxCCT)
+            let newGmValue = Int(gmm).clamped(to: -50...50)
+            values["brr"] = newBrrValue
+            values["cct"] = newCctValue
+            values["gm"] = newGmValue + 50
+            
+            gmmValue.value = newGmValue
+            cctValue.value = newCctValue
+            brrValue.value = newBrrValue
+
+            cmd = CommandPatternParser.buildCommand(from: pattern, values: values)
+            if !cmd.isEmpty {
+                lightMode = .CCTMode
+                guard let characteristic = deviceCtlCharacteristic else { return }
+                write(data: cmd, to: characteristic)
+                Logger.debug("send CCT command via pattern: \(pattern) values: \(values) data: \(cmd.hexEncodedString())")
+                return
+            } else {
+                Logger.warn("Pattern-based CCT command failed, falling back to legacy logic.")
+            }
+        }
+
+        // Fallback to legacy logic
         if supportGMRange.value {
             cmd = getCCTDATALightCommand(brightness: brr, correlatedColorTemperature: cct, gmm: gmm)
         } else if supportRGB {
@@ -481,32 +600,61 @@ class NeewerLight: NSObject, ObservableNeewerLightProtocol {
             cmd = getCCTOnlyLightCommand(brightness: brr, correlatedColorTemperature: cct)
         }
         lightMode = .CCTMode
-        guard let characteristic = deviceCtlCharacteristic else {
-            return
-        }
-        write(data: cmd as Data, to: characteristic)
+        guard let characteristic = deviceCtlCharacteristic else { return }
+        write(data: cmd, to: characteristic)
     }
 
     // Set RBG light in HSV Mode
-    public func setRGBLightValues(brr: CGFloat, hue: CGFloat, hue360: CGFloat, sat: CGFloat) {
+    public func setHSILightValues(brr100: CGFloat, hue: CGFloat, hue360: CGFloat, sat: CGFloat) {
         var cmd: Data = Data()
-        // Logger.debug("hue: \(hue) hue360: \(hue360) sat: \(sat)")
+        Logger.debug("hue: \(hue) hue360: \(hue360) sat: \(sat) brr100: \(brr100)")
 
-        var useNew = false
-        if let item = ContentManager.shared.fetchLightProperty(lightType: _lightType)
-        {
-            if item.newRGBLightCommand != nil
-            {
-                useNew = item.newRGBLightCommand ?? false
+        // 1. Try to use commandPatterns from database if available
+        if let pattern = findCommandPatternFromDB("hsi") {
+            Logger.debug("send HSI command via pattern: \(pattern)")
+            var values: [String: Any] = [:]
+            // Clamp and convert values as neededvar ratio = 100.0
+            let newHue360Value = Int(hue360).clamped(to: 0...360)
+            let newBrrValue: Int = Int(brr100).clamped(to: 0...100)
+            let newSatValue: Int = Int(sat * 100.0).clamped(to: 0...100)
+            // If your pattern uses "i" for intensity, set it here. If "w" (white), set as needed.
+            values["hue"] = newHue360Value
+            values["sat"] = newSatValue
+            values["brr"] = newBrrValue
+  
+            brrValue.value = newBrrValue
+            hueValue.value = newHue360Value
+            satValue.value = newSatValue
+
+            cmd = CommandPatternParser.buildCommand(from: pattern, values: values)
+            if !cmd.isEmpty {
+                lightMode = .HSIMode
+                guard let characteristic = deviceCtlCharacteristic else { return }
+                write(data: cmd, to: characteristic)
+                Logger.debug("send HSI command via pattern: \(pattern) values: \(values) data: \(cmd.hexEncodedString())")
+                return
+            } else {
+                Logger.warn("Pattern-based HSI command failed, falling back to legacy logic.")
             }
+        }
+
+        // Fallback to legacy logic
+        var useNew = self.supportNewHSICommand
+        
+        if self.altHSICommand
+        {
+            useNew = !useNew
+            Logger.info("user select alt menu, to send \(useNew ? "new" : "old") HSI command")
         }
         
         if useNew {
-            cmd = getNewRGBLightCommand(mac: _macAddress ?? "", brightness: brr, hue: hue, hue360: hue360, satruation: sat)
+            cmd = getNewHSILightCommand(mac: _macAddress ?? "", brightness: brr100, hue: hue, hue360: hue360, satruation: sat)
         } else {
-            cmd = getRGBLightCommand(brightness: brr, hue: hue, hue360: hue360, satruation: sat)
+            cmd = getHSILightCommand(brightness: brr100, hue: hue, hue360: hue360, satruation: sat)
         }
-
+        
+        // new command start with 78,8F
+        // old command start with 78,87
         lightMode = .HSIMode
 
         guard let characteristic = deviceCtlCharacteristic else {
@@ -533,13 +681,13 @@ class NeewerLight: NSObject, ObservableNeewerLightProtocol {
 
         if let item = ContentManager.shared.fetchLightProperty(lightType: _lightType)
         {
-            if item.support17FX {
-                cmd = getSceneCommand(_macAddress ?? "", fxx)
-                channel.value = UInt8(fxx.id)
+            if item.support17FX ?? false {
+                cmd = getSceneValue(UInt8(fxx.id), brightness: CGFloat(fxx.brrValue))
             }
             else
             {
-                cmd = getSceneValue(UInt8(fxx.id), brightness: CGFloat(fxx.brrValue))
+                cmd = getSceneCommand(_macAddress ?? "", fxx)
+                channel.value = UInt8(fxx.id)
             }
         }
         else
@@ -773,13 +921,13 @@ class NeewerLight: NSObject, ObservableNeewerLightProtocol {
             }
             
             if useNew {
-                cmd = getNewRGBLightCommand(mac: _macAddress ?? "",
+                cmd = getNewHSILightCommand(mac: _macAddress ?? "",
                                             brightness: brr,
                                             hue: CGFloat(hueValue.value) / 360.0,
                                             hue360: CGFloat(hueValue.value),
                                             satruation: CGFloat(satValue.value) / 100.0)
             } else {
-                cmd = getRGBLightCommand(brightness: brr, hue: CGFloat(hueValue.value) / 360.0, hue360: CGFloat(hueValue.value), satruation: CGFloat(satValue.value) / 100.0)
+                cmd = getHSILightCommand(brightness: brr, hue: CGFloat(hueValue.value) / 360.0, hue360: CGFloat(hueValue.value), satruation: CGFloat(satValue.value) / 100.0)
             }
         } else {
             cmd = getSceneValue(channel.value, brightness: CGFloat(brr))
@@ -790,7 +938,7 @@ class NeewerLight: NSObject, ObservableNeewerLightProtocol {
         write(data: cmd as Data, to: characteristic)
     }
 
-    private func getRGBLightCommand(brightness brr: CGFloat, hue theHue: CGFloat, hue360 theHue360: CGFloat, satruation sat: CGFloat ) -> Data {
+    private func getHSILightCommand(brightness brr: CGFloat, hue theHue: CGFloat, hue360 theHue360: CGFloat, satruation sat: CGFloat ) -> Data {
         var ratio = 100.0
         if brr > 1.0 {
             ratio = 1.0
@@ -829,7 +977,7 @@ class NeewerLight: NSObject, ObservableNeewerLightProtocol {
         return NSData(bytes: bArr1, length: bArr1.count) as Data
     }
 
-    private func getNewRGBLightCommand(mac: String, brightness brr: CGFloat, hue theHue: CGFloat, hue360 theHue360: CGFloat, satruation sat: CGFloat ) -> Data {
+    private func getNewHSILightCommand(mac: String, brightness brr: CGFloat, hue theHue: CGFloat, hue360 theHue360: CGFloat, satruation sat: CGFloat ) -> Data {
         /*
          Apr 28 12:12:27.429  ATT Send         0x005B  00:00:00:00:00:00  Write Command - Handle:0x000E - Value: 788F 0CF7 AC16 F158 9686 4500 5C32 0004  SEND
 
@@ -838,13 +986,8 @@ class NeewerLight: NSObject, ObservableNeewerLightProtocol {
 
          78,8f,0b,f7,ac,16,f1,58,96,53,01,43,49,00,8a
          */
-
-        var ratio = 100.0
-        if brr > 1.0 {
-            ratio = 1.0
-        }
         // brr range from 0x00 - 0x64
-        let newBrrValue: Int = Int(brr * ratio).clamped(to: 0...100)
+        let newBrrValue: Int = Int(brr).clamped(to: 0...100)
         let newSatValue: Int = Int(sat * 100.0).clamped(to: 0...100)
         let newHueValue = Int(theHue * 360.0).clamped(to: 0...360)
         let newHue360Value = Int(theHue360).clamped(to: 0...360)

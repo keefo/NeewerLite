@@ -34,6 +34,7 @@ class NeewerLightConstant {
         static let setCCTDataTag = 0x90  // 144 Set Continuity RGB Light Mode.
         static let setSCEDataTag = 0x91  //
 
+        static let powerTag = 0x81
         static let powerOn = Data([UInt8(prefixTag), 0x81, 0x01, 0x01, 0xFB])
         static let powerOff = Data([UInt8(prefixTag), 0x81, 0x01, 0x02, 0xFC])
 
@@ -267,7 +268,7 @@ class NeewerLightConstant {
         var fxs: [NeewerLightFX] = []
         if let item = ContentManager.shared.fetchLightProperty(lightType: lightType)
         {
-            if item.support17FX
+            if item.support17FX ?? false
             {
                 fxs.append(NeewerLightFX.lightingScene())
                 fxs.append(NeewerLightFX.paparazziScene())
@@ -287,7 +288,7 @@ class NeewerLightConstant {
                 fxs.append(NeewerLightFX.fireworkScene())
                 fxs.append(NeewerLightFX.partyScene())
             }
-            else if item.support9FX
+            else if item.support9FX ?? false
             {
                 fxs.append(NeewerLightFX(id: 0x1, name: "Squard Car", brr: true))
                 fxs.append(NeewerLightFX(id: 0x2, name: "Ambulance", brr: true))
