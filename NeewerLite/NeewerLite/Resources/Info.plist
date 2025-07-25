@@ -18,27 +18,6 @@
 	<string>$(PRODUCT_BUNDLE_PACKAGE_TYPE)</string>
 	<key>CFBundleShortVersionString</key>
 	<string>1.6.6</string>
-	<key>CFBundleVersion</key>
-	<string>22</string>
-	<key>LSApplicationCategoryType</key>
-	<string>public.app-category.utilities</string>
-	<key>LSMinimumSystemVersion</key>
-	<string>$(MACOSX_DEPLOYMENT_TARGET)</string>
-	<key>NSBluetoothAlwaysUsageDescription</key>
-	<string>Use Bluetooth to control Neewer LED light</string>
-	<key>NSMicrophoneUsageDescription</key>
-	<string>Conver Audio to LED light color</string>
-	<key>NSPrincipalClass</key>
-	<string>NSApplication</string>
-	<key>NSMainNibFile</key>
-	<string>MainMenu</string>
-	<key>LSUIElement</key>
-	<false/>
-	<key>UIBackgroundModes</key>
-	<array>
-		<string>bluetooth-central</string>
-		<string>external-accessory</string>
-	</array>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>
@@ -50,12 +29,14 @@
 			</array>
 		</dict>
 	</array>
-	<key>SUFeedURL</key>
-	<string>https://beyondcow.com/neewerlite/appcast.xml</string>
-	<key>SUPublicEDKey</key>
-	<string>alhbxGGFpHXtfz+awtP9zxxYb29sl+p9DC7rTJK1OL8=</string>
-	<key>SDPluginVersion</key>
-	<string>0.1.3.0</string>
+	<key>CFBundleVersion</key>
+	<string>23</string>
+	<key>LSApplicationCategoryType</key>
+	<string>public.app-category.utilities</string>
+	<key>LSMinimumSystemVersion</key>
+	<string>$(MACOSX_DEPLOYMENT_TARGET)</string>
+	<key>LSUIElement</key>
+	<false/>
 	<key>NSAppTransportSecurity</key>
 	<dict>
 		<key>NSExceptionDomains</key>
@@ -76,9 +57,28 @@
 			</dict>
 		</dict>
 	</dict>
+	<key>NSBluetoothAlwaysUsageDescription</key>
+	<string>Use Bluetooth to control Neewer LED light</string>
+	<key>NSMainNibFile</key>
+	<string>MainMenu</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Conver Audio to LED light color</string>
+	<key>NSPrincipalClass</key>
+	<string>NSApplication</string>
+	<key>SDPluginVersion</key>
+	<string>0.1.3.0</string>
+	<key>SUFeedURL</key>
+	<string>https://beyondcow.com/neewerlite/appcast.xml</string>
+	<key>SUPublicEDKey</key>
+	<string>alhbxGGFpHXtfz+awtP9zxxYb29sl+p9DC7rTJK1OL8=</string>
 	<key>UIAppFonts</key>
 	<array>
 		<string>digital-7-mono.ttf</string>
+	</array>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>bluetooth-central</string>
+		<string>external-accessory</string>
 	</array>
 </dict>
 </plist>
