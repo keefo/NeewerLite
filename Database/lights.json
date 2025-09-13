@@ -424,23 +424,112 @@
             "type": 39,
             "image": "https://github.com/keefo/NeewerLite/blob/main/Database/light_images/gl1.png?raw=true",
             "link": "https://neewer.com/products/neewer-gl1c-rgb-led-streaming-light-66603325",
-            "supportRGB": true,
-            "supportCCTGM": false,
             "supportMusic": true,
-            "support17FX": false,
-            "support9FX": false,
             "commandPatterns": {
-                "power": "{cmdtag} {powertag} {size} {state:uint8:enum(1=on,2=off)} {checksum}",
-                "cct": "{cmdtag} {ccttag} {size} {brr:uint8:range(0,100)} {cct:uint8:range(29,70)} 0x32 0x00 0x00 {checksum}",
-                "hsi": "{cmdtag} {hsitag} {size} {hue:uint16_le:range(0,360)} {sat:uint8:range(0,100)} {brr:uint8:range(0,100)} {checksum}"
-            }
+                "power": "{cmdtag} {powertag} {size:uint8} {state:uint8:enum(1=on,2=off)} {checksum}",
+                "cct": "{cmdtag} {ccttag} {size} {brr:uint8:range(0,100)} {cct:uint8:range(29,70)} {gm:uint8:range(0,100)} 0x00 0x00 {checksum}",
+                "hsi": "{cmdtag} {hsitag} {size} {hue:uint16_le:range(0,360)} {sat:uint8:range(0,100)} {brr:uint8:range(0,100)} {checksum}",
+            },
+            "fxPatterns": [
+                {
+                    "id": 1,
+                    "name": "Lighting",
+                    "cmd": "{cmdtag} {fxsubtag} {size} 0x01 {brr:uint8:range(0,100)} {cct:uint8:range(29,70)} {speed:uint8:range(1,10)} {checksum}"
+                },
+                {
+                    "id": 2,
+                    "name": "Paparazzi",
+                    "cmd": "{cmdtag} {fxsubtag} {size} 0x02 {brr:uint8:range(0,100)} {cct:uint8:range(29,70)} {gm:uint8:range(0,100)} {speed:uint8:range(1,10)} {checksum}",
+                },
+                {
+                    "id": 3,
+                    "name": "Defective bulb",
+                    "cmd": "{cmdtag} {fxsubtag} {size} 0x03 {brr:uint8:range(0,100)} {cct:uint8:range(29,70)} {gm:uint8:range(0,100)} {speed:uint8:range(1,10)} {checksum}",
+                },
+                {
+                    "id": 4,
+                    "name": "Explosion",
+                    "cmd": "{cmdtag} {fxsubtag} {size} 0x04 {brr:uint8:range(0,100)} {cct:uint8:range(29,70)} {gm:uint8:range(0,100)} {speed:uint8:range(1,10)} {sparks:uint8:range(1,10)} {checksum}",
+                },
+                {
+                    "id": 5,
+                    "name": "Welding",
+                    "cmd": "{cmdtag} {fxsubtag} {size} 0x05 {brr:uint8:range(0,100)} {cct:uint8:range(29,70)} {gm:uint8:range(0,100)} {speed:uint8:range(1,10)} {checksum}",
+                },
+                {
+                    "id": 6,
+                    "name": "CCT flash",
+                    "cmd": "{cmdtag} {fxsubtag} {size} 0x05 {brr:uint8:range(0,100)} {cct:uint8:range(29,70)} {gm:uint8:range(0,100)} {speed:uint8:range(1,10)} {checksum}",
+                },
+                {
+                    "id": 7,
+                    "name": "H.U.E flash",
+                    "cmd": "{cmdtag} {fxsubtag} {size} 0x07 {brr:uint8:range(0,100)} {hue:uint16_le:range(0,360)} {sat:uint8:range(0,100)} {speed:uint8:range(1,10)} {checksum}",
+                },
+                {
+                    "id": 8,
+                    "name": "CCT pulse",
+                    "cmd": "{cmdtag} {fxsubtag} {size} 0x08 {brr:uint8:range(0,100)} {cct:uint8:range(29,70)} {gm:uint8:range(0,100)} {speed:uint8:range(1,10)} {checksum}",
+                },
+                {
+                    "id": 9,
+                    "name": "H.U.E pulse",
+                    "cmd": "{cmdtag} {fxsubtag} {size} 0x09 {brr:uint8:range(0,100)} {hue:uint16_le:range(0,360)} {sat:uint8:range(0,100)} {speed:uint8:range(1,10)} {checksum}",
+                },
+                {
+                    "id": 10,
+                    "name": "Cop Car",
+                    "cmd": "{cmdtag} {fxsubtag} {size} 0x0A {brr:uint8:range(0,100)} {color:uint8:range(0,4)} {speed:uint8:range(1,10)} {checksum}",
+                    "color": ["Red", "Blue", "Red and Blue" ,"White and Blue" ,"Red, Blue, White"]
+                },
+                {
+                    "id": 11,
+                    "name": "Candlelight",
+                    "cmd": "{cmdtag} {fxsubtag} {size} 0x0B {brr:uint8:range(0,100)} {brr2:uint8:range(0,100)} {cct:uint8:range(29,70)} {gm:uint8:range(0,100)} {speed:uint8:range(1,10)} {sparks:uint8:range(1,10)} {checksum}",
+                },
+                {
+                    "id": 12,
+                    "name": "H.U.E loop",
+                    "cmd": "{cmdtag} {fxsubtag} {size} 0x0C {brr:uint8:range(0,100)} {hue:uint16_le:range(0,360)} {hue2:uint16_le:range(0,360)} {speed:uint8:range(1,10)} {checksum}",
+                },
+                {
+                    "id": 13,
+                    "name": "CCT loop",
+                    "cmd": "{cmdtag} {fxsubtag} {size} 0x0D {brr:uint8:range(0,100)} {cct:uint8:range(29,70)} {cct2:uint8:range(29,70)} {speed:uint8:range(1,10)} {checksum}",
+                },
+                {
+                    "id": 14,
+                    "name": "INT loop",
+                    "cmd": "{cmdtag} {fxsubtag} {size} 0x0E {brr:uint8:range(0,100)} {brr2:uint8:range(0,100)} {hue:uint16_le:range(0,360)} {speed:uint8:range(1,10)} {checksum}",
+                },
+                {
+                    "id": 15,
+                    "name": "TV screen",
+                    "cmd": "{cmdtag} {fxsubtag} {size} 0x0E {brr:uint8:range(0,100)} {cct:uint8:range(29,70)} {gm:uint8:range(0,100)} {speed:uint8:range(1,10)} {checksum}",
+                },
+                {
+                    "id": 16,
+                    "name": "Fireworks",
+                    "cmd": "{cmdtag} {fxsubtag} {size} 0x10 {brr:uint8:range(0,100)} {color:uint8:range(0,2)} {speed:uint8:range(1,10)} {sparks:uint8:range(1,10)} {checksum}",
+                    "color": ["Signle Color", "Color", "Combined"]
+                },
+                {
+                    "id": 17,
+                    "name": "Party",
+                    "cmd": "{cmdtag} {fxsubtag} {size} 0x11 {brr:uint8:range(0,100)} {color:uint8:range(0,2)} {speed:uint8:range(1,10)} {checksum}",
+                    "color": ["Signle Color", "Color", "Combined"]
+                },
+                {
+                    "id": 18,
+                    "name": "Music",
+                    "cmd": "{cmdtag} {fxsubtag} {size} 0x12 {brr:uint8:range(0,100)} {checksum}"
+                }
+            ]
         },
         {
             "type": 40,
             "image": "https://github.com/keefo/NeewerLite/blob/main/Database/light_images/rgb62.png?raw=true",
             "link": "https://neewer.com/products/neewer-rgb62-magnetic-rgb-video-light-66603000",
-            "supportRGB": false,
-            "supportCCTGM": false,
             "supportMusic": true,
             "support17FX": true,
             "support9FX": false,
@@ -448,7 +537,7 @@
                 "power": "{cmdtag} {powertag} {size} {state:uint8:enum(1=on,2=off)} {checksum}",
                 "cct": "{cmdtag} {ccttag} {size} {brr:uint8:range(0,100)} {cct:uint8:range(25,85)} {gm:uint8:range(0,100)} 0x00 0x00 {checksum}",
                 "hsi": "{cmdtag} {hsitag} {size} {hue:uint16_le:range(0,360)} {sat:uint8:range(0,100)} {brr:uint8:range(0,100)} {checksum}"
-            }
+            } 
         },
         {
             "type": 42,

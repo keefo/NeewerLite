@@ -429,6 +429,7 @@ class NeewerLight: NSObject, ObservableNeewerLightProtocol {
     }
 
     func sendKeepAlive(_ cbm: CBCentralManager?) {
+        return
         guard let peripheral = self.peripheral else {
             return
         }
@@ -480,7 +481,7 @@ class NeewerLight: NSObject, ObservableNeewerLightProtocol {
         }
         return nil
     }
-
+    
     private func sendPowerRequest(turnOn: Bool, altCommand: Bool = false) {
         Logger.debug("send power \(turnOn ? "On" : "Off")")
         isOn.value = turnOn
@@ -681,13 +682,59 @@ class NeewerLight: NSObject, ObservableNeewerLightProtocol {
 
         if let item = ContentManager.shared.fetchLightProperty(lightType: _lightType)
         {
-            if item.support17FX ?? false {
-                cmd = getSceneValue(UInt8(fxx.id), brightness: CGFloat(fxx.brrValue))
+            if let matchingFx = supportedFX.first(where: { $0.id == fxx.id }) {
+                if let cmdPattern = matchingFx.cmdPattern {
+                    // Compose values for the pattern
+                    var values: [String: Any] = [:]
+                    if fxx.needSpeed {
+                        values["speed"] = fxx.speedValue
+                    }
+                    if fxx.needColor {
+                        values["color"] = fxx.colorValue
+                    }
+                    if fxx.needBRR {
+                        values["brr"] = fxx.brrValue
+                    }
+                    if fxx.needBRRUpperBound {
+                        values["brr2"] = fxx.brrUpperValue
+                    }
+                    if fxx.needCCT {
+                        values["cct"] = fxx.cctValue
+                        Logger.debug("cct: \(fxx.cctValue)")
+                    }
+                    if fxx.needCCTUpperBound {
+                        values["cct2"] = fxx.cctUpperValue
+                    }
+                    if fxx.needGM {
+                        values["gm"] = fxx.gmValue + 50
+                    }
+                    if fxx.needSAT {
+                        values["sat"] = fxx.satValue
+                    }
+                    if fxx.needHUE {
+                        values["hue"] = fxx.hueValue
+                    }
+                    if fxx.needHUEUpperBound {
+                        values["hue2"] = fxx.hueUpperValue
+                    }
+                    if fxx.needSparks {
+                        values["sparks"] = fxx.sparksValue
+                    }
+                    let data = CommandPatternParser.buildCommand(from: cmdPattern, values: values)
+                    if !data.isEmpty {
+                        cmd = data
+                    }
+                }
             }
-            else
-            {
-                cmd = getSceneCommand(_macAddress ?? "", fxx)
-                channel.value = UInt8(fxx.id)
+
+            if cmd.isEmpty {
+                if item.support17FX ?? false {
+                    cmd = getSceneValue(UInt8(fxx.id), brightness: CGFloat(fxx.brrValue))
+                }
+                else
+                {
+                    cmd = getSceneCommand(_macAddress ?? "", fxx)
+                }
             }
         }
         else
@@ -695,7 +742,13 @@ class NeewerLight: NSObject, ObservableNeewerLightProtocol {
             cmd = getSceneValue(UInt8(fxx.id), brightness: CGFloat(fxx.brrValue))
         }
         
+        if cmd.isEmpty
+        {
+            return
+        }
+        
         lightMode = .SCEMode
+        channel.value = UInt8(fxx.id)
 
         guard let characteristic = deviceCtlCharacteristic else {
             return

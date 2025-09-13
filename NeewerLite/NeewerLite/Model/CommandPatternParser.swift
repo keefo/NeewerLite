@@ -40,7 +40,58 @@ struct CommandPatternParser {
         }
         return tokens
     }
+    
+    static func toInt(_ value: Any) -> Int? {
+        switch value {
+        case let int as Int:
+            return int
+        case let str as String:
+            if let doubleValue = Double(str) {
+                return Int(doubleValue)   // truncates fractional part
+            }
+            return nil
+        case let double as Double:
+            return Int(double)
+        case let float as Float:
+            return Int(float)
+        case let number as NSNumber:
+            return number.intValue
+        default:
+            return nil
+        }
+    }
+    
+    static func toInt8(_ value: Any) -> Int8? {
+        let intValue: Int?
 
+        switch value {
+        case let int as Int:
+            intValue = int
+        case let str as String:
+            if let doubleValue = Double(str) {
+                intValue = Int(doubleValue) // truncates decimals
+            } else {
+                intValue = nil
+            }
+        case let double as Double:
+            intValue = Int(double)
+        case let float as Float:
+            intValue = Int(float)
+        case let number as NSNumber:
+            intValue = number.intValue
+        default:
+            intValue = nil
+        }
+
+        // Now check Int8 range
+        if let intValue = intValue,
+           intValue >= Int(Int8.min), intValue <= Int(Int8.max) {
+            return Int8(intValue)
+        }
+
+        return nil // out of range or not convertible
+    }
+    
     static func buildCommand(from pattern: String, values: [String: Any]) -> Data {
         let tokens = tokenize(pattern: pattern)
         var bytes: [UInt8] = []
@@ -48,7 +99,7 @@ struct CommandPatternParser {
         var afterSize = false
         var payloadLength = 0
 
-        for (i, token) in tokens.enumerated()
+        for (_, token) in tokens.enumerated()
         {
             if token.hasPrefix("{") && token.hasSuffix("}") {
                 let inner = String(token.dropFirst().dropLast())
@@ -68,6 +119,10 @@ struct CommandPatternParser {
                     bytes.append(UInt8(NeewerLightConstant.BleCommand.setCCTLightTag))
                 } else if field == "hsitag" {
                     bytes.append(UInt8(NeewerLightConstant.BleCommand.setRGBLightTag))
+                } else if field == "fxtag" {
+                    bytes.append(UInt8(NeewerLightConstant.BleCommand.setSceneTag))
+                } else if field == "fxsubtag" {
+                    bytes.append(UInt8(NeewerLightConstant.BleCommand.setSCESubTag))
                 } else if field == "size" {
                     sizeIndex = bytes.count
                     bytes.append(0) // placeholder for size
@@ -83,58 +138,89 @@ struct CommandPatternParser {
                             bytes.append(UInt8(mapped))
                             if afterSize { payloadLength += 1 }
                         } else {
+                            Logger.warn("tag \(token) value is invalid \(value)")
                             return Data()
                         }
                     // --- RANGE SUPPORT ---
                     } else if let extra = extra, extra.starts(with: "range(") {
                         let (min, max) = parseRange(extra)
                         if type == "uint8" {
-                            if let intValue = value as? Int, intValue >= min && intValue <= max {
+                            if let intValue = toInt8(value) {
+                                var intValue = intValue
+                                if intValue < min {
+                                    intValue = Int8(min)
+                                }
+                                else if intValue > max {
+                                    intValue = Int8(max)
+                                }
                                 bytes.append(UInt8(intValue))
                                 if afterSize { payloadLength += 1 }
-                            } else if let uintValue = value as? UInt8, uintValue >= min && uintValue <= max {
-                                bytes.append(uintValue)
-                                if afterSize { payloadLength += 1 }
-                            } else {
+                            }
+                            else {
+                                Logger.warn("tag \(token) value is invalid \(value)")
                                 return Data()
                             }
                         } else if type == "uint16_le" {
-                            if let intValue = value as? Int, intValue >= min && intValue <= max {
+                            if let intValue = toInt(value) {
+                                var intValue = intValue
+                                if intValue < min {
+                                    intValue = min
+                                }
+                                else if intValue > max {
+                                    intValue = max
+                                }
                                 bytes.append(UInt8(intValue & 0xFF))
                                 bytes.append(UInt8((intValue >> 8) & 0xFF))
                                 if afterSize { payloadLength += 2 }
                             } else {
+                                Logger.warn("tag \(token) value is invalid \(value)")
                                 return Data()
                             }
                         } else if type == "uint16_be" {
-                            if let intValue = value as? Int, intValue >= min && intValue <= max {
+                            if let intValue = toInt(value) {
+                                var intValue = intValue
+                                if intValue < min {
+                                    intValue = min
+                                }
+                                else if intValue > max {
+                                    intValue = max
+                                }
                                 bytes.append(UInt8((intValue >> 8) & 0xFF))
                                 bytes.append(UInt8(intValue & 0xFF))
                                 if afterSize { payloadLength += 2 }
                             } else {
+                                Logger.warn("tag \(token) value is invalid \(value)")
                                 return Data()
                             }
                         } else {
                             // fallback for other types
-                            if let intValue = value as? Int, intValue >= min && intValue <= max {
+                            if let intValue = toInt(value) {
+                                var intValue = intValue
+                                if intValue < min {
+                                    intValue = min
+                                }
+                                else if intValue > max {
+                                    intValue = max
+                                }
                                 bytes.append(UInt8(intValue))
                                 if afterSize { payloadLength += 1 }
                             } else {
+                                Logger.warn("tag \(token) value is invalid \(value)")
                                 return Data()
                             }
                         }
-                    } else if type == "uint8", let intValue = value as? Int {
+                    } else if type == "uint8", let intValue = toInt(value) {
                         bytes.append(UInt8(intValue < 0 ? intValue + 0x100 : intValue))
                         if afterSize { payloadLength += 1 }
-                    } else if type == "uint8", let uintValue = value as? UInt8 {
-                        bytes.append(uintValue)
+                    } else if type == "uint8", let uintValue = toInt8(value) {
+                        bytes.append(UInt8(uintValue))
                         if afterSize { payloadLength += 1 }
-                    } else if type == "uint16_le", let intValue = value as? Int {
+                    } else if type == "uint16_le", let intValue = toInt(value) {
                         // Little-endian: low byte first, then high byte
                         bytes.append(UInt8(intValue & 0xFF))
                         bytes.append(UInt8((intValue >> 8) & 0xFF))
                         if afterSize { payloadLength += 2 }
-                    } else if type == "uint16_be", let intValue = value as? Int {
+                    } else if type == "uint16_be", let intValue = toInt(value) {
                         // Big-endian: high byte first, then low byte
                         bytes.append(UInt8((intValue >> 8) & 0xFF))
                         bytes.append(UInt8(intValue & 0xFF))
@@ -143,7 +229,7 @@ struct CommandPatternParser {
                         bytes.append(byte)
                         if afterSize { payloadLength += 1 }
                     } else {
-                        if let intValue = value as? Int {
+                        if let intValue = toInt(value) {
                             bytes.append(UInt8(intValue < 0 ? intValue + 0x100 : intValue))
                             if afterSize { payloadLength += 1 }
                         }
@@ -155,6 +241,9 @@ struct CommandPatternParser {
             } else if token.hasPrefix("0x"), let byte = UInt8(token.dropFirst(2), radix: 16) {
                 bytes.append(byte)
                 if afterSize { payloadLength += 1 }
+            } else {
+                Logger.warn("Unsupported tag \(token) in command pattern \(pattern)")
+                return Data()
             }
         }
 

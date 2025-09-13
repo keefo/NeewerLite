@@ -302,6 +302,11 @@ class NeewerLightConstant {
                 fxs.append(NeewerLightFX(id: 0x8, name: "Screen", brr: true))
                 fxs.append(NeewerLightFX(id: 0x9, name: "Lighting", brr: true))
             }
+            else{
+                item.fxPatterns?.forEach { (item) in
+                    fxs.append(NeewerLightFX.parseFxSceneCmd(item: item))
+                }
+            }
         }
         return fxs
     }
