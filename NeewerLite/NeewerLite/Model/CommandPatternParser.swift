@@ -61,7 +61,7 @@ struct CommandPatternParser {
         }
     }
     
-    static func toInt8(_ value: Any) -> Int8? {
+    static func toUInt8(_ value: Any) -> UInt8? {
         let intValue: Int?
 
         switch value {
@@ -85,8 +85,8 @@ struct CommandPatternParser {
 
         // Now check Int8 range
         if let intValue = intValue,
-           intValue >= Int(Int8.min), intValue <= Int(Int8.max) {
-            return Int8(intValue)
+            intValue >= UInt8(UInt8.min), intValue <= UInt8(UInt8.max) {
+            return UInt8(intValue)
         }
 
         return nil // out of range or not convertible
@@ -147,13 +147,13 @@ struct CommandPatternParser {
                     } else if let extra = extra, extra.starts(with: "range(") {
                         let (min, max) = parseRange(extra)
                         if type == "uint8" {
-                            if let intValue = toInt8(value) {
+                            if let intValue = toUInt8(value) {
                                 var intValue = intValue
                                 if intValue < min {
-                                    intValue = Int8(min)
+                                    intValue = UInt8(min)
                                 }
                                 else if intValue > max {
-                                    intValue = Int8(max)
+                                    intValue = UInt8(max)
                                 }
                                 bytes.append(UInt8(intValue))
                                 if afterSize { payloadLength += 1 }
@@ -214,7 +214,7 @@ struct CommandPatternParser {
                     } else if type == "uint8", let intValue = toInt(value) {
                         bytes.append(UInt8(intValue < 0 ? intValue + 0x100 : intValue))
                         if afterSize { payloadLength += 1 }
-                    } else if type == "uint8", let uintValue = toInt8(value) {
+                    } else if type == "uint8", let uintValue = toUInt8(value) {
                         bytes.append(UInt8(uintValue))
                         if afterSize { payloadLength += 1 }
                     } else if type == "uint16_le", let intValue = toInt(value) {
