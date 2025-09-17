@@ -20,8 +20,12 @@ struct ColorItem: Codable {
 class NeewerLightFX: NSObject, Codable {
     var id: UInt16
     var name: String
+    var name_key: String {
+        return name.lowercased().replacingOccurrences(of: "\\s+", with: "", options: .regularExpression)
+    }
     var iconName: String
-
+    var cmdPattern: String?
+    
     var needBRR: Bool = false
     var needBRRUpperBound: Bool = false
     var needCCT: Bool = false
@@ -38,7 +42,7 @@ class NeewerLightFX: NSObject, Codable {
     var colors: [ColorItem] = []
 
     var featureValues: [String: CGFloat] = [:]
-
+    
     init(id: UInt16, name: String) {
         self.id = id
         self.name = name
@@ -112,6 +116,73 @@ class NeewerLightFX: NSObject, Codable {
 }
 
 extension NeewerLightFX {
+    
+    struct FieldSpec {
+        let name: String
+        let type: String
+        let min: Int
+        let max: Int
+        var closedRange: ClosedRange<Int> { min...max }
+    }
+
+    class func parseFields(_ format: String) -> [String: FieldSpec] {
+        // {name:type:range(min,max)}
+        let r = #/\{\s*(?<name>[A-Za-z_]\w*)\s*:\s*(?<type>[A-Za-z0-9_]+)\s*:\s*range\(\s*(?<min>\d+)\s*,\s*(?<max>\d+)\s*\)\s*\}/#
+
+        var out: [String: FieldSpec] = [:]
+
+        for m in format.matches(of: r) {
+            let name = String(m.output.name)
+            let type = String(m.output.type)
+            let min  = Int(m.output.min)!
+            let max  = Int(m.output.max)!
+
+            // Skip invalid ranges
+            guard min <= max else { continue }
+            // Keep first occurrence; ignore later duplicates (optional)
+            if out[name] == nil {
+                out[name] = FieldSpec(name: name, type: type, min: min, max: max)
+            }
+        }
+        return out
+    }
+
+    class func parseNamedCmdToFX(item: NamedPattern) -> NeewerLightFX {
+        let scene = NeewerLightFX(id: UInt16(item.id), name: item.name)
+        scene.cmdPattern = item.cmd
+        if let icon = item.icon {
+            scene.iconName = icon
+        }
+        let fields = parseFields(item.cmd)
+        let flagMappings: [(String, ReferenceWritableKeyPath<NeewerLightFX, Bool>)] = [
+            ("brr", \.needBRR),
+            ("brr2", \.needBRRUpperBound),
+            ("cct", \.needCCT),
+            ("cct2", \.needCCTUpperBound),
+            ("gm", \.needGM),
+            ("hue", \.needHUE),
+            ("hue2", \.needHUEUpperBound),
+            ("sat", \.needSAT)
+        ]
+        for (key, keyPath) in flagMappings {
+            if fields[key] != nil {
+                scene[keyPath: keyPath] = true
+            }
+        }
+        if let sparks = fields["sparks"] {
+            scene.needSparks = true
+            scene.speedLevel = UInt8(sparks.max)
+        }
+        if let speed = fields["speed"] {
+            scene.needSpeed = true
+            scene.speedLevel = UInt8(speed.max)
+        }
+        if let color = fields["color"] {
+            scene.needColor = true
+            scene.colors = color.closedRange.map { ColorItem(key: item.color?[$0] ?? "\($0)", value: $0) }
+        }
+        return scene
+    }
 
     // Class method to create a "Lighting" scene
     class func lightingScene() -> NeewerLightFX {
@@ -232,7 +303,7 @@ extension NeewerLightFX {
         scene.speedLevel = 10
         return scene
     }
-
+    
     // Class method to create a "Candlelight" scene
     class func candlelightScene() -> NeewerLightFX {
         let scene = NeewerLightFX(id: 0x0B, name: "Candlelight")

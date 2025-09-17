@@ -1,3 +1,92 @@
 # Neewer Light Control Protocol Research
 
 Wiki [Neewer Light Control Protocol Research](https://github.com/keefo/NeewerLite/wiki/Neewer-Light-Control-Protocol-Research)
+
+## Some Notes:
+
+### G1LC
+
+FX Cop Car
+
+CollectionViewItem.swift:fxColorClicked(\_:):1334: 1-Blue
+NeewerLight.swift:write(data:to:):1236: write data: 7888 0251 0a5d
+
+Red
+Sep 12 16:59:39.385 ATT Send 0x0056 00:00:00:00:00:00 Write Command - Handle:0x000E - Value: 788B 040A 1000 0526
+
+Blue
+Sep 12 16:59:49.202 ATT Send 0x0056 00:00:00:00:00:00 Write Command - Handle:0x000E - Value: 788B 040A 1001 0527
+
+Blue Red
+Sep 12 16:59:57.102 ATT Send 0x0056 00:00:00:00:00:00 Write Command - Handle:0x000E - Value: 788B 040A 1002 0528  
+ 788b 030a 0a02 1c
+White Blue
+Sep 12 17:00:12.620 ATT Send 0x0056 00:00:00:00:00:00 Write Command - Handle:0x000E - Value: 788B 040A 1003 0529
+
+White Blue Red
+Sep 12 17:00:17.703 ATT Send 0x0056 00:00:00:00:00:00 Write Command - Handle:0x000E - Value: 788B 040A 1004 052A
+
+Sep 12 18:52:28.997 ATT Send 0x004F 00:00:00:00:00:00 Write Command - Handle:0x000E - Value: 788B 040A 0004 0217
+
+Music FX
+Sep 12 17:03:47.557 ATT Send 0x0043 00:00:00:00:00:00 Write Command - Handle:0x000E - Value: 788B 0212 3249
+
+Party
+
+Color 0
+Sep 12 17:04:19.119 ATT Send 0x0043 00:00:00:00:00:00 Write Command - Handle:0x000E - Value: 788B 0411 3200 054F
+
+Color 1
+Sep 12 17:03:57.186 ATT Send 0x0043 00:00:00:00:00:00 Write Command - Handle:0x000E - Value: 788B 0411 3201 0550
+
+Color 1 + speed 9
+Sep 12 17:04:32.255 ATT Send 0x0043 00:00:00:00:00:00 Write Command - Handle:0x000E - Value: 788B 0411 3200 0953
+
+Color 1 + speed 6
+Sep 12 17:04:44.422 ATT Send 0x0043 00:00:00:00:00:00 Write Command - Handle:0x000E - Value: 788B 0411 3200 0650
+
+Color 1 + speed 1
+Sep 12 17:05:09.545 ATT Send 0x0043 00:00:00:00:00:00 Write Command - Handle:0x000E - Value: 788B 0411 3200 014B
+
+Light Source
+
+Tungsten + BRR change
+
+Sep 16 23:16:03.873 ATT Send 0x004D NEEWER-GL1C Write Command - Handle:0x000E - 69400002-B5A3-F393-E0A9-E50E24DCCA99 - Value: 7887 0346 2032 9A  
+Sep 16 23:16:03.973 ATT Send 0x004D NEEWER-GL1C Write Command - Handle:0x000E - 69400002-B5A3-F393-E0A9-E50E24DCCA99 - Value: 7887 0346 2032 9A  
+Sep 16 23:16:04.073 ATT Send 0x004D NEEWER-GL1C Write Command - Handle:0x000E - 69400002-B5A3-F393-E0A9-E50E24DCCA99 - Value: 7887 0346 2032 9A  
+Sep 16 23:16:05.483 ATT Send 0x004D NEEWER-GL1C Write Command - Handle:0x000E - 69400002-B5A3-F393-E0A9-E50E24DCCA99 - Value: 7887 032F 2032 83  
+Sep 16 23:16:05.586 ATT Send 0x004D NEEWER-GL1C Write Command - Handle:0x000E - 69400002-B5A3-F393-E0A9-E50E24DCCA99 - Value: 7887 0319 2032 6D
+
+Tungsten + CCT change
+
+Sep 16 23:16:54.342 ATT Send 0x004D NEEWER-GL1C Write Command - Handle:0x000E - 69400002-B5A3-F393-E0A9-E50E24DCCA99 - Value: 7887 033E 1E32 90  
+Sep 16 23:16:54.442 ATT Send 0x004D NEEWER-GL1C Write Command - Handle:0x000E - 69400002-B5A3-F393-E0A9-E50E24DCCA99 - Value: 7887 033E 1F32 91  
+Sep 16 23:16:54.542 ATT Send 0x004D NEEWER-GL1C Write Command - Handle:0x000E - 69400002-B5A3-F393-E0A9-E50E24DCCA99 - Value: 7887 033E 2032 92  
+Sep 16 23:16:54.637 ATT Send 0x004D NEEWER-GL1C Write Command - Handle:0x000E - 69400002-B5A3-F393-E0A9-E50E24DCCA99 - Value: 7887 033E 2032 92
+
+Tungsten + GM change
+Sep 16 23:17:12.880 ATT Send 0x004D NEEWER-GL1C Write Command - Handle:0x000E - 69400002-B5A3-F393-E0A9-E50E24DCCA99 - Value: 7887 033E 2028 88  
+Sep 16 23:17:12.981 ATT Send 0x004D NEEWER-GL1C Write Command - Handle:0x000E - 69400002-B5A3-F393-E0A9-E50E24DCCA99 - Value: 7887 033E 2044 A4  
+Sep 16 23:17:13.080 ATT Send 0x004D NEEWER-GL1C Write Command - Handle:0x000E - 69400002-B5A3-F393-E0A9-E50E24DCCA99 - Value: 7887 033E 2061 C1  
+Sep 16 23:17:13.181 ATT Send 0x004D NEEWER-GL1C Write Command - Handle:0x000E - 69400002-B5A3-F393-E0A9-E50E24DCCA99 - Value: 7887 033E 2064 C4  
+Sep 16 23:17:13.276 ATT Send 0x004D NEEWER-GL1C Write Command - Handle:0x000E - 69400002-B5A3-F393-E0A9-E50E24DCCA99 - Value: 7887 033E 2064 C4
+
+## RGB62 light
+
+FX Lighting
+
+Brr
+Sep 14 15:08:12.174 ATT Send 0x0040 00:00:00:00:00:00 Write Command - Handle:0x000D - Value: 788B 0401 5337 0597  
+Sep 14 15:08:14.088 ATT Send 0x0040 00:00:00:00:00:00 Write Command - Handle:0x000D - Value: 788B 0401 1637 055A
+
+CCT
+Sep 14 15:08:46.988 ATT Send 0x0040 00:00:00:00:00:00 Write Command - Handle:0x000D - Value: 788B 0401 164C 056F  
+Sep 14 15:08:46.989 ATT Send 0x0040 00:00:00:00:00:00 Write Command - Handle:0x000D - Value: 788B 0401 164C 056F  
+Sep 14 15:08:46.990 ATT Send 0x0040 00:00:00:00:00:00 Write Command - Handle:0x000D - Value: 788B 0401 164C 056F
+
+Speed
+
+Sep 14 15:08:58.272 ATT Send 0x0040 00:00:00:00:00:00 Write Command - Handle:0x000D - Value: 788B 0401 164C 0771  
+Sep 14 15:08:58.405 ATT Send 0x0040 00:00:00:00:00:00 Write Command - Handle:0x000D - Value: 788B 0401 164C 0872  
+Sep 14 15:08:58.655 ATT Send 0x0040 00:00:00:00:00:00 Write Command - Handle:0x000D - Value: 788B 0401 164C 0973

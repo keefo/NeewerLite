@@ -62,7 +62,10 @@ class NLSlider: NSView {
                     }
                 }
             }
-            if steps > 1 {
+            if stepSize > 0 {
+                
+            }
+            else if steps > 1 {
                 let step = (maxValue - minValue) / CGFloat(steps)
                 var roundedValue = round(currentValue / step) * step
                 if roundedValue > maxValue - step {
@@ -103,7 +106,12 @@ class NLSlider: NSView {
     var buttonColor: NSColor = NSColor.controlColor
     var buttonPressColor: NSColor = NSColor.selectedControlColor
     var textColor: NSColor = .black
-    var steps: Int = 0
+    var steps: Int = 0 {
+        didSet {
+            Logger.debug("xxx")
+        }
+    }
+    var stepSize: CGFloat = 0
     var type: NLSliderType = .brr
     var mTag = -1
 
@@ -112,8 +120,18 @@ class NLSlider: NSView {
 
     var callback: ((_ brr: CGFloat) -> Void)?
 
-    var knobRadius: CGFloat = 3.0
-    var knobSize: CGSize = CGSize(width: 12, height: 24)
+    var knobRadius: CGFloat {
+        if self.needUpperBound {
+            return 2.0
+        }
+        return 3.0
+    }
+    var knobSize: CGSize {
+        if self.needUpperBound {
+            return CGSize(width: 6, height: 24)
+        }
+        return CGSize(width: 10, height: 24)
+    }
 
     private var buttonWidth: CGFloat = 13.0
     private var spacing: CGFloat = 10.0 // Adjust the spacing value
@@ -406,17 +424,22 @@ class NLSlider: NSView {
         let location = convert(event.locationInWindow, from: nil)
         isKnobBeingDragged = knobRect().contains(location)
         isKnobUpperBeingDragged = knobRectUpper().contains(location)
-        let dlt = (maxValue-minValue) / 10.0
+        var dlt = (maxValue-minValue) / 10.0
+        if stepSize > 0 {
+            dlt = stepSize
+        }
         if isKnobBeingDragged || isKnobUpperBeingDragged {
             mouseDownLoc = location
-        } else if location.x < buttonWidth + spacing {
+        }
+        else if location.x < buttonWidth + spacing {
             // Mouse down occurred on the left button
             mouseDownOnLeftBtn = true
             if currentValue > minValue {
                 currentValue -= dlt // Adjust this value to control the step size
             }
             needsDisplay = true
-        } else if location.x > bounds.size.width - (buttonWidth + spacing) {
+        }
+        else if location.x > bounds.size.width - (buttonWidth + spacing) {
             if needUpperBound {
                 // Mouse down occurred on the right button
                 mouseDownOnRightBtn = true
@@ -425,20 +448,44 @@ class NLSlider: NSView {
                 }
                 needsDisplay = true
             } else {
-                // Mouse down occurred on the right button
+                // Mouse down occurred on the left button
                 mouseDownOnRightBtn = true
                 if currentValue < maxValue {
                     currentValue += dlt // Adjust this value to control the step size
                 }
                 needsDisplay = true
             }
-        } else {
-            let location = convert(event.locationInWindow, from: nil)
-            let deltaX = location.x - knobPosition()
-            let valueDelta = (deltaX / (bounds.size.width - 2 * (buttonWidth + spacing))) * (maxValue - minValue)
-            currentValue += valueDelta
-            needsDisplay = true
-            isKnobBeingDragged = true
+        }
+        else {
+            if needUpperBound {
+                let location = convert(event.locationInWindow, from: nil)
+                let deltaX = abs(location.x - knobPosition())
+                let deltaXUpper = abs(location.x - knobPositionUpper())
+                if deltaX < deltaXUpper {
+                    needsDisplay = true
+                    isKnobBeingDragged = true
+                    let deltaX = location.x - knobPosition()
+                    let valueDelta = (deltaX / (bounds.size.width - 2 * (buttonWidth + spacing))) * (maxValue - minValue)
+                    currentValue += valueDelta
+                }
+                else{
+                    needsDisplay = true
+                    isKnobUpperBeingDragged = true
+                    let location = convert(event.locationInWindow, from: nil)
+                    let deltaX = location.x - knobPositionUpper()
+                    let valueDelta = (deltaX / (bounds.size.width - 2 * (buttonWidth + spacing))) * (maxValue - minValue)
+                    currentUpperValue += valueDelta
+                }
+            }
+            else
+            {
+                let location = convert(event.locationInWindow, from: nil)
+                let deltaX = location.x - knobPosition()
+                let valueDelta = (deltaX / (bounds.size.width - 2 * (buttonWidth + spacing))) * (maxValue - minValue)
+                currentValue += valueDelta
+                needsDisplay = true
+                isKnobBeingDragged = true
+            }
         }
     }
 

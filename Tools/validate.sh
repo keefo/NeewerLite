@@ -381,7 +381,7 @@ validate_lights_database() {
     
     # Validate each light entry
     local light_index=0
-    local required_fields=("type" "supportRGB" "supportCCTGM" "supportMusic" "support17FX" "support9FX")
+    local required_fields=("type" "" "" "" "" "")
     local required_command_patterns=("power")
     
     while IFS= read -r light; do
