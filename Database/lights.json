@@ -428,7 +428,7 @@
             "commandPatterns": {
                 "power": "{cmdtag} {powertag} {size:uint8} {state:uint8:enum(1=on,2=off)} {checksum}",
                 "cct": "{cmdtag} {ccttag} {size} {brr:uint8:range(0,100)} {cct:uint8:range(29,70)} {gm:uint8:range(0,100)} 0x00 0x00 {checksum}",
-                "hsi": "{cmdtag} {hsitag} {size} {hue:uint16_le:range(0,360)} {sat:uint8:range(0,100)} {brr:uint8:range(0,100)} {checksum}",
+                "hsi": "{cmdtag} {hsitag} {size} {hue:uint16_le:range(0,360)} {sat:uint8:range(0,100)} {brr:uint8:range(0,100)} {checksum}"
             },
             "sourcePatterns": [
                 {
@@ -520,44 +520,44 @@
                     "id": 2,
                     "name": "Paparazzi",
                     "icon": "camera.shutter.button",
-                    "cmd": "{cmdtag} {fxsubtag} {size} 0x02 {brr:uint8:range(0,100)} {cct:uint8:range(29,70)} {gm:uint8:range(0,100)} {speed:uint8:range(1,10)} {checksum}",
+                    "cmd": "{cmdtag} {fxsubtag} {size} 0x02 {brr:uint8:range(0,100)} {cct:uint8:range(29,70)} {gm:uint8:range(0,100)} {speed:uint8:range(1,10)} {checksum}"
                 },
                 {
                     "id": 3,
                     "name": "Defective bulb",
                     "icon": "lightbulb.min.badge.exclamationmark.fill",
-                    "cmd": "{cmdtag} {fxsubtag} {size} 0x03 {brr:uint8:range(0,100)} {cct:uint8:range(29,70)} {gm:uint8:range(0,100)} {speed:uint8:range(1,10)} {checksum}",
+                    "cmd": "{cmdtag} {fxsubtag} {size} 0x03 {brr:uint8:range(0,100)} {cct:uint8:range(29,70)} {gm:uint8:range(0,100)} {speed:uint8:range(1,10)} {checksum}"
                 },
                 {
                     "id": 4,
                     "name": "Explosion",
                     "icon": "timelapse",
-                    "cmd": "{cmdtag} {fxsubtag} {size} 0x04 {brr:uint8:range(0,100)} {cct:uint8:range(29,70)} {gm:uint8:range(0,100)} {speed:uint8:range(1,10)} {sparks:uint8:range(1,10)} {checksum}",
+                    "cmd": "{cmdtag} {fxsubtag} {size} 0x04 {brr:uint8:range(0,100)} {cct:uint8:range(29,70)} {gm:uint8:range(0,100)} {speed:uint8:range(1,10)} {sparks:uint8:range(1,10)} {checksum}"
                 },
                 {
                     "id": 5,
                     "name": "Welding",
-                    "cmd": "{cmdtag} {fxsubtag} {size} 0x05 {brr:uint8:range(0,100)} {cct:uint8:range(29,70)} {gm:uint8:range(0,100)} {speed:uint8:range(1,10)} {checksum}",
+                    "cmd": "{cmdtag} {fxsubtag} {size} 0x05 {brr:uint8:range(0,100)} {cct:uint8:range(29,70)} {gm:uint8:range(0,100)} {speed:uint8:range(1,10)} {checksum}"
                 },
                 {
                     "id": 6,
                     "name": "CCT flash",
-                    "cmd": "{cmdtag} {fxsubtag} {size} 0x05 {brr:uint8:range(0,100)} {cct:uint8:range(29,70)} {gm:uint8:range(0,100)} {speed:uint8:range(1,10)} {checksum}",
+                    "cmd": "{cmdtag} {fxsubtag} {size} 0x05 {brr:uint8:range(0,100)} {cct:uint8:range(29,70)} {gm:uint8:range(0,100)} {speed:uint8:range(1,10)} {checksum}"
                 },
                 {
                     "id": 7,
                     "name": "H.U.E flash",
-                    "cmd": "{cmdtag} {fxsubtag} {size} 0x07 {brr:uint8:range(0,100)} {hue:uint16_le:range(0,360)} {sat:uint8:range(0,100)} {speed:uint8:range(1,10)} {checksum}",
+                    "cmd": "{cmdtag} {fxsubtag} {size} 0x07 {brr:uint8:range(0,100)} {hue:uint16_le:range(0,360)} {sat:uint8:range(0,100)} {speed:uint8:range(1,10)} {checksum}"
                 },
                 {
                     "id": 8,
                     "name": "CCT pulse",
-                    "cmd": "{cmdtag} {fxsubtag} {size} 0x08 {brr:uint8:range(0,100)} {cct:uint8:range(29,70)} {gm:uint8:range(0,100)} {speed:uint8:range(1,10)} {checksum}",
+                    "cmd": "{cmdtag} {fxsubtag} {size} 0x08 {brr:uint8:range(0,100)} {cct:uint8:range(29,70)} {gm:uint8:range(0,100)} {speed:uint8:range(1,10)} {checksum}"
                 },
                 {
                     "id": 9,
                     "name": "H.U.E pulse",
-                    "cmd": "{cmdtag} {fxsubtag} {size} 0x09 {brr:uint8:range(0,100)} {hue:uint16_le:range(0,360)} {sat:uint8:range(0,100)} {speed:uint8:range(1,10)} {checksum}",
+                    "cmd": "{cmdtag} {fxsubtag} {size} 0x09 {brr:uint8:range(0,100)} {hue:uint16_le:range(0,360)} {sat:uint8:range(0,100)} {speed:uint8:range(1,10)} {checksum}"
                 },
                 {
                     "id": 10,
@@ -568,28 +568,28 @@
                 {
                     "id": 11,
                     "name": "Candlelight",
-                    "cmd": "{cmdtag} {fxsubtag} {size} 0x0B {brr:uint8:range(0,100)} {brr2:uint8:range(0,100)} {cct:uint8:range(29,70)} {gm:uint8:range(0,100)} {speed:uint8:range(1,10)} {sparks:uint8:range(1,10)} {checksum}",
+                    "cmd": "{cmdtag} {fxsubtag} {size} 0x0B {brr:uint8:range(0,100)} {brr2:uint8:range(0,100)} {cct:uint8:range(29,70)} {gm:uint8:range(0,100)} {speed:uint8:range(1,10)} {sparks:uint8:range(1,10)} {checksum}"
                 },
                 {
                     "id": 12,
                     "name": "H.U.E loop",
-                    "cmd": "{cmdtag} {fxsubtag} {size} 0x0C {brr:uint8:range(0,100)} {hue:uint16_le:range(0,360)} {hue2:uint16_le:range(0,360)} {speed:uint8:range(1,10)} {checksum}",
+                    "cmd": "{cmdtag} {fxsubtag} {size} 0x0C {brr:uint8:range(0,100)} {hue:uint16_le:range(0,360)} {hue2:uint16_le:range(0,360)} {speed:uint8:range(1,10)} {checksum}"
                 },
                 {
                     "id": 13,
                     "name": "CCT loop",
-                    "cmd": "{cmdtag} {fxsubtag} {size} 0x0D {brr:uint8:range(0,100)} {cct:uint8:range(29,70)} {cct2:uint8:range(29,70)} {speed:uint8:range(1,10)} {checksum}",
+                    "cmd": "{cmdtag} {fxsubtag} {size} 0x0D {brr:uint8:range(0,100)} {cct:uint8:range(29,70)} {cct2:uint8:range(29,70)} {speed:uint8:range(1,10)} {checksum}"
                 },
                 {
                     "id": 14,
                     "name": "INT loop",
-                    "cmd": "{cmdtag} {fxsubtag} {size} 0x0E {brr:uint8:range(0,100)} {brr2:uint8:range(0,100)} {hue:uint16_le:range(0,360)} {speed:uint8:range(1,10)} {checksum}",
+                    "cmd": "{cmdtag} {fxsubtag} {size} 0x0E {brr:uint8:range(0,100)} {brr2:uint8:range(0,100)} {hue:uint16_le:range(0,360)} {speed:uint8:range(1,10)} {checksum}"
                 },
                 {
                     "id": 15,
                     "name": "TV screen",
                     "icon": "tv",
-                    "cmd": "{cmdtag} {fxsubtag} {size} 0x0E {brr:uint8:range(0,100)} {cct:uint8:range(29,70)} {gm:uint8:range(0,100)} {speed:uint8:range(1,10)} {checksum}",
+                    "cmd": "{cmdtag} {fxsubtag} {size} 0x0E {brr:uint8:range(0,100)} {cct:uint8:range(29,70)} {gm:uint8:range(0,100)} {speed:uint8:range(1,10)} {checksum}"
                 },
                 {
                     "id": 16,
@@ -634,44 +634,44 @@
                     "id": 2,
                     "name": "Paparazzi",
                     "icon": "camera.shutter.button",
-                    "cmd": "{cmdtag} {fxsubtag} {size} 0x02 {brr:uint8:range(0,100)} {cct:uint8:range(29,70)} {gm:uint8:range(0,100)} {speed:uint8:range(1,10)} {checksum}",
+                    "cmd": "{cmdtag} {fxsubtag} {size} 0x02 {brr:uint8:range(0,100)} {cct:uint8:range(29,70)} {gm:uint8:range(0,100)} {speed:uint8:range(1,10)} {checksum}"
                 },
                 {
                     "id": 3,
                     "name": "Defective bulb",
                     "icon": "lightbulb.min.badge.exclamationmark.fill",
-                    "cmd": "{cmdtag} {fxsubtag} {size} 0x03 {brr:uint8:range(0,100)} {cct:uint8:range(29,70)} {gm:uint8:range(0,100)} {speed:uint8:range(1,10)} {checksum}",
+                    "cmd": "{cmdtag} {fxsubtag} {size} 0x03 {brr:uint8:range(0,100)} {cct:uint8:range(29,70)} {gm:uint8:range(0,100)} {speed:uint8:range(1,10)} {checksum}"
                 },
                 {
                     "id": 4,
                     "name": "Explosion",
                     "icon": "timelapse",
-                    "cmd": "{cmdtag} {fxsubtag} {size} 0x04 {brr:uint8:range(0,100)} {cct:uint8:range(29,70)} {gm:uint8:range(0,100)} {speed:uint8:range(1,10)} {sparks:uint8:range(1,10)} {checksum}",
+                    "cmd": "{cmdtag} {fxsubtag} {size} 0x04 {brr:uint8:range(0,100)} {cct:uint8:range(29,70)} {gm:uint8:range(0,100)} {speed:uint8:range(1,10)} {sparks:uint8:range(1,10)} {checksum}"
                 },
                 {
                     "id": 5,
                     "name": "Welding",
-                    "cmd": "{cmdtag} {fxsubtag} {size} 0x05 {brr:uint8:range(0,100)} {cct:uint8:range(29,70)} {gm:uint8:range(0,100)} {speed:uint8:range(1,10)} {checksum}",
+                    "cmd": "{cmdtag} {fxsubtag} {size} 0x05 {brr:uint8:range(0,100)} {cct:uint8:range(29,70)} {gm:uint8:range(0,100)} {speed:uint8:range(1,10)} {checksum}"
                 },
                 {
                     "id": 6,
                     "name": "CCT flash",
-                    "cmd": "{cmdtag} {fxsubtag} {size} 0x05 {brr:uint8:range(0,100)} {cct:uint8:range(29,70)} {gm:uint8:range(0,100)} {speed:uint8:range(1,10)} {checksum}",
+                    "cmd": "{cmdtag} {fxsubtag} {size} 0x05 {brr:uint8:range(0,100)} {cct:uint8:range(29,70)} {gm:uint8:range(0,100)} {speed:uint8:range(1,10)} {checksum}"
                 },
                 {
                     "id": 7,
                     "name": "H.U.E flash",
-                    "cmd": "{cmdtag} {fxsubtag} {size} 0x07 {brr:uint8:range(0,100)} {hue:uint16_le:range(0,360)} {sat:uint8:range(0,100)} {speed:uint8:range(1,10)} {checksum}",
+                    "cmd": "{cmdtag} {fxsubtag} {size} 0x07 {brr:uint8:range(0,100)} {hue:uint16_le:range(0,360)} {sat:uint8:range(0,100)} {speed:uint8:range(1,10)} {checksum}"
                 },
                 {
                     "id": 8,
                     "name": "CCT pulse",
-                    "cmd": "{cmdtag} {fxsubtag} {size} 0x08 {brr:uint8:range(0,100)} {cct:uint8:range(29,70)} {gm:uint8:range(0,100)} {speed:uint8:range(1,10)} {checksum}",
+                    "cmd": "{cmdtag} {fxsubtag} {size} 0x08 {brr:uint8:range(0,100)} {cct:uint8:range(29,70)} {gm:uint8:range(0,100)} {speed:uint8:range(1,10)} {checksum}"
                 },
                 {
                     "id": 9,
                     "name": "H.U.E pulse",
-                    "cmd": "{cmdtag} {fxsubtag} {size} 0x09 {brr:uint8:range(0,100)} {hue:uint16_le:range(0,360)} {sat:uint8:range(0,100)} {speed:uint8:range(1,10)} {checksum}",
+                    "cmd": "{cmdtag} {fxsubtag} {size} 0x09 {brr:uint8:range(0,100)} {hue:uint16_le:range(0,360)} {sat:uint8:range(0,100)} {speed:uint8:range(1,10)} {checksum}"
                 },
                 {
                     "id": 10,
@@ -682,28 +682,28 @@
                 {
                     "id": 11,
                     "name": "Candlelight",
-                    "cmd": "{cmdtag} {fxsubtag} {size} 0x0B {brr:uint8:range(0,100)} {brr2:uint8:range(0,100)} {cct:uint8:range(29,70)} {gm:uint8:range(0,100)} {speed:uint8:range(1,10)} {sparks:uint8:range(1,10)} {checksum}",
+                    "cmd": "{cmdtag} {fxsubtag} {size} 0x0B {brr:uint8:range(0,100)} {brr2:uint8:range(0,100)} {cct:uint8:range(29,70)} {gm:uint8:range(0,100)} {speed:uint8:range(1,10)} {sparks:uint8:range(1,10)} {checksum}"
                 },
                 {
                     "id": 12,
                     "name": "H.U.E loop",
-                    "cmd": "{cmdtag} {fxsubtag} {size} 0x0C {brr:uint8:range(0,100)} {hue:uint16_le:range(0,360)} {hue2:uint16_le:range(0,360)} {speed:uint8:range(1,10)} {checksum}",
+                    "cmd": "{cmdtag} {fxsubtag} {size} 0x0C {brr:uint8:range(0,100)} {hue:uint16_le:range(0,360)} {hue2:uint16_le:range(0,360)} {speed:uint8:range(1,10)} {checksum}"
                 },
                 {
                     "id": 13,
                     "name": "CCT loop",
-                    "cmd": "{cmdtag} {fxsubtag} {size} 0x0D {brr:uint8:range(0,100)} {cct:uint8:range(29,70)} {cct2:uint8:range(29,70)} {speed:uint8:range(1,10)} {checksum}",
+                    "cmd": "{cmdtag} {fxsubtag} {size} 0x0D {brr:uint8:range(0,100)} {cct:uint8:range(29,70)} {cct2:uint8:range(29,70)} {speed:uint8:range(1,10)} {checksum}"
                 },
                 {
                     "id": 14,
                     "name": "INT loop",
-                    "cmd": "{cmdtag} {fxsubtag} {size} 0x0E {brr:uint8:range(0,100)} {brr2:uint8:range(0,100)} {hue:uint16_le:range(0,360)} {speed:uint8:range(1,10)} {checksum}",
+                    "cmd": "{cmdtag} {fxsubtag} {size} 0x0E {brr:uint8:range(0,100)} {brr2:uint8:range(0,100)} {hue:uint16_le:range(0,360)} {speed:uint8:range(1,10)} {checksum}"
                 },
                 {
                     "id": 15,
                     "name": "TV screen",
                     "icon": "tv",
-                    "cmd": "{cmdtag} {fxsubtag} {size} 0x0E {brr:uint8:range(0,100)} {cct:uint8:range(29,70)} {gm:uint8:range(0,100)} {speed:uint8:range(1,10)} {checksum}",
+                    "cmd": "{cmdtag} {fxsubtag} {size} 0x0E {brr:uint8:range(0,100)} {cct:uint8:range(29,70)} {gm:uint8:range(0,100)} {speed:uint8:range(1,10)} {checksum}"
                 },
                 {
                     "id": 16,
