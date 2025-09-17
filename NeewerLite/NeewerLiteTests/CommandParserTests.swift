@@ -90,7 +90,7 @@ final class CommandPatternParserTests: XCTestCase {
         let values: [String: Any] = ["state": 0] // below range
 
         let data = CommandPatternParser.buildCommand(from: pattern, values: values)
-        let expected = Data([])
+        let expected = Data([0x78, 0x81, 0x01, 0x01, 0xfb])
         XCTAssertEqual(data, expected)
     }
 
@@ -99,7 +99,7 @@ final class CommandPatternParserTests: XCTestCase {
         let values: [String: Any] = ["state": 100] // above range
 
         let data = CommandPatternParser.buildCommand(from: pattern, values: values)
-        let expected = Data([])
+        let expected = Data([0x78, 0x81, 0x01, 0x63, 0x5d])
         XCTAssertEqual(data, expected)
     }
     
@@ -109,7 +109,7 @@ final class CommandPatternParserTests: XCTestCase {
         let values: [String: Any] = ["brr": 101, "cct": 86, "gm": 101] // all above range
 
         let data = CommandPatternParser.buildCommand(from: pattern, values: values)
-        let expected = Data([]) // Should fail due to out-of-range values
+        let expected = Data([0x78, 0x87, 0x05, 0x64, 0x55, 0x64, 0x00, 0x00, 0x21]) // Should fail due to out-of-range values
         XCTAssertEqual(data, expected)
     }
 
@@ -165,7 +165,7 @@ final class CommandPatternParserTests: XCTestCase {
         let values: [String: Any] = ["hue": 400, "s": 80, "i": 100, "w": 0] // 400 is out of range
 
         let data = CommandPatternParser.buildCommand(from: pattern, values: values)
-        let expected = Data([]) // Should fail due to out-of-range hue
+        let expected = Data([0x78, 0x86, 0x05, 0x68, 0x01, 0x50, 0x64, 0x00, 0x20]) // Should fail due to out-of-range hue
         XCTAssertEqual(data, expected)
     }
 

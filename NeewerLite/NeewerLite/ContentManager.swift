@@ -5,10 +5,10 @@
 //  Created by Xu Lian on 11/10/23.
 //
 
-import Foundation
 import Cocoa
+import Foundation
 
-fileprivate let supportedVersion: Double = 3.0
+private let supportedVersion: Double = 3.0
 
 class ImageFetchOperation: Operation {
     var lightType: UInt8
@@ -39,6 +39,15 @@ struct ccTRange: Decodable {
     let max: Int
 }
 
+struct NamedPattern: Decodable {
+    let id: Int
+    let name: String
+    let cmd: String
+    let defaultCmd: String?
+    let icon: String?
+    let color: [String]?
+}
+
 struct NeewerLightDbItem: Decodable {
     let type: UInt8
     let image: String
@@ -52,6 +61,8 @@ struct NeewerLightDbItem: Decodable {
     let newPowerLightCommand: Bool?
     let newRGBLightCommand: Bool?
     let commandPatterns: [String: String]?
+    let sourcePatterns: [NamedPattern]?
+    let fxPatterns: [NamedPattern]?
 }
 
 struct Database: Decodable {
@@ -70,30 +81,32 @@ struct Database: Decodable {
 
         guard version <= supportedVersion else {
             self.lights = []
-            throw DecodingError.dataCorruptedError(forKey: .version, in: container, debugDescription: "Unsupported database version: \(version)")
+            throw DecodingError.dataCorruptedError(
+                forKey: .version, in: container,
+                debugDescription: "Unsupported database version: \(version)")
         }
 
         self.lights = try container.decode([NeewerLightDbItem].self, forKey: .lights)
     }
 }
 
-
 class ContentManager {
-    
+
     static let databaseUpdatedNotification = Notification.Name("LightDatabaseUpdated")
-    static let databaseUpdatedCountdownNotification = Notification.Name("LightDatabaseSyncCountdown")
+    static let databaseUpdatedCountdownNotification = Notification.Name(
+        "LightDatabaseSyncCountdown")
 
     enum DBUpdateStatus {
         case success
         case failure(Error)
     }
-    
+
     static let shared = ContentManager()
-    
+
     private let fileManager = FileManager.default
     private let session = URLSession(configuration: .default)
     private var failedURLs = Set<URL>()
-    private var lastCheckedDate: Date? { // Store the ETag value
+    private var lastCheckedDate: Date? {  // Store the ETag value
         didSet {
             UserDefaults.standard.setValue(lastCheckedDate, forKey: "lastCheckedDate")
         }
@@ -105,23 +118,27 @@ class ContentManager {
 
     // Image Cache Directory
     private lazy var cacheDirectory: URL = {
-        let appSupportURL = fileManager.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
+        let appSupportURL = fileManager.urls(for: .applicationSupportDirectory, in: .userDomainMask)
+            .first!
         let cacheURL = appSupportURL.appendingPathComponent("NeewerLite/LightImageCache")
         if !fileManager.fileExists(atPath: cacheURL.path) {
-            try? fileManager.createDirectory(at: cacheURL, withIntermediateDirectories: true, attributes: nil)
+            try? fileManager.createDirectory(
+                at: cacheURL, withIntermediateDirectories: true, attributes: nil)
         }
         return cacheURL
     }()
 
     // JSON Database URL
-    private let jsonDatabaseURL = URL(string: "https://raw.githubusercontent.com/keefo/NeewerLite/main/Database/lights.json")!
+    private let jsonDatabaseURL = URL(
+        string: "https://raw.githubusercontent.com/keefo/NeewerLite/main/Database/lights.json")!
     private var localDatabaseURL: URL {
-        let appSupportURL = fileManager.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
-        let cacheURL = appSupportURL.appendingPathComponent("NeewerLite/database.json")        
+        let appSupportURL = fileManager.urls(for: .applicationSupportDirectory, in: .userDomainMask)
+            .first!
+        let cacheURL = appSupportURL.appendingPathComponent("NeewerLite/database.json")
         return cacheURL
     }
     private var ttlTimer: Timer?
-    private let ttlInterval: TimeInterval = 28800 // 8 hours
+    private let ttlInterval: TimeInterval = 28800  // 8 hours
     private var nextDownloadDate: Date? {
         guard let last = lastCheckedDate else { return nil }
         return last.addingTimeInterval(ttlInterval)
@@ -133,16 +150,18 @@ class ContentManager {
 
     private init() {
         operationQueue = OperationQueue()
-        operationQueue.maxConcurrentOperationCount = 10 // Adjust this as needed
+        operationQueue.maxConcurrentOperationCount = 10  // Adjust this as needed
         ttlTimer = Timer.scheduledTimer(withTimeInterval: 10, repeats: true) { [weak self] _ in
             self?.checkTTL()
         }
         RunLoop.main.add(ttlTimer!, forMode: .common)
     }
-    
+
     private func checkTTL() {
         guard let remaining = remainingTTL else { return }
-        NotificationCenter.default.post(name: ContentManager.databaseUpdatedCountdownNotification, object: nil, userInfo: ["remaining": remaining])
+        NotificationCenter.default.post(
+            name: ContentManager.databaseUpdatedCountdownNotification, object: nil,
+            userInfo: ["remaining": remaining])
         if remaining <= 0 {
             if self.shouldDownloadDatabase() {
                 Task.detached(priority: .background) {
@@ -160,12 +179,14 @@ class ContentManager {
         if databaseCache == nil || reload {
             do {
                 #if DEBUG
-                // Try to load from resources in debug build
-                if let resourceURL = Bundle.main.url(forResource: "lights", withExtension: "json") {
-                    let data = try Data(contentsOf: resourceURL)
-                    databaseCache = try JSONDecoder().decode(Database.self, from: data)
-                    return
-                }
+                    // Try to load from resources in debug build
+                    if let resourceURL = Bundle.main.url(
+                        forResource: "lights", withExtension: "json")
+                    {
+                        let data = try Data(contentsOf: resourceURL)
+                        databaseCache = try JSONDecoder().decode(Database.self, from: data)
+                        return
+                    }
                 #endif
                 // Fallback to local cache file
                 if fileManager.fileExists(atPath: localDatabaseURL.path) {
@@ -178,14 +199,15 @@ class ContentManager {
                     try fileManager.removeItem(atPath: localDatabaseURL.path)
                 } catch {
                 }
-                
-                if case let DecodingError.dataCorrupted(context) = error,
-                    context.debugDescription.contains("Unsupported database version") 
+
+                if case DecodingError.dataCorrupted(let context) = error,
+                    context.debugDescription.contains("Unsupported database version")
                 {
                     Task { @MainActor in
                         let alert = NSAlert()
                         alert.messageText = "Database Error"
-                        alert.informativeText = "\(context.debugDescription).\nPlease update to the latest version of the app."
+                        alert.informativeText =
+                            "\(context.debugDescription).\nPlease update to the latest version of the app."
                         alert.alertStyle = .critical
                         alert.addButton(withTitle: "OK")
                         alert.runModal()
@@ -195,16 +217,14 @@ class ContentManager {
         }
     }
 
-    public func downloadDatabase(force: Bool)
-    {
+    public func downloadDatabase(force: Bool) {
         if !force && !self.shouldDownloadDatabase() {
             return
         }
         Task.detached(priority: .background) {
             do {
                 try await self.downloadDatabaseNow()
-                if force
-                {
+                if force {
                     Task { @MainActor in
                         let alert = NSAlert()
                         alert.messageText = "Finish"
@@ -219,7 +239,7 @@ class ContentManager {
             }
         }
     }
-    
+
     // MARK: - JSON Database Management
     private func downloadDatabaseNow() async throws {
         lastCheckedDate = Date()
@@ -230,17 +250,16 @@ class ContentManager {
             try data.write(to: localDatabaseURL)
             loadDatabaseFromDisk(reload: true)
             NotificationCenter.default.post(
-                                name: Self.databaseUpdatedNotification,
-                                object: nil,
-                                userInfo: ["status": Self.DBUpdateStatus.success]
-                            )
-        }
-        catch {
+                name: Self.databaseUpdatedNotification,
+                object: nil,
+                userInfo: ["status": Self.DBUpdateStatus.success]
+            )
+        } catch {
             NotificationCenter.default.post(
-                                name: Self.databaseUpdatedNotification,
-                                object: nil,
-                                userInfo: ["status": Self.DBUpdateStatus.failure(error)]
-                            )
+                name: Self.databaseUpdatedNotification,
+                object: nil,
+                userInfo: ["status": Self.DBUpdateStatus.failure(error)]
+            )
             throw error
         }
     }
@@ -256,9 +275,10 @@ class ContentManager {
             }
         }
         // Check if enough time has passed since the last check
-        let updateInterval: TimeInterval = 28800 // For example, 8 hours
+        let updateInterval: TimeInterval = 28800  // For example, 8 hours
         if let lastCheckedDate = lastCheckedDate,
-           Date().timeIntervalSince(lastCheckedDate) < updateInterval {
+            Date().timeIntervalSince(lastCheckedDate) < updateInterval
+        {
             return false
         }
         return true
@@ -274,13 +294,16 @@ class ContentManager {
             throw NSError(domain: "NetworkFailure", code: 0, userInfo: nil)
         }
 
-        if isImageCached(lightType: lightType), let image = NSImage(contentsOf: cachedImageURL(lightType: lightType)) {
+        if isImageCached(lightType: lightType),
+            let image = NSImage(contentsOf: cachedImageURL(lightType: lightType))
+        {
             return image
         }
 
         do {
             let (data, response) = try await session.data(from: url)
-            guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
+            guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200
+            else {
                 throw NSError(domain: "InvalidResponse", code: 0, userInfo: nil)
             }
 
@@ -317,7 +340,9 @@ class ContentManager {
     }
 
     func fetchCachedLightImage(lightType: UInt8) -> NSImage? {
-        if isImageCached(lightType: lightType), let image = NSImage(contentsOf: cachedImageURL(lightType: lightType)) {
+        if isImageCached(lightType: lightType),
+            let image = NSImage(contentsOf: cachedImageURL(lightType: lightType))
+        {
             return image
         }
         return nil
@@ -326,7 +351,7 @@ class ContentManager {
     func fetchLightProperty(lightType: UInt8) -> NeewerLightDbItem? {
         return databaseCache?.lights.first(where: { $0.type == lightType })
     }
-    
+
     func fetchLightImage(lightType: UInt8) async throws -> NSImage? {
         guard let imageUrl = fetchImageUrl(for: lightType) else {
             throw NSError(domain: "NoImageURLFound", code: Int(lightType), userInfo: nil)

@@ -141,7 +141,7 @@ final class NeewerLiteServer {
                     .filter { $0.matches(lightId: light) }
                     .forEach { viewObj in
                         Task { @MainActor in
-                            viewObj.device.setBRRLightValues(payload.brightness)
+                            viewObj.device.setBRR100LightValues(payload.brightness)
                         }
                     }
             }
