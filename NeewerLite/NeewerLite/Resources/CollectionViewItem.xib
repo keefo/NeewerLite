@@ -14,7 +14,7 @@
             <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
             <subviews>
                 <textField focusRingType="none" horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="Nno-gV-EAg">
-                    <rect key="frame" x="18" y="57" width="110" height="82"/>
+                    <rect key="frame" x="13" y="57" width="121" height="82"/>
                     <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMaxX="YES" flexibleMinY="YES"/>
                     <textFieldCell key="cell" title="Label" id="gaf-4a-q1P">
                         <font key="font" metaFont="system" size="18"/>
@@ -60,6 +60,7 @@
             <connections>
                 <outlet property="imageView" destination="vuc-wv-ctg" id="qKO-0Z-WbQ"/>
                 <outlet property="lightModeTabView" destination="7dk-ru-C1M" id="tVG-t9-bf6"/>
+                <outlet property="moreactionButton" destination="Rjc-Y1-ZWd" id="SIw-l2-dof"/>
                 <outlet property="nameField" destination="Nno-gV-EAg" id="cjn-1J-cbY"/>
                 <outlet property="switchButton" destination="mWp-1k-U9L" id="t55-DB-mDZ"/>
                 <outlet property="view" destination="c22-O7-iKe" id="aNf-b7-zes"/>

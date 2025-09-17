@@ -1215,9 +1215,6 @@ extension AppDelegate: NSTableViewDataSource, NSTableViewDelegate {
                 cellView.button?.tag = row
                 cellView.button?.action = #selector(forgetAction(_:))
                 cellView.button?.target = self
-                cellView.button2?.tag = row
-                cellView.button2?.action = #selector(renameAction(_:))
-                cellView.button2?.target = self
                 if debugFakeLights {
                     cellView.isConnected = true
                 } else {
@@ -1279,31 +1276,31 @@ extension AppDelegate: NSTableViewDataSource, NSTableViewDelegate {
         return false
     }
 
-    @IBAction func renameAction(_ sender: NSButton) {
-        let rowIndex = sender.tag
-        // Retrieve the corresponding object from your data source
-        if rowIndex >= 0 && rowIndex < viewObjects.count {
-            Logger.info(LogTag.click, "rename light")
-            let viewObject = viewObjects[rowIndex]
-            if renameVC != nil {
-                renameVC = nil
-            }
-            renameVC = RenameViewController()
-            renameVC?.onOK = { [weak self] text in
-                guard let safeSelf = self else { return true }
-                if safeSelf.isUserLightNameUsed(text, dev: viewObject.device) {
-                    Logger.info(LogTag.click, "rename light, name conflict.")
-                    return false
-                }
-                viewObject.device.userLightName.value = "\(text)"
-                safeSelf.saveLightsToDisk()
-                safeSelf.updateUI()
-                return true
-            }
-            renameVC?.setCurrentValue(viewObject.device.userLightName.value)
-            self.window?.beginSheet(renameVC!.sheetWindow, completionHandler: nil)
-        }
-    }
+//    @IBAction func renameAction(_ sender: NSButton) {
+//        let rowIndex = sender.tag
+//        // Retrieve the corresponding object from your data source
+//        if rowIndex >= 0 && rowIndex < viewObjects.count {
+//            Logger.info(LogTag.click, "rename light")
+//            let viewObject = viewObjects[rowIndex]
+//            if renameVC != nil {
+//                renameVC = nil
+//            }
+//            renameVC = RenameViewController()
+//            renameVC?.onOK = { [weak self] text in
+//                guard let safeSelf = self else { return true }
+//                if safeSelf.isUserLightNameUsed(text, dev: viewObject.device) {
+//                    Logger.info(LogTag.click, "rename light, name conflict.")
+//                    return false
+//                }
+//                viewObject.device.userLightName.value = "\(text)"
+//                safeSelf.saveLightsToDisk()
+//                safeSelf.updateUI()
+//                return true
+//            }
+//            renameVC?.setCurrentValue(viewObject.device.userLightName.value)
+//            self.window?.beginSheet(renameVC!.sheetWindow, completionHandler: nil)
+//        }
+//    }
 
     @IBAction func forgetAction(_ sender: NSButton) {
         let rowIndex = sender.tag
@@ -1318,15 +1315,15 @@ extension AppDelegate: NSTableViewDataSource, NSTableViewDelegate {
             alert.messageText = "Remove light \"\(viewObject.deviceName)\""
             alert.informativeText = "Are you sure you want to remove this light from you library?"
             alert.alertStyle = .warning
-            alert.addButton(withTitle: "No")
             alert.addButton(withTitle: "Yes")
+            alert.addButton(withTitle: "No")
 
             let response = alert.runModal()
             switch response {
             case .alertFirstButtonReturn:
-                Logger.info(LogTag.click, "forget light, cancel")
-            case .alertSecondButtonReturn:
                 self.forgetLight(viewObject.device)
+            case .alertSecondButtonReturn:
+                Logger.info(LogTag.click, "forget light, cancel")
             default:
                 break
             }

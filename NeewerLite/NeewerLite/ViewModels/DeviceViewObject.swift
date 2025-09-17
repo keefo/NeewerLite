@@ -225,9 +225,9 @@ class DeviceViewObject: NSObject {
             return
         }
         if let theView = view {
-            theView.updteFX(val)
+            theView.updateFX(val)
             if let brrVal = brr {
-                theView.updteBrightness(brrVal)
+                theView.updateBrightness(brrVal)
             }
         }
     }

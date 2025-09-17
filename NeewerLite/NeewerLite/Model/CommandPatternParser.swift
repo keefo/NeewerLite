@@ -123,6 +123,8 @@ struct CommandPatternParser {
                     bytes.append(UInt8(NeewerLightConstant.BleCommand.setSceneTag))
                 } else if field == "fxsubtag" {
                     bytes.append(UInt8(NeewerLightConstant.BleCommand.setSCESubTag))
+                } else if field == "fxdatatag" {
+                    bytes.append(UInt8(NeewerLightConstant.BleCommand.setSCEDataTag))
                 } else if field == "size" {
                     sizeIndex = bytes.count
                     bytes.append(0) // placeholder for size

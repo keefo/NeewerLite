@@ -304,7 +304,7 @@ class NeewerLightConstant {
             }
             else{
                 item.fxPatterns?.forEach { (item) in
-                    fxs.append(NeewerLightFX.parseFxSceneCmd(item: item))
+                    fxs.append(NeewerLightFX.parseNamedCmdToFX(item: item))
                 }
             }
         }
@@ -313,18 +313,26 @@ class NeewerLightConstant {
 
     class func getLightSources(lightType: UInt8) -> [NeewerLightSource] {
         var fxs: [NeewerLightSource] = []
-
-        fxs.append(NeewerLightSource.sunlightSource())
-        fxs.append(NeewerLightSource.whiteHalogenSource())
-        fxs.append(NeewerLightSource.xenonShortarcLampSource())
-        fxs.append(NeewerLightSource.horizonDaylightSource())
-        fxs.append(NeewerLightSource.daylightSource())
-        fxs.append(NeewerLightSource.tungstenSource())
-        fxs.append(NeewerLightSource.studioBulbSource())
-        fxs.append(NeewerLightSource.modelingLightsSource())
-        fxs.append(NeewerLightSource.dysprosicLampSource())
-        fxs.append(NeewerLightSource.hmi6000Source())
-
+        if let item = ContentManager.shared.fetchLightProperty(lightType: lightType)
+        {
+            item.sourcePatterns?.forEach { (item) in
+                fxs.append(NeewerLightSource.parseNamedCmdToLightSource(item: item))
+            }
+        }
+        
+        if fxs.count <= 0
+        {
+            fxs.append(NeewerLightSource.sunlightSource())
+            fxs.append(NeewerLightSource.whiteHalogenSource())
+            fxs.append(NeewerLightSource.xenonShortarcLampSource())
+            fxs.append(NeewerLightSource.horizonDaylightSource())
+            fxs.append(NeewerLightSource.daylightSource())
+            fxs.append(NeewerLightSource.tungstenSource())
+            fxs.append(NeewerLightSource.studioBulbSource())
+            fxs.append(NeewerLightSource.modelingLightsSource())
+            fxs.append(NeewerLightSource.dysprosicLampSource())
+            fxs.append(NeewerLightSource.hmi6000Source())
+        }
         return fxs
     }
 

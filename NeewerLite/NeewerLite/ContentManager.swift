@@ -39,10 +39,12 @@ struct ccTRange: Decodable {
     let max: Int
 }
 
-struct FxPattern: Decodable {
+struct NamedPattern: Decodable {
     let id: Int
     let name: String
     let cmd: String
+    let defaultCmd: String?
+    let icon: String?
     let color: [String]?
 }
 
@@ -59,7 +61,8 @@ struct NeewerLightDbItem: Decodable {
     let newPowerLightCommand: Bool?
     let newRGBLightCommand: Bool?
     let commandPatterns: [String: String]?
-    let fxPatterns: [FxPattern]?
+    let sourcePatterns: [NamedPattern]?
+    let fxPatterns: [NamedPattern]?
 }
 
 struct Database: Decodable {

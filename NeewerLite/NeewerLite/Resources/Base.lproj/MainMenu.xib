@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="23504" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES" customObjectInstantitationMethod="direct">
+<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="24112" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES" customObjectInstantitationMethod="direct">
     <dependencies>
         <deployment identifier="macosx"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="23504"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="24112"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <objects>
@@ -713,7 +713,7 @@
             <windowStyleMask key="styleMask" titled="YES" closable="YES" miniaturizable="YES" resizable="YES"/>
             <windowPositionMask key="initialPositionMask" leftStrut="YES" rightStrut="YES" topStrut="YES" bottomStrut="YES"/>
             <rect key="contentRect" x="335" y="390" width="857" height="477"/>
-            <rect key="screenRect" x="0.0" y="0.0" width="1920" height="1055"/>
+            <rect key="screenRect" x="0.0" y="0.0" width="2560" height="1409"/>
             <view key="contentView" id="EiT-Mj-1SZ">
                 <rect key="frame" x="0.0" y="0.0" width="857" height="477"/>
                 <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
@@ -801,7 +801,7 @@
             <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
             <clipView key="contentView" id="jZY-dn-pja">
                 <rect key="frame" x="1" y="1" width="857" height="475"/>
-                <autoresizingMask key="autoresizingMask"/>
+                <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                 <subviews>
                     <collectionView id="QRn-Qa-fcm">
                         <rect key="frame" x="0.0" y="0.0" width="857" height="475"/>
@@ -853,7 +853,7 @@
                                     <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                     <clipView key="contentView" drawsBackground="NO" id="uYz-LH-hh6">
                                         <rect key="frame" x="0.0" y="0.0" width="388" height="377"/>
-                                        <autoresizingMask key="autoresizingMask"/>
+                                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                         <subviews>
                                             <tableView verticalHuggingPriority="750" allowsExpansionToolTips="YES" columnAutoresizingStyle="lastColumnOnly" autosaveColumns="NO" rowHeight="57" rowSizeStyle="automatic" viewBased="YES" id="Vxv-wz-mUA">
                                                 <rect key="frame" x="0.0" y="0.0" width="388" height="377"/>
@@ -909,18 +909,9 @@
                                                                             <font key="font" metaFont="system"/>
                                                                         </buttonCell>
                                                                     </button>
-                                                                    <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="3ik-Wp-ljY">
-                                                                        <rect key="frame" x="202" y="12" width="83" height="32"/>
-                                                                        <autoresizingMask key="autoresizingMask" flexibleMinX="YES" flexibleMinY="YES"/>
-                                                                        <buttonCell key="cell" type="push" title="Rename" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="ucc-aV-TAd">
-                                                                            <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
-                                                                            <font key="font" metaFont="system"/>
-                                                                        </buttonCell>
-                                                                    </button>
                                                                 </subviews>
                                                                 <connections>
                                                                     <outlet property="button" destination="9Qx-ol-jWc" id="IGY-hP-X9s"/>
-                                                                    <outlet property="button2" destination="3ik-Wp-ljY" id="LeG-kv-06N"/>
                                                                     <outlet property="iconImageView" destination="6Hz-qo-Eej" id="BH3-AR-LFn"/>
                                                                     <outlet property="subtitleLabel" destination="YcF-IP-6bJ" id="7lj-Jc-uZm"/>
                                                                     <outlet property="textField" destination="7GT-T7-LbH" id="4v0-l9-Wh3"/>
@@ -958,7 +949,7 @@
                                     <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                     <clipView key="contentView" drawsBackground="NO" id="R1C-6r-ewg">
                                         <rect key="frame" x="0.0" y="0.0" width="279" height="392"/>
-                                        <autoresizingMask key="autoresizingMask"/>
+                                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                         <subviews>
                                             <tableView verticalHuggingPriority="750" allowsExpansionToolTips="YES" columnAutoresizingStyle="lastColumnOnly" columnReordering="NO" multipleSelection="NO" autosaveColumns="NO" rowHeight="59" rowSizeStyle="automatic" viewBased="YES" id="7EQ-pZ-iT4">
                                                 <rect key="frame" x="0.0" y="0.0" width="279" height="392"/>

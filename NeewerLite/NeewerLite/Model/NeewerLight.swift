@@ -676,6 +676,22 @@ class NeewerLight: NSObject, ObservableNeewerLightProtocol {
         write(data: cmd as Data, to: characteristic)
     }
 
+    public func sendCommandPattern(_ pattern: String) {
+        guard let characteristic = deviceCtlCharacteristic else {
+            return
+        }
+        Logger.debug("send power command via pattern: \(pattern)")
+        var values: [String: Any] = [:]
+        let data = CommandPatternParser.buildCommand(from: pattern, values: values)
+        if !data.isEmpty {
+            write(data: data, to: characteristic)
+            Logger.debug("send power command via pattern: \(pattern) values: \(values) data: \(data.hexEncodedString())")
+            return
+        } else {
+            Logger.warn("Pattern-based power command failed, falling back to legacy logic.")
+        }
+    }
+    
     // Send Scene
     public func sendSceneCommand(_ fxx: NeewerLightFX) {
         var cmd: Data = Data()
@@ -735,6 +751,7 @@ class NeewerLight: NSObject, ObservableNeewerLightProtocol {
                 {
                     cmd = getSceneCommand(_macAddress ?? "", fxx)
                 }
+                cmd = getSceneCommand(_macAddress ?? "", fxx)
             }
         }
         else
@@ -954,7 +971,7 @@ class NeewerLight: NSObject, ObservableNeewerLightProtocol {
         return data as Data
     }
 
-    public func setBRRLightValues(_ brr: CGFloat) {
+    public func setBRR100LightValues(_ brr: CGFloat) {
         var cmd: Data = Data()
         if lightMode == .CCTMode {
             if supportRGB {
@@ -992,10 +1009,10 @@ class NeewerLight: NSObject, ObservableNeewerLightProtocol {
     }
 
     private func getHSILightCommand(brightness brr: CGFloat, hue theHue: CGFloat, hue360 theHue360: CGFloat, satruation sat: CGFloat ) -> Data {
-        var ratio = 100.0
-        if brr > 1.0 {
-            ratio = 1.0
-        }
+        let ratio = 1.0
+//        if brr >= 1.0 {
+//            ratio = 1.0
+//        }
         // brr range from 0x00 - 0x64
         let newBrrValue: Int = Int(brr * ratio).clamped(to: 0...100)
         let newSatValue: Int = Int(sat * 100.0).clamped(to: 0...100)

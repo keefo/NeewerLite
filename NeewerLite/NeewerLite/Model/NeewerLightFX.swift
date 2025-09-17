@@ -147,36 +147,27 @@ extension NeewerLightFX {
         return out
     }
 
-    class func parseFxSceneCmd(item: FxPattern) -> NeewerLightFX {
-        Logger.debug("parseFxSceneCmd \(item)")
+    class func parseNamedCmdToFX(item: NamedPattern) -> NeewerLightFX {
         let scene = NeewerLightFX(id: UInt16(item.id), name: item.name)
         scene.cmdPattern = item.cmd
-        
+        if let icon = item.icon {
+            scene.iconName = icon
+        }
         let fields = parseFields(item.cmd)
-        if let _ = fields["brr"] {
-            scene.needBRR = true
-        }
-        if let _ = fields["brr2"] {
-            scene.needBRRUpperBound = true
-        }
-        if let _ = fields["cct"] {
-            scene.needCCT = true
-        }
-        if let _ = fields["cct2"] {
-            scene.needCCTUpperBound = true
-        }
-        Logger.debug("scene.needCCTUpperBound \(scene.needCCTUpperBound)")
-        if let _ = fields["gm"] {
-            scene.needGM = true
-        }
-        if let _ = fields["hue"] {
-            scene.needHUE = true
-        }
-        if let _ = fields["hue2"] {
-            scene.needHUEUpperBound = true
-        }
-        if let _ = fields["sat"] {
-            scene.needSAT = true
+        let flagMappings: [(String, ReferenceWritableKeyPath<NeewerLightFX, Bool>)] = [
+            ("brr", \.needBRR),
+            ("brr2", \.needBRRUpperBound),
+            ("cct", \.needCCT),
+            ("cct2", \.needCCTUpperBound),
+            ("gm", \.needGM),
+            ("hue", \.needHUE),
+            ("hue2", \.needHUEUpperBound),
+            ("sat", \.needSAT)
+        ]
+        for (key, keyPath) in flagMappings {
+            if fields[key] != nil {
+                scene[keyPath: keyPath] = true
+            }
         }
         if let sparks = fields["sparks"] {
             scene.needSparks = true
