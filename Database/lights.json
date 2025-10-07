@@ -1058,6 +1058,24 @@
                 "min": 25,
                 "max": 85
             }
+        },
+        {
+            "type": 70,
+            "image": "https://github.com/keefo/NeewerLite/blob/main/Database/light_images/cb120b.png?raw=true",
+            "link": "https://neewer.com/products/neewer-cb120b-120w-bi-color-continuous-led-video-light-66605847",
+            "supportRGB": false,
+            "supportCCTGM": false,
+            "supportMusic": true,
+            "support17FX": false,
+            "support9FX": false,
+            "cctRange": {
+                "min": 27,
+                "max": 65
+            },
+            "commandPatterns": {
+                "power": "{cmdtag} {powertag} {size} {state:uint8:enum(1=on,2=off)} {checksum}",
+                "cct": "{cmdtag} {ccttag} {size} {brr:uint8:range(0,100)} {cct:uint8:range(27,65)} 0x32 0x00 0x00 {checksum}"
+            }
         }
     ]
 }
