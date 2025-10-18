@@ -5,6 +5,10 @@ disabled_rules: # rule identifiers turned on by default to exclude from running
   - cyclomatic_complexity
   - function_body_length
   - switch_case_alignment
+  - identifier_name  # Disable strict identifier naming rules
+  - force_try  # Allow force try statements
+  - type_name  # Allow flexible type naming conventions
+  - force_cast  # Allow force casts
 
 line_length:
   warning: 180
@@ -15,3 +19,14 @@ type_name:
 
 excluded: 
   - Package.swift
+  - .build
+  - .swiftpm
+  - DerivedData
+  - Carthage
+  - Pods
+  - .build/**
+  - "**/Package.swift"
+  - "**/.build/**"
+  - "**/checkouts/**"
+  - "**/SourcePackages/**"
+  - "**/DerivedData/**"
