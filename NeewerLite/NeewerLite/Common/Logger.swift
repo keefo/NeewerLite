@@ -244,7 +244,7 @@ public class Logger {
     }
 
     private static func rotateLogFile() {
-        logQueue.sync {
+        logQueue.async {
             fileHandle?.closeFile()
             fileHandle = nil
             // Re-initialize fileHandle
@@ -263,13 +263,20 @@ public class Logger {
     }
     
     public static func syncToFile() {
-        logQueue.sync {
-            fileHandle?.synchronizeFile()
+        // Avoid deadlock by checking if we're on main thread
+        if Thread.isMainThread {
+            logQueue.async {
+                fileHandle?.synchronizeFile()
+            }
+        } else {
+            logQueue.sync {
+                fileHandle?.synchronizeFile()
+            }
         }
     }
     
     private static func writeToFile(_ string: String) {
-        logQueue.sync {
+        logQueue.async {
             guard let handle = fileHandle else {
                 print("Logger error: fileHandle is nil")
                 return
