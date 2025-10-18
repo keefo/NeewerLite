@@ -10,7 +10,11 @@ import Foundation
 class NeewerLightSource: NSObject, Codable {
     var id: UInt16
     var name: String
-
+    
+    var cmdPattern: String?
+    var defaultCmdPattern: String?
+    var iconName: String
+    
     var needBRR: Bool = false
     var needCCT: Bool = false
     var needGM: Bool = false
@@ -20,6 +24,7 @@ class NeewerLightSource: NSObject, Codable {
     init(id: UInt16, name: String) {
         self.id = id
         self.name = name
+        self.iconName = ""
         super.init()
     }
 
@@ -27,6 +32,7 @@ class NeewerLightSource: NSObject, Codable {
         self.id = id
         self.name = name
         self.needBRR = brr
+        self.iconName = ""
         super.init()
     }
 
@@ -51,6 +57,30 @@ class NeewerLightSource: NSObject, Codable {
 
 extension NeewerLightSource {
 
+    
+    class func parseNamedCmdToLightSource(item: NamedPattern) -> NeewerLightSource {
+        
+        let src = NeewerLightSource(id: UInt16(item.id), name: item.name)
+        src.cmdPattern = item.cmd
+        if let icon = item.icon {
+            src.iconName = icon
+        }
+        src.defaultCmdPattern = item.defaultCmd
+        let fields = NeewerLightFX.parseFields(item.cmd)
+        let flagMappings: [(String, ReferenceWritableKeyPath<NeewerLightSource, Bool>)] = [
+            ("brr", \.needBRR),
+            ("cct", \.needCCT),
+            ("gm", \.needGM),
+        ]
+        for (key, keyPath) in flagMappings {
+            if fields[key] != nil {
+                src[keyPath: keyPath] = true
+            }
+        }
+        return src
+    }
+    
+    
     // Class method to create a "Lighting" scene
     class func sunlightSource() -> NeewerLightSource {
         let scene = NeewerLightSource(id: 0x01, name: "Sunlight")

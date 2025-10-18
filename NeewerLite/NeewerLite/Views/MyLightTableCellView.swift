@@ -15,7 +15,6 @@ class MyLightTableCellView: NSTableCellView {
     @IBOutlet var titleLabel: NSTextField!
     @IBOutlet var subtitleLabel: NSTextField!
     @IBOutlet var button: NSButton!
-    @IBOutlet var button2: NSButton!
 
     var light: NeewerLight? {
         didSet {
@@ -53,7 +52,6 @@ class MyLightTableCellView: NSTableCellView {
         titleLabel?.isSelectable = true
 
         button?.isHidden = true
-        button2?.isHidden = true
     }
 
     override func updateTrackingAreas() {
@@ -94,26 +92,19 @@ class MyLightTableCellView: NSTableCellView {
                 }
             }
         }
-        if let btn = button2 {
-            if !btn.isHidden {
-                if btn.frame.origin.x < minX {
-                    minX = btn.frame.origin.x
-                }
-            }
-        }
         return minX
     }
 
     private func resetLayout() {
         var showBtn = false
-        if let btn = button2 {
+        if let btn = button {
             showBtn = !btn.isHidden
         }
         var frame1 = titleLabel.frame
         var frame2 = subtitleLabel.frame
         if showBtn {
-            frame1.size.width = self.bounds.width - 220
-            frame2.size.width = self.bounds.width - 220
+            frame1.size.width = self.bounds.width - 150
+            frame2.size.width = self.bounds.width - 150
             titleLabel.frame = frame1
             subtitleLabel.frame = frame2
         } else {
@@ -128,7 +119,6 @@ class MyLightTableCellView: NSTableCellView {
     override func mouseEntered(with event: NSEvent) {
         super.mouseEntered(with: event)
         button?.isHidden = false
-        button2?.isHidden = false
         resetLayout()
     }
 
@@ -136,7 +126,6 @@ class MyLightTableCellView: NSTableCellView {
     override func mouseExited(with event: NSEvent) {
         super.mouseExited(with: event)
         button?.isHidden = true
-        button2?.isHidden = true
         resetLayout()
     }
 
@@ -144,7 +133,6 @@ class MyLightTableCellView: NSTableCellView {
     override func prepareForReuse() {
         super.prepareForReuse()
         button?.isHidden = true
-        button2?.isHidden = true
         resetLayout()
     }
 }
