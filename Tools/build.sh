@@ -90,9 +90,25 @@ popd
 # build app
 pushd ../NeewerLite
 xcodebuild -list -project NeewerLite.xcodeproj
-xcodebuild -scheme NeewerLite build -configuration Release clean -archivePath $APP_PATH archive
+# Skip SwiftLint run script by setting RUN_CLANG_STATIC_ANALYZER=NO for faster archive builds
+# Note: SwiftLint warnings won't fail the build, but the script phase itself might
+xcodebuild -scheme NeewerLite -configuration Release clean archive -archivePath $APP_PATH ENABLE_USER_SCRIPT_SANDBOXING=NO
+XCODE_EXIT=$?
 #xcrun altool -t osx -f build/Release/NeewerLite.xcarchive --primary-bundle-id com.beyondcow.neewerlite --output-format xml --notarize-app
 popd
+
+if [ $XCODE_EXIT -ne 0 ]; then
+    echo "❌ Archive build failed with exit code $XCODE_EXIT"
+    exit 1
+fi
+
+# Check if the app was actually created
+if [ ! -d "$APP_PATH/Products/Applications/NeewerLite.app" ]; then
+    echo "❌ Archive created but app not found at expected location"
+    echo "Looking for archive contents..."
+    find "$APP_PATH" -name "*.app" -type d 2>/dev/null || echo "No .app found in archive"
+    exit 1
+fi
 
 mv ../NeewerLiteStreamDeck/neewerlite/com.beyondcow.neewerlite.streamDeckPlugin $APP_PATH/Products/Applications/NeewerLite.app/Contents/Resources/
 
@@ -135,8 +151,32 @@ codesign -dvvvv $APP_PATH/Products/Applications/NeewerLite.app
 codesign -d --entitlements :- $APP_PATH/Products/Applications/NeewerLite.app
 codesign -vvv --deep --strict $APP_PATH/Products/Applications/NeewerLite.app
 
-./package_and_build_appcast.sh ./build/NeewerLite.xcarchive/Products/Applications/
+# Package the app and build appcast
+echo "Package the app"
 
+DMG_FILENAME=NeewerLite
+BUILD_APP_DIR="./build/NeewerLite.xcarchive/Products/Applications"
+
+# Install create-dmg if needed
+brew list create-dmg &>/dev/null || brew install create-dmg
+
+# Remove old DMG if exists
+if [ -f ${DMG_FILENAME}.dmg ]; then
+    rm -f ${DMG_FILENAME}.dmg
+fi
+
+# Create DMG
+create-dmg --volname ${DMG_FILENAME} --background ../Design/background.jpg --volicon ../Design/icon_128x128@2x.icns --icon-size 64 --app-drop-link 130 128 --icon NeewerLite.app 350 128 ${DMG_FILENAME}.dmg "${BUILD_APP_DIR}/NeewerLite.app"
+
+echo "Build App Cast"
+
+# Create zip for appcast
+/usr/bin/ditto -c -k --keepParent "${BUILD_APP_DIR}/NeewerLite.app" "${BUILD_APP_DIR}/NeewerLite.zip"
+
+# Generate appcast
+./generate_appcast "${BUILD_APP_DIR}/"
+
+# Move DMG to build directory
 mv NeewerLite.dmg ./build/NeewerLite.xcarchive/Products/Applications/
 
 xcrun notarytool submit "./build/NeewerLite.xcarchive/Products/Applications/NeewerLite.dmg" --keychain-profile "AC_PASSWORD" --wait 

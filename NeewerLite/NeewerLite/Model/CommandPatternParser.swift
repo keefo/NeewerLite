@@ -48,7 +48,7 @@ struct CommandPatternParser {
         var afterSize = false
         var payloadLength = 0
 
-        for (i, token) in tokens.enumerated()
+        for (_, token) in tokens.enumerated()
         {
             if token.hasPrefix("{") && token.hasSuffix("}") {
                 let inner = String(token.dropFirst().dropLast())
