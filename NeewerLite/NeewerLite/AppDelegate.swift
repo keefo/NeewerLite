@@ -20,7 +20,7 @@ import SwiftUI
 #endif
 
 @NSApplicationMain
-class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
+class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuDelegate {
 
     @IBOutlet var window: NSWindow!
     @IBOutlet weak var appMenu: NSMenu!
@@ -99,8 +99,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
 
         Logger.initialize()
 
-        NSApp.setActivationPolicy(.regular)
-        // NSApp.setActivationPolicy(.accessory)
+        NSApp.setActivationPolicy(.accessory)
 
         Logger.info(LogTag.app, "App launch")
 
@@ -112,6 +111,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         self.statusItem.menu = appMenu
         self.statusItemIcon = .off
         window.minSize = NSSize(width: 580, height: 400)
+        window.delegate = self
 
         registerCommands()
 
@@ -159,7 +159,17 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         }
         launching = false
 
+        // Start minimized to tray — hide the window
+        window.orderOut(nil)
+
         sync_sp_plugin()
+    }
+
+    func windowShouldClose(_ sender: NSWindow) -> Bool {
+        // Hide the window and remove from Dock instead of closing
+        sender.orderOut(nil)
+        NSApp.setActivationPolicy(.accessory)
+        return false
     }
 
     func applicationShouldHandleReopen(
@@ -184,11 +194,6 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
             NSApp.reply(toApplicationShouldTerminate: true)
         }
         return .terminateLater
-    }
-
-    func applicationDidBecomeActive(_ notification: Notification) {
-        // Bring the application's windows to the front
-        showWindowAction(self)
     }
 
     @objc func handleDatabaseCountdown(_ notification: Notification) {
@@ -690,6 +695,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     }
 
     @IBAction func showWindowAction(_ sender: AnyObject) {
+        NSApp.setActivationPolicy(.regular)
         NSApp.activate(ignoringOtherApps: true)
         self.window.makeKeyAndOrderFront(nil)
         self.window.orderFrontRegardless()
