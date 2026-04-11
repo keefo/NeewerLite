@@ -34,6 +34,13 @@ Here is a video I made to demo the scene:
 - Scene control
 - Script support
 - Sync RGB lights with music
+- Lighting gel simulation with 39 built-in presets (Color Correction and Creative)
+
+# What is a lighting gel?
+
+A lighting gel is a transparent colour filter placed in front of a light to shift its colour or colour temperature — used in film, photography, and theatre to match light sources or set a mood. NeewerLite's Gel tab simulates this digitally.
+
+Read more: [Docs/Gels-Feature-Plan.md](./Docs/Gels-Feature-Plan.md)
 
 # How to install pre-build app
 
