@@ -1257,6 +1257,23 @@
                 "power": "{cmdtag} {powertag} {size} {state:uint8:enum(1=on,2=off)} {checksum}",
                 "cct": "{cmdtag} {ccttag} {size} {brr:uint8:range(0,100)} {cct:uint8:range(27,65)} 0x32 0x00 0x00 {checksum}"
             }
+        },
+        {
+            "type": 71,
+            "name": "Neewer SL90",
+            "image": "https://github.com/keefo/NeewerLite/blob/main/Database/light_images/sl90-pro.png?raw=true",
+            "link": "https://neewer.com/products/neewer-sl90-rgb-led-video-light",
+            "supportRGB": true,
+            "supportCCTGM": true,
+            "supportMusic": true,
+            "support17FX": true,
+            "support9FX": false,
+            "cctRange": {
+                "min": 25,
+                "max": 100
+            },
+            "newPowerLightCommand": true,
+            "newRGBLightCommand": true
         }
     ]
 }
