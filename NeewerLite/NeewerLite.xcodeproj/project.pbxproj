@@ -53,6 +53,10 @@
 		A7B482292DFD3D6100EB4450 /* Server.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7B482282DFD3D5400EB4450 /* Server.swift */; };
 		A7EE61BD2B03680B00E85502 /* MySplitViewDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7EE61BC2B03680B00E85502 /* MySplitViewDelegate.swift */; };
 		A7FF36712AF84A690068022C /* CodableValue.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7FF36702AF84A690068022C /* CodableValue.swift */; };
+		A9528A187E6ABCDA2B108D65 /* NeewerGel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A0527FA7C1B0EB9AB3CA3C3 /* NeewerGel.swift */; };
+		16176719C888E47CE9DE8703 /* GelSwatchCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 682EAD3AD534B0BFCA45DCA2 /* GelSwatchCell.swift */; };
+		C35B747427CCBBF368C9ED93 /* CollectionViewItem+Gels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A5C8AFF6A48E1F0A848AD60 /* CollectionViewItem+Gels.swift */; };
+		CCF4C298B8A837A3ED2D4DDB /* GelsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5D83B6A59A5B72CDFC3ED5E /* GelsTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -113,6 +117,10 @@
 		A7B482282DFD3D5400EB4450 /* Server.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Server.swift; sourceTree = "<group>"; };
 		A7EE61BC2B03680B00E85502 /* MySplitViewDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MySplitViewDelegate.swift; sourceTree = "<group>"; };
 		A7FF36702AF84A690068022C /* CodableValue.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodableValue.swift; sourceTree = "<group>"; };
+		8A0527FA7C1B0EB9AB3CA3C3 /* NeewerGel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NeewerGel.swift; sourceTree = "<group>"; };
+		682EAD3AD534B0BFCA45DCA2 /* GelSwatchCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GelSwatchCell.swift; sourceTree = "<group>"; };
+		2A5C8AFF6A48E1F0A848AD60 /* CollectionViewItem+Gels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "CollectionViewItem+Gels.swift"; sourceTree = "<group>"; };
+		B5D83B6A59A5B72CDFC3ED5E /* GelsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GelsTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -180,6 +188,7 @@
 			isa = PBXGroup;
 			children = (
 				A708F5892E33006E00564DCF /* CommandParserTests.swift */,
+				B5D83B6A59A5B72CDFC3ED5E /* GelsTests.swift */,
 				A731DD4425A57D0B00302E25 /* NeewerLiteTests.swift */,
 				A731DD4625A57D0B00302E25 /* Info.plist */,
 			);
@@ -191,6 +200,8 @@
 			children = (
 				A708F58F2E333E8E00564DCF /* PatternEditorPanel.swift */,
 				A731DD8025A5922A00302E25 /* CollectionViewItem.swift */,
+				2A5C8AFF6A48E1F0A848AD60 /* CollectionViewItem+Gels.swift */,
+				682EAD3AD534B0BFCA45DCA2 /* GelSwatchCell.swift */,
 				A71B39B62756EBA20005E271 /* AudioSpectrogramView.swift */,
 				A77414D12AEA2C8D0085F149 /* BlockingOverlayView.swift */,
 				A749F71425B3DE9B0066EB06 /* ColorWheel.swift */,
@@ -211,6 +222,7 @@
 				A7311C4529A0BD5E009C03D8 /* Command.swift */,
 				A730F7FD2AE79173009CA529 /* NeewerLightConstant.swift */,
 				A77414D32AEA43A90085F149 /* NeewerLightFX.swift */,
+				8A0527FA7C1B0EB9AB3CA3C3 /* NeewerGel.swift */,
 				A753109E2AFCAA25009F533C /* NeewerLightSource.swift */,
 			);
 			path = Model;
@@ -433,6 +445,9 @@
 				A7EE61BD2B03680B00E85502 /* MySplitViewDelegate.swift in Sources */,
 				A730F7FE2AE79173009CA529 /* NeewerLightConstant.swift in Sources */,
 				A77414F82AF0E7890085F149 /* FXView.swift in Sources */,
+				A9528A187E6ABCDA2B108D65 /* NeewerGel.swift in Sources */,
+				16176719C888E47CE9DE8703 /* GelSwatchCell.swift in Sources */,
+				C35B747427CCBBF368C9ED93 /* CollectionViewItem+Gels.swift in Sources */,
 				A75310A12AFF2A19009F533C /* ContentManager.swift in Sources */,
 				A733AE47292DF05F00F37DDD /* SpectrogramViewObject.swift in Sources */,
 				A749F71525B3DE9B0066EB06 /* ColorWheel.swift in Sources */,
@@ -446,6 +461,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				A708F58A2E33006E00564DCF /* CommandParserTests.swift in Sources */,
+				CCF4C298B8A837A3ED2D4DDB /* GelsTests.swift in Sources */,
 				A731DD4525A57D0B00302E25 /* NeewerLiteTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
