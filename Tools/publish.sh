@@ -13,17 +13,10 @@ APP_PATH="${BUILD_DIR}/${DMG_FILENAME}.app"
 ZIP_PATH="${BUILD_DIR}/${DMG_FILENAME}.zip"
 DMG_PATH="${BUILD_DIR}/${DMG_FILENAME}.dmg"
 
-# 1. Verify environment variables
-if [ -z "$NEEWERLITE_REMOTE_FOLDER" ]
-then
-      echo "\$NEEWERLITE_REMOTE_FOLDER is empty"
-      exit 1
-fi
-
-if [ -z "$NEEWERLITE_REMOTE_USER_NAME" ]
-then
-      echo "\$NEEWERLITE_REMOTE_USER_NAME is empty"
-      exit 1
+# 1. Verify gh CLI is available
+if ! command -v gh &>/dev/null; then
+    echo "❌ gh CLI not found. Install with: brew install gh"
+    exit 1
 fi
 
 # 2. Extract version from Info.plist
@@ -34,9 +27,10 @@ RELEASE_TITLE="$TAG_NAME"
 echo "Publishing release: $RELEASE_TITLE"
 echo "Using tag: $TAG_NAME"
 
-# 3. Replace download path in appcast
-echo 'replace download path'
-sed -i '' -e "s/NeewerLite.zip/download\/NeewerLite.zip/" "${BUILD_DIR}/appcast.xml"
+# 3. Fix download URL in appcast — point to GitHub release asset
+echo 'Updating download URL in appcast.xml'
+RELEASE_ZIP_URL="https://github.com/keefo/NeewerLite/releases/download/${TAG_NAME}/NeewerLite.zip"
+sed -i '' -E "s|url=\"[^\"]*NeewerLite\.zip\"|url=\"${RELEASE_ZIP_URL}\"|" "${BUILD_DIR}/appcast.xml"
 
 # 4. Ask before uploading the appcast
 
@@ -62,22 +56,27 @@ fi
 # Prompt for a release note
 read -p "Enter release notes: " releaseNotes
 
-# 4. Upload to your website
-echo "Uploading appcast to $NEEWERLITE_REMOTE_USER_NAME:$NEEWERLITE_REMOTE_FOLDER..."
-ssh $NEEWERLITE_REMOTE_USER_NAME "rm $NEEWERLITE_REMOTE_FOLDER/appcast.xml"
-scp "${BUILD_DIR}/appcast.xml" $NEEWERLITE_REMOTE_USER_NAME:$NEEWERLITE_REMOTE_FOLDER/
-scp "${ZIP_PATH}" $NEEWERLITE_REMOTE_USER_NAME:$NEEWERLITE_REMOTE_FOLDER/download/
+# 4. Commit updated appcast.xml to repo (serves via raw.githubusercontent.com)
+REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+echo "Updating appcast.xml in repo..."
+cp "${BUILD_DIR}/appcast.xml" "${REPO_ROOT}/appcast.xml"
+pushd "${REPO_ROOT}" > /dev/null
+git add appcast.xml
+git commit -m "chore: update appcast.xml for ${TAG_NAME}"
+git push
+popd > /dev/null
+echo "✅ appcast.xml pushed to GitHub."
 
-# 5. Upload to GitHub release
+# 5. Create GitHub release and upload DMG + ZIP
 echo "Creating GitHub release for $TAG_NAME..."
 gh release create "$TAG_NAME" \
   --repo "keefo/NeewerLite" \
   --title "$RELEASE_TITLE" \
   --notes $'Auto-generated release for '"$RELEASE_TITLE"$'\n'"$releaseNotes" \
   "$ZIP_PATH" \
-  "$DMG_PATH" 
+  "$DMG_PATH"
 
-echo "✅ Release $TAG_NAME published to GitHub and website."
+echo "✅ Release $TAG_NAME published to GitHub."
 echo ""
 
 ./validate.sh

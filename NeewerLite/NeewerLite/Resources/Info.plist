@@ -68,7 +68,7 @@
 	<key>SDPluginVersion</key>
 	<string>0.1.3.0</string>
 	<key>SUFeedURL</key>
-	<string>https://beyondcow.com/neewerlite/appcast.xml</string>
+	<string>https://raw.githubusercontent.com/keefo/NeewerLite/main/appcast.xml</string>
 	<key>SUPublicEDKey</key>
 	<string>alhbxGGFpHXtfz+awtP9zxxYb29sl+p9DC7rTJK1OL8=</string>
 	<key>UIAppFonts</key>

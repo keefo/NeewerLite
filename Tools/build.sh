@@ -21,7 +21,16 @@ APPCAST_URL=$(/usr/libexec/PlistBuddy -c "Print :SUFeedURL" "$INFO_PLIST")
 echo "Using appcast URL: $APPCAST_URL"
 # Download or use local appcast.xml
 if [[ "$APPCAST_URL" =~ ^http ]]; then
-    curl -s -o appcast.xml "$APPCAST_URL"
+    if ! curl -sf -o appcast.xml "$APPCAST_URL"; then
+        echo "❌ Failed to download appcast.xml from $APPCAST_URL"
+        exit 1
+    fi
+    # Verify it looks like XML (not an HTML redirect page)
+    if ! grep -q "sparkle:" appcast.xml 2>/dev/null; then
+        echo "❌ Downloaded appcast.xml does not appear to be a valid Sparkle feed (got HTML or empty response?)"
+        cat appcast.xml
+        exit 1
+    fi
     APPCAST="appcast.xml"
 else
     APPCAST="$APPCAST_URL"
@@ -44,7 +53,7 @@ echo "appcast.xml sparkle:version: $APPCAST_BUILD"
 # If APPCAST_BUILD is not a number, default to 0
 if ! [[ "$APPCAST_BUILD" =~ ^[0-9]+$ ]]; then
     APPCAST_BUILD=0
-    echo "❌ appcast.xml sparkle:version is not a number, defaulting to 0."
+    echo "❌ appcast.xml sparkle:version is not a number."
     exit 1
 fi
 
