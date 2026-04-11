@@ -461,6 +461,7 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
             removeTabItem(TabId.cct.rawValue)
             removeTabItem(TabId.source.rawValue)
             removeTabItem(TabId.hsi.rawValue)
+            removeTabItem(TabId.gel.rawValue)
             removeTabItem(TabId.scene.rawValue)
             
             if true {
@@ -476,6 +477,14 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
                 let tab = NSTabViewItem(identifier: TabId.hsi.rawValue)
                 tab.view = view
                 tab.label = "HSI"
+                self.lightModeTabView.addTabViewItem(tab)
+            }
+
+            if dev.supportRGB {
+                let view = buildGelsView(device: dev)
+                let tab = NSTabViewItem(identifier: TabId.gel.rawValue)
+                tab.view = view
+                tab.label = "Gels"
                 self.lightModeTabView.addTabViewItem(tab)
             }
             
@@ -1736,6 +1745,19 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
                         if dev.supportRGB {
                             let val = getHSIValuesFromView()
                             dev.setHSILightValues(brr100: CGFloat(val.brr), hue: val.hue, hue360: val.hue * 360.0, sat: val.sat)
+                        }
+                    } else if idf == TabId.gel.rawValue || tabViewItem?.label == "Gels" {
+                        // Gel mode: snapshot prior state then re-apply current gel if one is active
+                        if dev.supportRGB {
+                            let state = gelState
+                            if state.activeGel == nil {
+                                // Snapshot pre-gel state so "Clear Gel" can restore it
+                                state.priorLightMode = dev.lightMode
+                                state.priorBrightness = Double(dev.brrValue.value)
+                                state.priorCCT = Double(dev.cctValue.value)
+                            } else {
+                                applyActiveGel()
+                            }
                         }
                     } else if idf == TabId.scene.rawValue || tabViewItem?.label == "FX" {
                         // scene mode

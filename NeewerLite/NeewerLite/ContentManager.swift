@@ -68,10 +68,12 @@ struct NeewerLightDbItem: Decodable {
 struct Database: Decodable {
     let version: Double
     let lights: [NeewerLightDbItem]
+    let gels: [NeewerGel]
 
     enum CodingKeys: String, CodingKey {
         case version
         case lights
+        case gels
     }
 
     init(from decoder: Decoder) throws {
@@ -81,12 +83,14 @@ struct Database: Decodable {
 
         guard version <= supportedVersion else {
             self.lights = []
+            self.gels = []
             throw DecodingError.dataCorruptedError(
                 forKey: .version, in: container,
                 debugDescription: "Unsupported database version: \(version)")
         }
 
         self.lights = try container.decode([NeewerLightDbItem].self, forKey: .lights)
+        self.gels = try container.decodeIfPresent([NeewerGel].self, forKey: .gels) ?? []
     }
 }
 
@@ -185,6 +189,7 @@ class ContentManager {
                     {
                         let data = try Data(contentsOf: resourceURL)
                         databaseCache = try JSONDecoder().decode(Database.self, from: data)
+                        GelLibrary.shared.reload()
                         return
                     }
                 #endif
@@ -192,6 +197,7 @@ class ContentManager {
                 if fileManager.fileExists(atPath: localDatabaseURL.path) {
                     let data = try Data(contentsOf: localDatabaseURL)
                     databaseCache = try JSONDecoder().decode(Database.self, from: data)
+                    GelLibrary.shared.reload()
                 }
             } catch {
                 Logger.error("Error reading or parsing JSON: \(error)")
@@ -350,6 +356,10 @@ class ContentManager {
 
     func fetchLightProperty(lightType: UInt8) -> NeewerLightDbItem? {
         return databaseCache?.lights.first(where: { $0.type == lightType })
+    }
+
+    func fetchGels() -> [NeewerGel] {
+        return databaseCache?.gels ?? []
     }
 
     func fetchLightImage(lightType: UInt8) async throws -> NSImage? {

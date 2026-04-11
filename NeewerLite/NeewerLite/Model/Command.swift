@@ -180,11 +180,14 @@ public enum ControlTag: Int {
     case fxsubview = 16
     case speed = 17
     case spark = 18
+    case gelCategory = 20
+    case gelMode = 21
 }
 
 public enum TabId: String {
     case cct = "cctTab"
     case hsi = "hsiTab"
+    case gel = "gelTab"
     case source = "sourceTab"
     case scene = "sceTab"
 }

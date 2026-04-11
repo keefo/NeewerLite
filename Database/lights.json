@@ -450,56 +450,56 @@
                     "name": "Modeling lights",
                     "icon": "",
                     "cmd": "{cmdtag} {ccttag} {size} {brr:uint8:range(0,100)} {cct:uint8:range(29,70)} {gm:uint8:range(0,100)} {checksum}",
-                    "defaultCmd": "{cmdtag} {ccttag} {size} 0x32 0x22 0x32 {checksum}" 
+                    "defaultCmd": "{cmdtag} {ccttag} {size} 0x32 0x22 0x32 {checksum}"
                 },
                 {
                     "id": 4,
                     "name": "White halogen lights",
                     "icon": "",
                     "cmd": "{cmdtag} {ccttag} {size} {brr:uint8:range(0,100)} {cct:uint8:range(29,70)} {gm:uint8:range(0,100)} {checksum}",
-                    "defaultCmd": "{cmdtag} {ccttag} {size} 0x32 0x2B 0x32 {checksum}" 
+                    "defaultCmd": "{cmdtag} {ccttag} {size} 0x32 0x2B 0x32 {checksum}"
                 },
                 {
                     "id": 5,
                     "name": "Horizon daylight",
                     "icon": "",
                     "cmd": "{cmdtag} {ccttag} {size} {brr:uint8:range(0,100)} {cct:uint8:range(29,70)} {gm:uint8:range(0,100)} {checksum}",
-                    "defaultCmd": "{cmdtag} {ccttag} {size} 0x32 0x32 0x32 {checksum}" 
+                    "defaultCmd": "{cmdtag} {ccttag} {size} 0x32 0x32 0x32 {checksum}"
                 },
                 {
                     "id": 6,
                     "name": "Daylight",
                     "icon": "",
                     "cmd": "{cmdtag} {ccttag} {size} {brr:uint8:range(0,100)} {cct:uint8:range(29,70)} {gm:uint8:range(0,100)} {checksum}",
-                    "defaultCmd": "{cmdtag} {ccttag} {size} 0x32 0x37 0x32 {checksum}" 
+                    "defaultCmd": "{cmdtag} {ccttag} {size} 0x32 0x37 0x32 {checksum}"
                 },
                 {
                     "id": 7,
                     "name": "Dysprosic lamp",
                     "icon": "",
                     "cmd": "{cmdtag} {ccttag} {size} {brr:uint8:range(0,100)} {cct:uint8:range(29,70)} {gm:uint8:range(0,100)} {checksum}",
-                    "defaultCmd": "{cmdtag} {ccttag} {size} 0x32 0x38 0x32 {checksum}" 
+                    "defaultCmd": "{cmdtag} {ccttag} {size} 0x32 0x38 0x32 {checksum}"
                 },
                 {
                     "id": 8,
                     "name": "HMI6000",
                     "icon": "",
                     "cmd": "{cmdtag} {ccttag} {size} {brr:uint8:range(0,100)} {cct:uint8:range(29,70)} {gm:uint8:range(0,100)} {checksum}",
-                    "defaultCmd": "{cmdtag} {ccttag} {size} 0x32 0x3C 0x32 {checksum}" 
+                    "defaultCmd": "{cmdtag} {ccttag} {size} 0x32 0x3C 0x32 {checksum}"
                 },
                 {
                     "id": 9,
                     "name": "Xenon short-arc lamp",
                     "icon": "",
                     "cmd": "{cmdtag} {ccttag} {size} {brr:uint8:range(0,100)} {cct:uint8:range(29,70)} {gm:uint8:range(0,100)} {checksum}",
-                    "defaultCmd": "{cmdtag} {ccttag} {size} 0x32 0x3E 0x32 {checksum}" 
+                    "defaultCmd": "{cmdtag} {ccttag} {size} 0x32 0x3E 0x32 {checksum}"
                 },
                 {
                     "id": 10,
                     "name": "Sunlight",
                     "icon": "",
                     "cmd": "{cmdtag} {ccttag} {size} {brr:uint8:range(0,100)} {cct:uint8:range(29,70)} {gm:uint8:range(0,100)} {checksum}",
-                    "defaultCmd": "{cmdtag} {ccttag} {size} 0x32 0x41 0x32 {checksum}" 
+                    "defaultCmd": "{cmdtag} {ccttag} {size} 0x32 0x41 0x32 {checksum}"
                 },
                 {
                     "id": 11,
@@ -563,7 +563,13 @@
                     "id": 10,
                     "name": "Cop Car",
                     "cmd": "{cmdtag} {fxsubtag} {size} 0x0A {brr:uint8:range(0,100)} {color:uint8:range(0,4)} {speed:uint8:range(1,10)} {checksum}",
-                    "color": ["Red", "Blue", "Red and Blue" ,"White and Blue" ,"Red, Blue, White"]
+                    "color": [
+                        "Red",
+                        "Blue",
+                        "Red and Blue",
+                        "White and Blue",
+                        "Red, Blue, White"
+                    ]
                 },
                 {
                     "id": 11,
@@ -596,14 +602,22 @@
                     "name": "Fireworks",
                     "icon": "fireworks",
                     "cmd": "{cmdtag} {fxsubtag} {size} 0x10 {brr:uint8:range(0,100)} {color:uint8:range(0,2)} {speed:uint8:range(1,10)} {sparks:uint8:range(1,10)} {checksum}",
-                    "color": ["Signle Color", "Color", "Combined"]
+                    "color": [
+                        "Signle Color",
+                        "Color",
+                        "Combined"
+                    ]
                 },
                 {
                     "id": 17,
                     "name": "Party",
                     "icon": "party.popper.fill",
                     "cmd": "{cmdtag} {fxsubtag} {size} 0x11 {brr:uint8:range(0,100)} {color:uint8:range(0,2)} {speed:uint8:range(1,10)} {checksum}",
-                    "color": ["Signle Color", "Color", "Combined"]
+                    "color": [
+                        "Signle Color",
+                        "Color",
+                        "Combined"
+                    ]
                 },
                 {
                     "id": 18,
@@ -677,7 +691,13 @@
                     "id": 10,
                     "name": "Cop Car",
                     "cmd": "{cmdtag} {fxsubtag} {size} 0x0A {brr:uint8:range(0,100)} {color:uint8:range(0,4)} {speed:uint8:range(1,10)} {checksum}",
-                    "color": ["Red", "Blue", "Red and Blue" ,"White and Blue" ,"Red, Blue, White"]
+                    "color": [
+                        "Red",
+                        "Blue",
+                        "Red and Blue",
+                        "White and Blue",
+                        "Red, Blue, White"
+                    ]
                 },
                 {
                     "id": 11,
@@ -710,14 +730,22 @@
                     "name": "Fireworks",
                     "icon": "fireworks",
                     "cmd": "{cmdtag} {fxsubtag} {size} 0x10 {brr:uint8:range(0,100)} {color:uint8:range(0,2)} {speed:uint8:range(1,10)} {sparks:uint8:range(1,10)} {checksum}",
-                    "color": ["Signle Color", "Color", "Combined"]
+                    "color": [
+                        "Signle Color",
+                        "Color",
+                        "Combined"
+                    ]
                 },
                 {
                     "id": 17,
                     "name": "Party",
                     "icon": "party.popper.fill",
                     "cmd": "{cmdtag} {fxsubtag} {size} 0x11 {brr:uint8:range(0,100)} {color:uint8:range(0,2)} {speed:uint8:range(1,10)} {checksum}",
-                    "color": ["Signle Color", "Color", "Combined"]
+                    "color": [
+                        "Signle Color",
+                        "Color",
+                        "Combined"
+                    ]
                 }
             ]
         },
@@ -1076,6 +1104,437 @@
                 "power": "{cmdtag} {powertag} {size} {state:uint8:enum(1=on,2=off)} {checksum}",
                 "cct": "{cmdtag} {ccttag} {size} {brr:uint8:range(0,100)} {cct:uint8:range(27,65)} 0x32 0x00 0x00 {checksum}"
             }
+        }
+    ],
+    "gels": [
+        {
+            "id": "cto-quarter",
+            "name": "CTO ¼",
+            "hue": 30,
+            "saturation": 20,
+            "transmissionPercent": 92,
+            "mireds": 40,
+            "category": "CC",
+            "manufacturer": "Lee",
+            "code": "440"
+        },
+        {
+            "id": "cto-half",
+            "name": "CTO ½",
+            "hue": 30,
+            "saturation": 38,
+            "transmissionPercent": 83,
+            "mireds": 80,
+            "category": "CC",
+            "manufacturer": "Lee",
+            "code": "442"
+        },
+        {
+            "id": "cto-three-quarter",
+            "name": "CTO ¾",
+            "hue": 30,
+            "saturation": 50,
+            "transmissionPercent": 73,
+            "mireds": 120,
+            "category": "CC",
+            "manufacturer": "Rosco",
+            "code": "3408"
+        },
+        {
+            "id": "cto-full",
+            "name": "CTO Full",
+            "hue": 30,
+            "saturation": 60,
+            "transmissionPercent": 68,
+            "mireds": 159,
+            "category": "CC",
+            "manufacturer": "Lee",
+            "code": "204"
+        },
+        {
+            "id": "ctb-quarter",
+            "name": "CTB ¼",
+            "hue": 210,
+            "saturation": 20,
+            "transmissionPercent": 90,
+            "mireds": -40,
+            "category": "CC",
+            "manufacturer": "Lee",
+            "code": "218"
+        },
+        {
+            "id": "ctb-half",
+            "name": "CTB ½",
+            "hue": 210,
+            "saturation": 38,
+            "transmissionPercent": 78,
+            "mireds": -80,
+            "category": "CC",
+            "manufacturer": "Lee",
+            "code": "202"
+        },
+        {
+            "id": "ctb-three-quarter",
+            "name": "CTB ¾",
+            "hue": 212,
+            "saturation": 50,
+            "transmissionPercent": 69,
+            "mireds": -120,
+            "category": "CC",
+            "manufacturer": "Rosco",
+            "code": "3202"
+        },
+        {
+            "id": "ctb-full",
+            "name": "CTB Full",
+            "hue": 215,
+            "saturation": 60,
+            "transmissionPercent": 60,
+            "mireds": -159,
+            "category": "CC",
+            "manufacturer": "Lee",
+            "code": "201"
+        },
+        {
+            "id": "plus-green-half",
+            "name": "Plus Green ½",
+            "hue": 120,
+            "saturation": 22,
+            "transmissionPercent": 88,
+            "mireds": 0,
+            "category": "CC",
+            "manufacturer": "Rosco",
+            "code": "3304"
+        },
+        {
+            "id": "plus-green-full",
+            "name": "Plus Green Full",
+            "hue": 120,
+            "saturation": 45,
+            "transmissionPercent": 76,
+            "mireds": 0,
+            "category": "CC",
+            "manufacturer": "Rosco",
+            "code": "3306"
+        },
+        {
+            "id": "minus-green-half",
+            "name": "Minus Green ½",
+            "hue": 300,
+            "saturation": 22,
+            "transmissionPercent": 88,
+            "mireds": 0,
+            "category": "CC",
+            "manufacturer": "Rosco",
+            "code": "3308"
+        },
+        {
+            "id": "minus-green-full",
+            "name": "Minus Green Full",
+            "hue": 300,
+            "saturation": 45,
+            "transmissionPercent": 76,
+            "mireds": 0,
+            "category": "CC",
+            "manufacturer": "Rosco",
+            "code": "3310"
+        },
+        {
+            "id": "window-green",
+            "name": "Window Green",
+            "hue": 115,
+            "saturation": 55,
+            "transmissionPercent": 78,
+            "mireds": 0,
+            "category": "CC",
+            "manufacturer": "Lee",
+            "code": "244"
+        },
+        {
+            "id": "bastard-amber",
+            "name": "Bastard Amber",
+            "hue": 38,
+            "saturation": 55,
+            "transmissionPercent": 72,
+            "mireds": 100,
+            "category": "Creative",
+            "manufacturer": "Lee",
+            "code": "162"
+        },
+        {
+            "id": "chocolate",
+            "name": "Chocolate",
+            "hue": 25,
+            "saturation": 65,
+            "transmissionPercent": 35,
+            "mireds": 120,
+            "category": "Creative",
+            "manufacturer": "Lee",
+            "code": "158"
+        },
+        {
+            "id": "congo-blue",
+            "name": "Congo Blue",
+            "hue": 240,
+            "saturation": 95,
+            "transmissionPercent": 14,
+            "mireds": -200,
+            "category": "Creative",
+            "manufacturer": "Lee",
+            "code": "181"
+        },
+        {
+            "id": "cosmetic-peach",
+            "name": "Cosmetic Peach",
+            "hue": 20,
+            "saturation": 35,
+            "transmissionPercent": 80,
+            "mireds": 50,
+            "category": "Creative",
+            "manufacturer": "Rosco",
+            "code": "3318"
+        },
+        {
+            "id": "cyan",
+            "name": "Cyan",
+            "hue": 180,
+            "saturation": 85,
+            "transmissionPercent": 20,
+            "mireds": -300,
+            "category": "Creative",
+            "manufacturer": "Lee",
+            "code": "116"
+        },
+        {
+            "id": "deep-amber",
+            "name": "Deep Amber",
+            "hue": 35,
+            "saturation": 70,
+            "transmissionPercent": 65,
+            "mireds": 130,
+            "category": "Creative",
+            "manufacturer": "Lee",
+            "code": "135"
+        },
+        {
+            "id": "deep-red",
+            "name": "Deep Red",
+            "hue": 0,
+            "saturation": 90,
+            "transmissionPercent": 18,
+            "mireds": 0,
+            "category": "Creative",
+            "manufacturer": "Lee",
+            "code": "027"
+        },
+        {
+            "id": "double-blue",
+            "name": "Double Blue",
+            "hue": 220,
+            "saturation": 80,
+            "transmissionPercent": 20,
+            "mireds": -200,
+            "category": "Creative",
+            "manufacturer": "Lee",
+            "code": "079"
+        },
+        {
+            "id": "flame",
+            "name": "Flame",
+            "hue": 15,
+            "saturation": 85,
+            "transmissionPercent": 35,
+            "mireds": 0,
+            "category": "Creative",
+            "manufacturer": "Rosco",
+            "code": "019"
+        },
+        {
+            "id": "flesh-pink",
+            "name": "Flesh Pink",
+            "hue": 25,
+            "saturation": 45,
+            "transmissionPercent": 75,
+            "mireds": 80,
+            "category": "Creative",
+            "manufacturer": "Lee",
+            "code": "009"
+        },
+        {
+            "id": "jungle-green",
+            "name": "Jungle Green",
+            "hue": 145,
+            "saturation": 75,
+            "transmissionPercent": 50,
+            "mireds": 0,
+            "category": "Creative",
+            "manufacturer": "Lee",
+            "code": "738"
+        },
+        {
+            "id": "lavender",
+            "name": "Lavender",
+            "hue": 270,
+            "saturation": 30,
+            "transmissionPercent": 82,
+            "mireds": -20,
+            "category": "Creative",
+            "manufacturer": "Lee",
+            "code": "052"
+        },
+        {
+            "id": "magenta",
+            "name": "Magenta",
+            "hue": 305,
+            "saturation": 90,
+            "transmissionPercent": 20,
+            "mireds": 0,
+            "category": "Creative",
+            "manufacturer": "Lee",
+            "code": "128"
+        },
+        {
+            "id": "pale-gold",
+            "name": "Pale Gold",
+            "hue": 45,
+            "saturation": 40,
+            "transmissionPercent": 85,
+            "mireds": 40,
+            "category": "Creative",
+            "manufacturer": "Lee",
+            "code": "100"
+        },
+        {
+            "id": "pale-lavender",
+            "name": "Pale Lavender",
+            "hue": 270,
+            "saturation": 20,
+            "transmissionPercent": 87,
+            "mireds": -10,
+            "category": "Creative",
+            "manufacturer": "Lee",
+            "code": "035"
+        },
+        {
+            "id": "primary-blue",
+            "name": "Primary Blue",
+            "hue": 225,
+            "saturation": 100,
+            "transmissionPercent": 15,
+            "mireds": -250,
+            "category": "Creative",
+            "manufacturer": "Lee",
+            "code": "119"
+        },
+        {
+            "id": "primary-green",
+            "name": "Primary Green",
+            "hue": 130,
+            "saturation": 100,
+            "transmissionPercent": 20,
+            "mireds": 0,
+            "category": "Creative",
+            "manufacturer": "Lee",
+            "code": "124"
+        },
+        {
+            "id": "primary-red",
+            "name": "Primary Red",
+            "hue": 0,
+            "saturation": 100,
+            "transmissionPercent": 25,
+            "mireds": 0,
+            "category": "Creative",
+            "manufacturer": "Lee",
+            "code": "106"
+        },
+        {
+            "id": "rose-pink",
+            "name": "Rose Pink",
+            "hue": 350,
+            "saturation": 45,
+            "transmissionPercent": 72,
+            "mireds": 0,
+            "category": "Creative",
+            "manufacturer": "Lee",
+            "code": "111"
+        },
+        {
+            "id": "special-lavender",
+            "name": "Special Lavender",
+            "hue": 270,
+            "saturation": 45,
+            "transmissionPercent": 75,
+            "mireds": -25,
+            "category": "Creative",
+            "manufacturer": "Lee",
+            "code": "036"
+        },
+        {
+            "id": "steel-blue",
+            "name": "Steel Blue",
+            "hue": 205,
+            "saturation": 50,
+            "transmissionPercent": 72,
+            "mireds": -50,
+            "category": "Creative",
+            "manufacturer": "Lee",
+            "code": "117"
+        },
+        {
+            "id": "straw",
+            "name": "Straw",
+            "hue": 53,
+            "saturation": 50,
+            "transmissionPercent": 80,
+            "mireds": 60,
+            "category": "Creative",
+            "manufacturer": "Lee",
+            "code": "103"
+        },
+        {
+            "id": "surprise-pink",
+            "name": "Surprise Pink",
+            "hue": 340,
+            "saturation": 60,
+            "transmissionPercent": 55,
+            "mireds": 0,
+            "category": "Creative",
+            "manufacturer": "Lee",
+            "code": "192"
+        },
+        {
+            "id": "uranium",
+            "name": "Uranium",
+            "hue": 85,
+            "saturation": 90,
+            "transmissionPercent": 25,
+            "mireds": 0,
+            "category": "Creative",
+            "manufacturer": "Rosco",
+            "code": "043"
+        },
+        {
+            "id": "urban-sodium",
+            "name": "Urban Sodium",
+            "hue": 42,
+            "saturation": 80,
+            "transmissionPercent": 60,
+            "mireds": 180,
+            "category": "Creative",
+            "manufacturer": "",
+            "code": ""
+        },
+        {
+            "id": "violet",
+            "name": "Violet",
+            "hue": 275,
+            "saturation": 85,
+            "transmissionPercent": 18,
+            "mireds": -100,
+            "category": "Creative",
+            "manufacturer": "Lee",
+            "code": "142"
         }
     ]
 }
