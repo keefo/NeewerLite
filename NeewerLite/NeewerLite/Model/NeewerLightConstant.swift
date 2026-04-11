@@ -141,6 +141,8 @@ class NeewerLightConstant {
                 return "Q200"
             case 69:
                 return "TL21C"
+            case 71:
+                return "SL90"
             case 73:
                 return "MS150C"
             case 74:
@@ -167,6 +169,9 @@ class NeewerLightConstant {
             case "20200015":
                 return "RGB1"
             case "20200037":
+                return "SL90"
+            case "20240073":
+                // Newer SL90 variant using the newer "Infinity" protocol
                 return "SL90"
             case "20200049":
                 return "RGB1200"
@@ -342,6 +347,14 @@ class NeewerLightConstant {
         // what does these light types means?
         // Not sure.
         var lightType: UInt8 = 8
+
+        // Some newer SL90 variants ("Infinity" protocol) are renamed by the app to "SL90-...",
+        // which can cause nickname-based matching to fail. Detect via the raw BLE name instead.
+        // Ref: https://github.com/keefo/NeewerLite/issues/94
+        if rawname.hasPrefix("NW-20240073") || rawname.hasPrefix("NW-20200037") {
+            return 71
+        }
+
         if nickName.contains("SRP") || nickName.contains("RP18-P") {
             lightType = 1
             return lightType
