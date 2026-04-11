@@ -6,13 +6,13 @@
     <description>NeewerLite release feed</description>
     <language>en</language>
     <item>
-      <title>Version 1.7.0</title>
+      <title>Version 1.6.10</title>
       <pubDate>Sat, 11 Apr 2026 00:00:00 +0000</pubDate>
-      <sparkle:shortVersionString>1.7.0</sparkle:shortVersionString>
-      <sparkle:version>28</sparkle:version>
-      <enclosure url="https://github.com/keefo/NeewerLite/releases/download/v1.7.0/NeewerLite.zip"
-                 sparkle:version="28"
-                 sparkle:shortVersionString="1.7.0"
+      <sparkle:shortVersionString>1.6.10</sparkle:shortVersionString>
+      <sparkle:version>27</sparkle:version>
+      <enclosure url="https://github.com/keefo/NeewerLite/releases/download/v1.6.10/NeewerLite.zip"
+                 sparkle:version="27"
+                 sparkle:shortVersionString="1.6.10"
                  length="0"
                  type="application/octet-stream"/>
     </item>
