@@ -120,6 +120,27 @@ else
     print_success "Remote environment variables are available"
 fi
 
+# Retry a command up to N times with a delay between attempts.
+# Usage: retry_with_delay <retries> <delay_seconds> <description> <command...>
+retry_with_delay() {
+    local retries=$1; shift
+    local delay=$1; shift
+    local description=$1; shift
+    local attempt=1
+    while true; do
+        if "$@"; then
+            return 0
+        fi
+        if [ $attempt -ge $retries ]; then
+            print_error "$description failed after $retries attempt(s)"
+            return 1
+        fi
+        print_status "$description failed (attempt $attempt/$retries). Retrying in ${delay}s..."
+        sleep "$delay"
+        attempt=$((attempt + 1))
+    done
+}
+
 # Function to get the latest release tag from GitHub
 get_latest_release_tag() {
     gh api repos/$REPO_OWNER/$REPO_NAME/releases/latest --jq '.tag_name' 2>/dev/null || echo ""
@@ -149,10 +170,25 @@ validate_appcast() {
     fi
     
     print_success "Found appcast URL in Info.plist: $appcast_url"
-    
-    # Download appcast.xml via HTTP
+
+    # Download appcast.xml via HTTP with retry for CDN propagation delay
     print_status "Downloading appcast.xml from $appcast_url..."
-    if curl -s -f -o "$appcast_file" "$appcast_url"; then
+    local _appcast_curl_ok=false
+    local _appcast_attempt=1
+    local _appcast_retries=5
+    local _appcast_delay=15
+    while [ $_appcast_attempt -le $_appcast_retries ]; do
+        if curl -s -f -o "$appcast_file" "$appcast_url" && grep -q "sparkle:" "$appcast_file" 2>/dev/null; then
+            _appcast_curl_ok=true
+            break
+        fi
+        if [ $_appcast_attempt -lt $_appcast_retries ]; then
+            print_status "appcast.xml not yet updated (attempt $_appcast_attempt/$_appcast_retries, CDN may be stale). Retrying in ${_appcast_delay}s..."
+            sleep "$_appcast_delay"
+        fi
+        _appcast_attempt=$((_appcast_attempt + 1))
+    done
+    if [ "$_appcast_curl_ok" = true ]; then
         print_success "Downloaded appcast.xml successfully"
         
         # Check if it's valid XML
@@ -190,7 +226,7 @@ validate_appcast() {
             return 1
         fi
     else
-        print_error "Failed to download appcast.xml from $appcast_url"
+        print_error "Failed to download or validate appcast.xml from $appcast_url after $_appcast_retries attempts"
         return 1
     fi
 }
@@ -262,10 +298,25 @@ validate_dmg_from_github() {
     fi
     
     print_success "Found DMG download URL: $dmg_download_url"
-    
-    # Download the DMG file
+
+    # Download the DMG file with retry for CDN propagation delay
     local dmg_file="$TEMP_DIR/NeewerLite.dmg"
-    if curl -s -f -L -o "$dmg_file" "$dmg_download_url"; then
+    local _dmg_attempt=1
+    local _dmg_retries=5
+    local _dmg_delay=15
+    local _dmg_curl_ok=false
+    while [ $_dmg_attempt -le $_dmg_retries ]; do
+        if curl -s -f -L -o "$dmg_file" "$dmg_download_url" && [ -s "$dmg_file" ]; then
+            _dmg_curl_ok=true
+            break
+        fi
+        if [ $_dmg_attempt -lt $_dmg_retries ]; then
+            print_status "DMG download failed (attempt $_dmg_attempt/$_dmg_retries). Retrying in ${_dmg_delay}s..."
+            sleep "$_dmg_delay"
+        fi
+        _dmg_attempt=$((_dmg_attempt + 1))
+    done
+    if [ "$_dmg_curl_ok" = true ]; then
         print_success "Downloaded DMG file successfully"
         
         # Verify DMG file (multiple checks)
@@ -331,7 +382,7 @@ validate_dmg_from_github() {
             fi
         fi
     else
-        print_error "Failed to download DMG file from GitHub"
+        print_error "Failed to download DMG file from GitHub after $_dmg_retries attempts"
         return 1
     fi
 }
@@ -666,8 +717,31 @@ main() {
         echo
     fi
     
-    # Compare versions
-    compare_versions
+    # Compare versions — retry to tolerate CDN propagation delay on appcast
+    local _cv_attempt=1
+    local _cv_retries=4
+    local _cv_delay=15
+    while [ $_cv_attempt -le $_cv_retries ]; do
+        # Re-download appcast into temp file for fresh version read
+        local _fresh_appcast="$TEMP_DIR/appcast_fresh.xml"
+        local _appcast_url=$(get_appcast_url)
+        if curl -s -f -o "$_fresh_appcast" "$_appcast_url" 2>/dev/null && grep -q "sparkle:" "$_fresh_appcast" 2>/dev/null; then
+            local _fresh_version=$(grep -o 'sparkle:shortVersionString="[^"]*"' "$_fresh_appcast" | head -1 | sed 's/.*="\([^"]*\)".*/\1/')
+            echo "$_fresh_version" > "$TEMP_DIR/appcast_version"
+        fi
+        compare_versions
+        # If we wrote a dmg_version, check it matches appcast_version
+        local _av=$(cat "$TEMP_DIR/appcast_version" 2>/dev/null | sed 's/Version //;s/^v//')
+        local _gv=$(get_latest_release_tag | sed 's/^v//')
+        if [ "$_av" = "$_gv" ]; then
+            break
+        fi
+        if [ $_cv_attempt -lt $_cv_retries ]; then
+            print_status "Version mismatch — appcast CDN may be stale (attempt $_cv_attempt/$_cv_retries). Retrying in ${_cv_delay}s..."
+            sleep "$_cv_delay"
+        fi
+        _cv_attempt=$((_cv_attempt + 1))
+    done
     echo
     
     # Summary
