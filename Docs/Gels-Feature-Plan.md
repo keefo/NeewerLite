@@ -8,14 +8,61 @@
 
 ## Background: What Is a Gel?
 
-In physical film and photography lighting, a "gel" (gelatin filter) is a coloured transparent sheet placed in front of a light fixture to shift its colour. Digital lights like Neewer RGB panels replicate this by allowing arbitrary HSI values. The problem is that real gel colours (Lee, Rosco, Cinegel standard libraries) have well-known H/S values, but users must currently memorise or look them up and manually enter them in the HSI wheel.
+### The Real Thing
+
+A **lighting gel** (short for *gelatin filter*) is a thin, transparent sheet of coloured polyester or polycarbonate film clipped or taped to the front of a light fixture. The name comes from the original material: **animal gelatin**, the same protein used in food-grade gelatine. Early 20th-century stage and film lighting industry mixed pigment dyes with liquid gelatin and poured sheets to dry — a craft process done by hand until synthetic plastics replaced it in the 1970s.
+
+The two names you'll see everywhere today are **Lee Filters** (UK, founded 1967) and **Rosco** (US, founded 1910, now part of Rosco Laboratories). Both publish numbered swatch books — physical booklets of ~200 gels you can request for free as a gaffer or DP — and their colour numbers have become an informal industry standard. A call of *"slap a 206 on that 1K"* means: clip Lee Filter #206 (Quarter CTO) onto the 1000-watt fresnel. Everyone on the crew knows what it means without further explanation.
+
+### A Short History
+
+| Era | Technology | How colour was achieved |
+|-----|-----------|------------------------|
+| 1890s–1920s | Carbon arc / limelight | Hand-painted glass roundels; fragile, heat-shattered frequently |
+| 1920s–1960s | Tungsten incandescent | Gelatin sheets; vivid colour but melted near high-wattage fixtures |
+| 1970s–1990s | Tungsten / early HMI | Polyester (Mylar-based) gels; heat-resistant, consistent colour |
+| 1990s–2010s | HMI, fluorescent, early LED | Polycarbonate gels; some LEDs still needed heavy physical CC gels to match HMI |
+| 2010s–now | Tunable LED & RGB LED | Built-in colour mixing replaces physical gels for many corrections; gel names persist as a *vocabulary* |
+
+Modern RGB LED panels like Neewer lights can reproduce virtually any gel effect electronically — which is exactly what this tab does.
+
+### The Standard Families
+
+**Colour Correction (CC) gels** are the workhorses. They shift the *colour temperature* of a light to match another source:
+
+- **CTO (Colour Temperature Orange)** — warms a cool daylight-balanced (5600 K) LED down toward tungsten (3200 K). Available in ¼, ½, ¾, and Full strengths. "Full CTO" is roughly a 2400 K shift.
+- **CTB (Colour Temperature Blue)** — the inverse: cools tungsten toward daylight. Used to make a practical lamp in a scene match window light.
+- **Plus Green / Minus Green** — compensate for the green spike of fluorescent tubes and some LED fixtures. Essential when mixing LEDs with overhead office fluorescents; without it, faces go slightly greenish or magenta in a mixed frame.
+- **Window Green (Full Plus Green)** — makes an LED match a fluorescent fixture closely enough that both appear neutral on the same white balance.
+
+**Creative / Atmospheric gels** are what give films and concerts their look:
+
+- **Bastard Amber** — warm peachy amber that doesn't read as obviously orange. The go-to for "magic hour" simulation or a cosy interior without looking like a sunset.
+- **Congo Blue** — deep saturated cobalt; the staple theatrical night-blue for concert stages and drama. So commonly used it has become a cultural shorthand for "theatrical lighting."
+- **Surprise Pink** — a pinkish magenta named, according to industry legend, because it "surprised" the gaffer who first used it on a music shoot. Wildly flattering on skin; ubiquitous in beauty and portrait work.
+- **Urban Sodium** — mimics the orange glow of old sodium-vapour street lamps. Used in urban night scenes to make LED work match pre-LED-era reference footage.
+- **Straw** — a gentle sunflower yellow. Cinematographers use it to push a fill light slightly warmer without it looking artificial.
+
+**Diffusion gels** (white/frosted) soften and scatter light without adding colour — think of them as a portable softbox. They don't translate to a digital equivalent because diffusion is a physical optics property, not a colour shift.
+
+### How Gels Are Described on Set
+
+On professional sets, gels are called out by **fraction + type**: "half CTO", "quarter blue", "full plus green." The fraction describes the *intensity* of the shift — a ½ CTO moves colour temperature about halfway compared to a Full CTO. This fraction vocabulary is preserved in this app's preset names.
+
+### Why It Matters for Digital Lights
+
+Even though Neewer RGB panels can mix any colour, the industry still *thinks* in gel names. A director of photography who says "give me a Bastard Amber feel on that backlight" expects you to know the hue and saturation that corresponds to Lee #162 — not a raw HSI value. This tab closes that translation gap: pick the gel by name, and the app handles the numbers.
+
+### In NeewerLite
+
+In physical film and photography lighting, a "gel" is a coloured transparent sheet placed in front of a light fixture to shift its colour. Digital lights like Neewer RGB panels replicate this by allowing arbitrary HSI values. The problem is that real gel colours (Lee, Rosco, Cinegel standard libraries) have well-known H/S values, but users must currently memorise or look them up and manually enter them in the HSI wheel.
 
 The Gels tab solves this by providing:
 
-1. A **browsable preset library** of standard gel colours, grouped by category, loaded from the bundled `gels.json` file.
+1. A **browsable preset library** of standard gel colours, grouped by category, loaded from `lights.json` (the shared database file, also used for the light catalogue).
 2. A **tint-over-white-balance** mode where the gel is applied as a relative shift on top of the light's current CCT rather than replacing it.
 
-> **Extensibility:** Power users can add or modify gels by editing `gels.json` directly in the app bundle (or a user-override copy in `~/Library/Application Support/NeewerLite/`). There is no in-app UI for creating gels.
+> **Extensibility:** The gel list lives in `Database/lights.json` under the `"gels"` key. Because the app can download an updated database from GitHub, new gels can be added server-side without requiring an app update. There is no in-app UI for creating gels.
 
 ---
 
