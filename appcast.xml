@@ -1,20 +1,12 @@
-<?xml version="1.0" encoding="utf-8"?>
-<rss version="2.0" xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" xmlns:dc="http://purl.org/dc/elements/1.1/">
-  <channel>
-    <title>NeewerLite</title>
-    <link>https://github.com/keefo/NeewerLite</link>
-    <description>NeewerLite release feed</description>
-    <language>en</language>
-    <item>
-      <title>Version 1.6.10</title>
-      <pubDate>Sat, 11 Apr 2026 00:00:00 +0000</pubDate>
-      <sparkle:shortVersionString>1.6.10</sparkle:shortVersionString>
-      <sparkle:version>27</sparkle:version>
-      <enclosure url="https://github.com/keefo/NeewerLite/releases/download/v1.6.10/NeewerLite.zip"
-                 sparkle:version="27"
-                 sparkle:shortVersionString="1.6.10"
-                 length="0"
-                 type="application/octet-stream"/>
-    </item>
-  </channel>
+<?xml version="1.0" standalone="yes"?>
+<rss xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" version="2.0">
+    <channel>
+        <title>NeewerLite</title>
+        <item>
+            <title>1.7.0</title>
+            <pubDate>Sat, 11 Apr 2026 01:38:44 -0700</pubDate>
+            <sparkle:minimumSystemVersion>13.0</sparkle:minimumSystemVersion>
+            <enclosure url="https://github.com/keefo/NeewerLite/releases/download/v1.7.0/NeewerLite.zip" sparkle:version="28" sparkle:shortVersionString="1.7.0" length="3902067" type="application/octet-stream" sparkle:edSignature="4Rycf6Rp9NUa7UHgSuUfbIz/Pgnk0APUDcPyfW5x+32i1aMAYn5IkdCTM3c2kizK4LYieYrKUt+ffBVYHzulBQ=="/>
+        </item>
+    </channel>
 </rss>
