@@ -159,7 +159,7 @@
             "support9FX": false,
             "commandPatterns": {
                 "power": "{cmdtag} {powertag} {size} {state:uint8:enum(1=on,2=off)} {checksum}",
-                "cct": "{cmdtag} {ccttag} {size} {brr:uint8:range(0,100)} {cct:uint8:range(32,56)} 0x32 0x00 0x00 {checksum}",
+                "cct": "{cmdtag} {ccttag} {size} {brr:uint8:range(0,100)} {cct:uint8:range(25,85)} 0x32 0x00 0x00 {checksum}",
                 "hsi": "{cmdtag} {hsitag} {size} {hue:uint16_le:range(0,360)} {sat:uint8:range(0,100)} {brr:uint8:range(0,100)} {checksum}"
             }
         },
@@ -388,8 +388,8 @@
             "support17FX": true,
             "support9FX": false,
             "cctRange": {
-                "min": 32,
-                "max": 56
+                "min": 25,
+                "max": 100
             }
         },
         {
