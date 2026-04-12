@@ -2,12 +2,11 @@
 <rss xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" version="2.0">
     <channel>
         <title>NeewerLite</title>
-        <link>https://github.com/keefo/NeewerLite/releases</link>
         <item>
-            <title>1.7.0</title>
-            <pubDate>Sat, 11 Apr 2026 01:38:44 -0700</pubDate>
+            <title>1.8</title>
+            <pubDate>Sun, 12 Apr 2026 02:26:11 -0700</pubDate>
             <sparkle:minimumSystemVersion>13.0</sparkle:minimumSystemVersion>
-            <enclosure url="https://github.com/keefo/NeewerLite/releases/download/v1.7.0/NeewerLite.zip" sparkle:version="28" sparkle:shortVersionString="1.7.0" length="3902067" type="application/octet-stream" sparkle:edSignature="4Rycf6Rp9NUa7UHgSuUfbIz/Pgnk0APUDcPyfW5x+32i1aMAYn5IkdCTM3c2kizK4LYieYrKUt+ffBVYHzulBQ=="/>
+            <enclosure url="https://github.com/keefo/NeewerLite/releases/download/v1.8/NeewerLite.zip" sparkle:version="29" sparkle:shortVersionString="1.8" length="3994861" type="application/octet-stream" sparkle:edSignature="ne4pQT2YXNgzLUB/1vCHOCS0W1lCfeyq686iegmUihYdTcolgptg7wmaLpA0uRFjCZuVyoSbJWAtCVIHrBgTAw=="/>
         </item>
     </channel>
 </rss>
