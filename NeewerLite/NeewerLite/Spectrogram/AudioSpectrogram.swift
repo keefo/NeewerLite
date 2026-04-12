@@ -21,8 +21,10 @@ public class AudioSpectrogram: NSObject {
     // Replace the delegate with a callback
     var frequencyUpdateCallback: FrequencyUpdateCallback?
     var volumeUpdateCallback: VolumeUpdateCallback?
+    private var registeredOutputDeviceID: AudioDeviceID = 0
     var amplitudeUpdateCallback: AmplitudeUpdateCallback?
     var audioSpectrogramImageUpdateCallback: AudioSpectrogramImageUpdateCallback?
+    var waterfallEnabled: Bool = true
 
     // MARK: Properties
     // The number of audio samples per frame.
@@ -85,7 +87,7 @@ public class AudioSpectrogram: NSObject {
                 safeCallback(volume)
             }
         } else {
-            print("Error getting volume in callback")
+            Logger.error("Error getting volume in callback")
         }
         return kAudioHardwareNoError
     }
@@ -144,6 +146,7 @@ public class AudioSpectrogram: NSObject {
         height: AudioSpectrogram.bufferCount)
 
     deinit {
+        removeVolumeListener()
     }
 
     // A reusable array that contains the current frame of time domain audio data as single-precision
@@ -197,12 +200,14 @@ public class AudioSpectrogram: NSObject {
     // ```
     func processData(values: [Int16]) {
 
-        if let callback = amplitudeUpdateCallback {
-            callback(calculateAmplitude(samples: values.map { Float($0) }))
-        }
-
         vDSP.convertElements(of: values,
                              to: &timeDomainBuffer)
+
+        if let callback = amplitudeUpdateCallback {
+            var rms: Float = 0
+            vDSP_rmsqv(timeDomainBuffer, 1, &rms, vDSP_Length(timeDomainBuffer.count))
+            callback(rms)
+        }
 
         vDSP.multiply(timeDomainBuffer,
                       hanningWindow,
@@ -217,6 +222,14 @@ public class AudioSpectrogram: NSObject {
         vDSP.convert(amplitude: frequencyDomainBuffer,
                      toDecibels: &frequencyDomainBuffer,
                      zeroReference: Float(zeroReference))
+
+        // Clamp -inf to -200 dB so cblas_sgemm never sees -inf * 0 → NaN.
+        var dbFloor: Float = -200
+        var dbCeil: Float = Float.greatestFiniteMagnitude
+        vDSP_vclip(frequencyDomainBuffer, 1,
+                   &dbFloor, &dbCeil,
+                   &frequencyDomainBuffer, 1,
+                   vDSP_Length(frequencyDomainBuffer.count))
 
         vDSP.multiply(Float(gain),
                       frequencyDomainBuffer,
@@ -241,6 +254,12 @@ public class AudioSpectrogram: NSObject {
                     vDSP_Length(sgemmResult.count),
                     0)
 
+        // Clamp post-sgemm decibel result (prevents -inf from propagating).
+        vDSP_vclip(sgemmResult.baseAddress!, 1,
+                   &dbFloor, &dbCeil,
+                   sgemmResult.baseAddress!, 1,
+                   vDSP_Length(sgemmResult.count))
+
         if frequencyDomainValues.count > AudioSpectrogram.sampleCount {
             frequencyDomainValues.removeFirst(AudioSpectrogram.sampleCount)
         }
@@ -254,24 +273,19 @@ public class AudioSpectrogram: NSObject {
             melSpectrumValues.removeFirst(AudioSpectrogram.filterBankCount)
         }
         melSpectrumValues.append(contentsOf: sgemmResult)
-        // Filter out `inf` values
+        // Apply threshold + gain using vectorized vDSP.
+        // NaN is prevented upstream by clamping -inf after dB conversions.
         melSpectrumValues.withUnsafeMutableBufferPointer { ptr in
-            for idx in 0..<ptr.count {
-                if ptr[idx].isNaN {
-                    ptr[idx] = 0
-                } else {
-                    ptr[idx] += AudioSpectrogram.melSpectrumValueThreshold
-                    ptr[idx] *= AudioSpectrogram.melSpectrumValueGain
-                }
-            }
+            guard let base = ptr.baseAddress else { return }
+            let n = vDSP_Length(ptr.count)
+            var threshold = AudioSpectrogram.melSpectrumValueThreshold
+            vDSP_vsadd(base, 1, &threshold, base, 1, n)
+            var gain = AudioSpectrogram.melSpectrumValueGain
+            vDSP_vsmul(base, 1, &gain, base, 1, n)
         }
     }
 
-    private func calculateAmplitude(samples: [Float]) -> Float {
-        let sumOfSquares = samples.reduce(0) { $0 + $1 * $1 }
-        let rms = sqrt(sumOfSquares / Float(samples.count))
-        return rms
-    }
+    // calculateAmplitude is now inlined as vDSP_rmsqv in processData.
 
     // Creates an audio spectrogram `CGImage` from `melSpectrumValues` and renders it
     // to the `spectrogramLayer` layer.
@@ -283,7 +297,7 @@ public class AudioSpectrogram: NSObject {
             }
         }
 
-        if let callback = audioSpectrogramImageUpdateCallback {
+        if waterfallEnabled, let callback = audioSpectrogramImageUpdateCallback {
             frequencyDomainValues.withUnsafeMutableBufferPointer {
                 let planarImageBuffer = vImage.PixelBuffer(
                     data: $0.baseAddress!,
@@ -311,7 +325,6 @@ extension AudioSpectrogram: AVCaptureAudioDataOutputSampleBufferDelegate {
     public func captureOutput(_ output: AVCaptureOutput,
                               didOutput sampleBuffer: CMSampleBuffer,
                               from connection: AVCaptureConnection) {
-
         var audioBufferList = AudioBufferList()
         var blockBuffer: CMBlockBuffer?
 
@@ -361,13 +374,16 @@ extension AudioSpectrogram: AVCaptureAudioDataOutputSampleBufferDelegate {
         // Description" entry to `Info.plist`, and check "audio input" and
         // "camera access" under the "Resource Access" category of "Hardened
         // Runtime".
-        switch AVCaptureDevice.authorizationStatus(for: .audio) {
+        let authStatus = AVCaptureDevice.authorizationStatus(for: .audio)
+        Logger.debug("[AudioSpectrogram] configureCaptureSession — auth status: \(authStatus.rawValue)")
+        switch authStatus {
             case .authorized:
                 break
             case .notDetermined:
                 sessionQueue.suspend()
                 AVCaptureDevice.requestAccess(for: .audio,
                                               completionHandler: { granted in
+                    Logger.debug("[AudioSpectrogram] microphone access granted: \(granted)")
                     if !granted {
                         Logger.error("App requires microphone access.")
                     } else {
@@ -377,10 +393,7 @@ extension AudioSpectrogram: AVCaptureAudioDataOutputSampleBufferDelegate {
                 })
                 return
             default:
-                // Users can add authorization in "Settings > Privacy > Microphone"
-                // on an iOS device, or "System Preferences > Security & Privacy >
-                // Microphone" on a macOS device.
-                Logger.error("App requires microphone access.")
+                Logger.error("App requires microphone access (status=\(authStatus.rawValue)).")
                 return
         }
 
@@ -400,7 +413,8 @@ extension AudioSpectrogram: AVCaptureAudioDataOutputSampleBufferDelegate {
         if captureSession.canAddOutput(audioOutput) {
             captureSession.addOutput(audioOutput)
         } else {
-            Logger.error("Can't add `audioOutput`.")
+            Logger.error("Can't add audioOutput — session already has it or is incompatible.")
+            captureSession.commitConfiguration()
             return
         }
 
@@ -409,20 +423,23 @@ extension AudioSpectrogram: AVCaptureAudioDataOutputSampleBufferDelegate {
                                                      for: .audio,
                                                      position: .unspecified),
             let microphoneInput = try? AVCaptureDeviceInput(device: microphone) else {
-                Logger.error("Can't create microphone.")
+                Logger.error("Can't create AVCaptureDeviceInput for builtInMicrophone.")
+                captureSession.commitConfiguration()
                 return
             }
+        Logger.debug("[AudioSpectrogram] microphone device: \(microphone.localizedName)")
 
         if captureSession.canAddInput(microphoneInput) {
             captureSession.addInput(microphoneInput)
         } else {
-            Logger.error("Can't add `microphoneInput`.")
+            Logger.error("Can't add microphoneInput.")
+            captureSession.commitConfiguration()
             return
         }
 
         audioOutput.setSampleBufferDelegate(self, queue: captureQueue)
-
         captureSession.commitConfiguration()
+        Logger.debug("[AudioSpectrogram] session configured and committed")
     }
 
     private func startVolumeListener() {
@@ -468,7 +485,9 @@ extension AudioSpectrogram: AVCaptureAudioDataOutputSampleBufferDelegate {
                 weakSelf
             )
 
-            if status != noErr {
+            if status == noErr {
+                registeredOutputDeviceID = defaultOutputDeviceID
+            } else {
                 Logger.error("Failed to add volume listener")
             }
         } else {
@@ -477,29 +496,42 @@ extension AudioSpectrogram: AVCaptureAudioDataOutputSampleBufferDelegate {
     }
 
     func removeVolumeListener() {
-        let objectId = AudioObjectID(kAudioObjectSystemObject)
-        var propertyAddress = AudioObjectPropertyAddress(
-            mSelector: kAudioHardwarePropertyDefaultOutputDevice,
-            mScope: kAudioObjectPropertyScopeGlobal,
-            mElement: kAudioObjectPropertyElementMain
+        guard registeredOutputDeviceID != 0 else { return }
+
+        var element: AudioObjectPropertyElement
+        if #available(macOS 12.0, *) {
+            element = kAudioObjectPropertyElementMain
+        } else {
+            element = kAudioObjectPropertyElementMaster
+        }
+
+        var volumePropertyAddress = AudioObjectPropertyAddress(
+            mSelector: kAudioHardwareServiceDeviceProperty_VirtualMainVolume,
+            mScope: kAudioDevicePropertyScopeOutput,
+            mElement: element
         )
 
         let status = AudioObjectRemovePropertyListener(
-            objectId,
-            &propertyAddress,
+            registeredOutputDeviceID,
+            &volumePropertyAddress,
             volumeListenerCallback,
             Unmanaged.passUnretained(self).toOpaque()
         )
-        if status != noErr {
-            print("Error removing audio property listener")
+        if status == noErr {
+            registeredOutputDeviceID = 0
+        } else {
+            Logger.error("Error removing audio property listener: \(status)")
         }
     }
 
     // Starts the audio spectrogram.
     func startRunning() {
+        Logger.debug("[AudioSpectrogram] startRunning called, session.isRunning=\(captureSession.isRunning)")
         sessionQueue.async {
             if AVCaptureDevice.authorizationStatus(for: .audio) == .authorized {
                 self.captureSession.startRunning()
+            } else {
+                Logger.warn("[AudioSpectrogram] startRunning skipped — not authorized (status=\(AVCaptureDevice.authorizationStatus(for: .audio).rawValue))")
             }
         }
         startVolumeListener()

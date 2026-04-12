@@ -22,7 +22,7 @@ class StorageManager {
         do {
             try fileManager.createDirectory(at: appSupportDirectory, withIntermediateDirectories: true, attributes: nil)
         } catch {
-            print("Could not create directory at \(appSupportDirectory): \(error)")
+            Logger.error("Could not create directory at \(appSupportDirectory): \(error)")
             return nil
         }
     }

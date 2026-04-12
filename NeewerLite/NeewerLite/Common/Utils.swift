@@ -33,7 +33,6 @@ extension Strideable where Stride: SignedInteger {
 }
 #endif
 
-
 enum ButtonState {
     case on, off
 }
