@@ -11,7 +11,6 @@
 		A708F58A2E33006E00564DCF /* CommandParserTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A708F5892E33006E00564DCF /* CommandParserTests.swift */; };
 		A708F58C2E3300A300564DCF /* CommandPatternParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = A708F58B2E3300A300564DCF /* CommandPatternParser.swift */; };
 		A708F5902E333E8E00564DCF /* PatternEditorPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A708F58F2E333E8E00564DCF /* PatternEditorPanel.swift */; };
-		A71B39B72756EBA20005E271 /* AudioSpectrogramView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A71B39B62756EBA20005E271 /* AudioSpectrogramView.swift */; };
 		A71B39BA275726800005E271 /* Atomics in Frameworks */ = {isa = PBXBuildFile; productRef = A71B39B9275726800005E271 /* Atomics */; };
 		A730F7FE2AE79173009CA529 /* NeewerLightConstant.swift in Sources */ = {isa = PBXBuildFile; fileRef = A730F7FD2AE79173009CA529 /* NeewerLightConstant.swift */; };
 		A730F8002AE7B8C0009CA529 /* digital-7-mono.ttf in Resources */ = {isa = PBXBuildFile; fileRef = A730F7FF2AE7B8C0009CA529 /* digital-7-mono.ttf */; };
@@ -56,7 +55,16 @@
 		A9528A187E6ABCDA2B108D65 /* NeewerGel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A0527FA7C1B0EB9AB3CA3C3 /* NeewerGel.swift */; };
 		16176719C888E47CE9DE8703 /* GelSwatchCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 682EAD3AD534B0BFCA45DCA2 /* GelSwatchCell.swift */; };
 		C35B747427CCBBF368C9ED93 /* CollectionViewItem+Gels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A5C8AFF6A48E1F0A848AD60 /* CollectionViewItem+Gels.swift */; };
+		173F75523EC34BD48196DFA9 /* AudioVisualizerPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33F9E394A59947FC964D4DA1 /* AudioVisualizerPlugin.swift */; };
+		E5085EF1CD8D4FC883F92894 /* VisualizationPluginManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F1DF2E9671F441B9E073AB1 /* VisualizationPluginManager.swift */; };
+		88B343168D5145BAAC620FDF /* WaveformVisualization.swift in Sources */ = {isa = PBXBuildFile; fileRef = E6EB34114D0F4AF8A512FA6C /* WaveformVisualization.swift */; };
+		8B2C3D4E5F6A7B8C9D0E1F2A /* SpectrumVisualization.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A1B2C3D4E5F6A7B8C9D0E1F /* SpectrumVisualization.swift */; };
+		5D4E5F6A7B8C9D0E1F2A3B4C /* SpectrogramVisualization.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C3D4E5F6A7B8C9D0E1F2A3B /* SpectrogramVisualization.swift */; };
 		CCF4C298B8A837A3ED2D4DDB /* GelsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5D83B6A59A5B72CDFC3ED5E /* GelsTests.swift */; };
+		F1A2B3C4D5E6F7A8B9C0D1E2 /* AudioAnalysisEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2D1C0B9A8F7E6D5C4B3A2F1 /* AudioAnalysisEngine.swift */; };
+		A1B2C3D4E5F6A7B8C9D0E1F3 /* AudioAnalysisEngineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2C3D4E5F6A7B8C9D0E1F3A1 /* AudioAnalysisEngineTests.swift */; };
+		D1E2F3A4B5C6D7E8F9A0B1C2 /* SoundToLightMode.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0D1E2F3A4B5C6D7E8F9A0B1 /* SoundToLightMode.swift */; };
+		E2F3A4B5C6D7E8F9A0B1C2D3 /* SoundToLightModeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3E4F5A6B7C8D9E0F1A2B3C4 /* SoundToLightModeTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -74,7 +82,6 @@
 		A708F5892E33006E00564DCF /* CommandParserTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommandParserTests.swift; sourceTree = "<group>"; };
 		A708F58B2E3300A300564DCF /* CommandPatternParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommandPatternParser.swift; sourceTree = "<group>"; };
 		A708F58F2E333E8E00564DCF /* PatternEditorPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PatternEditorPanel.swift; sourceTree = "<group>"; };
-		A71B39B62756EBA20005E271 /* AudioSpectrogramView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AudioSpectrogramView.swift; sourceTree = "<group>"; };
 		A730F7FD2AE79173009CA529 /* NeewerLightConstant.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NeewerLightConstant.swift; sourceTree = "<group>"; };
 		A730F7FF2AE7B8C0009CA529 /* digital-7-mono.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "digital-7-mono.ttf"; sourceTree = "<group>"; };
 		A7311C4529A0BD5E009C03D8 /* Command.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Command.swift; sourceTree = "<group>"; };
@@ -98,6 +105,11 @@
 		A749F6F925B3AE7E0066EB06 /* DataExtensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataExtensions.swift; sourceTree = "<group>"; };
 		A749F70125B3AE9A0066EB06 /* Observable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Observable.swift; sourceTree = "<group>"; };
 		A749F70625B3AEB60066EB06 /* CBCharacteristicExtensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CBCharacteristicExtensions.swift; sourceTree = "<group>"; };
+		33F9E394A59947FC964D4DA1 /* AudioVisualizerPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioVisualizerPlugin.swift; sourceTree = "<group>"; };
+		9F1DF2E9671F441B9E073AB1 /* VisualizationPluginManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisualizationPluginManager.swift; sourceTree = "<group>"; };
+		E6EB34114D0F4AF8A512FA6C /* WaveformVisualization.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WaveformVisualization.swift; sourceTree = "<group>"; };
+		7A1B2C3D4E5F6A7B8C9D0E1F /* SpectrumVisualization.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpectrumVisualization.swift; sourceTree = "<group>"; };
+		6C3D4E5F6A7B8C9D0E1F2A3B /* SpectrogramVisualization.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpectrogramVisualization.swift; sourceTree = "<group>"; };
 		A749F71425B3DE9B0066EB06 /* ColorWheel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorWheel.swift; sourceTree = "<group>"; };
 		A749F71925B3DF4F0066EB06 /* NSBezierPathExtensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NSBezierPathExtensions.swift; sourceTree = "<group>"; };
 		A749F72125B3DFB30066EB06 /* ColorUtils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorUtils.swift; sourceTree = "<group>"; };
@@ -120,6 +132,10 @@
 		8A0527FA7C1B0EB9AB3CA3C3 /* NeewerGel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NeewerGel.swift; sourceTree = "<group>"; };
 		682EAD3AD534B0BFCA45DCA2 /* GelSwatchCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GelSwatchCell.swift; sourceTree = "<group>"; };
 		2A5C8AFF6A48E1F0A848AD60 /* CollectionViewItem+Gels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "CollectionViewItem+Gels.swift"; sourceTree = "<group>"; };
+		E2D1C0B9A8F7E6D5C4B3A2F1 /* AudioAnalysisEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioAnalysisEngine.swift; sourceTree = "<group>"; };
+		B2C3D4E5F6A7B8C9D0E1F3A1 /* AudioAnalysisEngineTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioAnalysisEngineTests.swift; sourceTree = "<group>"; };
+		C0D1E2F3A4B5C6D7E8F9A0B1 /* SoundToLightMode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SoundToLightMode.swift; sourceTree = "<group>"; };
+		D3E4F5A6B7C8D9E0F1A2B3C4 /* SoundToLightModeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SoundToLightModeTests.swift; sourceTree = "<group>"; };
 		B5D83B6A59A5B72CDFC3ED5E /* GelsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GelsTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -173,6 +189,7 @@
 				A731DD3B25A57D0B00302E25 /* NeewerLite.entitlements */,
 				A731DDA125A5A02F00302E25 /* Common */,
 				A76C4B5D275448E200D2F145 /* Spectrogram */,
+				40B7F23D673C4A7B81BA1341 /* Visualization */,
 				A731DD8A25A5925500302E25 /* Model */,
 				A731DD7F25A5921F00302E25 /* Views */,
 				A731DDA525A5A04000302E25 /* ViewModels */,
@@ -184,11 +201,25 @@
 			path = NeewerLite;
 			sourceTree = "<group>";
 		};
+		40B7F23D673C4A7B81BA1341 /* Visualization */ = {
+			isa = PBXGroup;
+			children = (
+				33F9E394A59947FC964D4DA1 /* AudioVisualizerPlugin.swift */,
+				9F1DF2E9671F441B9E073AB1 /* VisualizationPluginManager.swift */,
+				E6EB34114D0F4AF8A512FA6C /* WaveformVisualization.swift */,
+				7A1B2C3D4E5F6A7B8C9D0E1F /* SpectrumVisualization.swift */,
+				6C3D4E5F6A7B8C9D0E1F2A3B /* SpectrogramVisualization.swift */,
+			);
+			path = Visualization;
+			sourceTree = "<group>";
+		};
 		A731DD4325A57D0B00302E25 /* NeewerLiteTests */ = {
 			isa = PBXGroup;
 			children = (
 				A708F5892E33006E00564DCF /* CommandParserTests.swift */,
 				B5D83B6A59A5B72CDFC3ED5E /* GelsTests.swift */,
+				B2C3D4E5F6A7B8C9D0E1F3A1 /* AudioAnalysisEngineTests.swift */,
+				D3E4F5A6B7C8D9E0F1A2B3C4 /* SoundToLightModeTests.swift */,
 				A731DD4425A57D0B00302E25 /* NeewerLiteTests.swift */,
 				A731DD4625A57D0B00302E25 /* Info.plist */,
 			);
@@ -202,7 +233,6 @@
 				A731DD8025A5922A00302E25 /* CollectionViewItem.swift */,
 				2A5C8AFF6A48E1F0A848AD60 /* CollectionViewItem+Gels.swift */,
 				682EAD3AD534B0BFCA45DCA2 /* GelSwatchCell.swift */,
-				A71B39B62756EBA20005E271 /* AudioSpectrogramView.swift */,
 				A77414D12AEA2C8D0085F149 /* BlockingOverlayView.swift */,
 				A749F71425B3DE9B0066EB06 /* ColorWheel.swift */,
 				A77414D62AEB637D0085F149 /* NLSlider.swift */,
@@ -280,6 +310,8 @@
 			isa = PBXGroup;
 			children = (
 				A76C4B6C275474FA00D2F145 /* AudioSpectrogram.swift */,
+				E2D1C0B9A8F7E6D5C4B3A2F1 /* AudioAnalysisEngine.swift */,
+				C0D1E2F3A4B5C6D7E8F9A0B1 /* SoundToLightMode.swift */,
 			);
 			path = Spectrogram;
 			sourceTree = "<group>";
@@ -440,7 +472,6 @@
 				A731DD8125A5922A00302E25 /* CollectionViewItem.swift in Sources */,
 				A731DD7425A5896B00302E25 /* NeewerLight.swift in Sources */,
 				A77414D42AEA43A90085F149 /* NeewerLightFX.swift in Sources */,
-				A71B39B72756EBA20005E271 /* AudioSpectrogramView.swift in Sources */,
 				A744CD432AF36BA1007E919A /* MyLightTableCellView.swift in Sources */,
 				A7EE61BD2B03680B00E85502 /* MySplitViewDelegate.swift in Sources */,
 				A730F7FE2AE79173009CA529 /* NeewerLightConstant.swift in Sources */,
@@ -452,6 +483,13 @@
 				A733AE47292DF05F00F37DDD /* SpectrogramViewObject.swift in Sources */,
 				A749F71525B3DE9B0066EB06 /* ColorWheel.swift in Sources */,
 				A76C4B6D275474FA00D2F145 /* AudioSpectrogram.swift in Sources */,
+				173F75523EC34BD48196DFA9 /* AudioVisualizerPlugin.swift in Sources */,
+				E5085EF1CD8D4FC883F92894 /* VisualizationPluginManager.swift in Sources */,
+				88B343168D5145BAAC620FDF /* WaveformVisualization.swift in Sources */,
+				8B2C3D4E5F6A7B8C9D0E1F2A /* SpectrumVisualization.swift in Sources */,
+				5D4E5F6A7B8C9D0E1F2A3B4C /* SpectrogramVisualization.swift in Sources */,
+				F1A2B3C4D5E6F7A8B9C0D1E2 /* AudioAnalysisEngine.swift in Sources */,
+				D1E2F3A4B5C6D7E8F9A0B1C2 /* SoundToLightMode.swift in Sources */,
 				A753109D2AFC996F009F533C /* StorageManager.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -462,6 +500,8 @@
 			files = (
 				A708F58A2E33006E00564DCF /* CommandParserTests.swift in Sources */,
 				CCF4C298B8A837A3ED2D4DDB /* GelsTests.swift in Sources */,
+				A1B2C3D4E5F6A7B8C9D0E1F3 /* AudioAnalysisEngineTests.swift in Sources */,
+				E2F3A4B5C6D7E8F9A0B1C2D3 /* SoundToLightModeTests.swift in Sources */,
 				A731DD4525A57D0B00302E25 /* NeewerLiteTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

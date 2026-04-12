@@ -516,6 +516,12 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
             }
 
             buildingView = false
+
+            // Re-apply active gel after tab rebuild so it isn't overwritten
+            // by default CCT/HSI values that the tab builders may send.
+            if gelState.activeGel != nil {
+                applyActiveGel()
+            }
         }
     }
 
@@ -627,13 +633,6 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
         topX = wheel.frame.maxX - 20.0
         view.addSubview(createValueLabel("Saturation"))
         view.addSubview(createValueField(ControlTag.sat, formatSATValue("\(dev.satValue.value)", .center)))
-
-//        let checkbox = NSButton(checkboxWithTitle: "Music", target: self, action: #selector(fllowMusicClicked))
-//        checkbox.state = .off // Or .on if you want it checked initially
-//        // Set the frame of the checkbox (position and size)
-//        checkbox.frame = NSRect(x: 230, y: 40, width: 110, height: 30)
-//        // Add the checkbox to the view
-//        view.addSubview(checkbox)
 
         return view
     }
@@ -878,16 +877,7 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
         return view
     }
 
-    @objc func fllowMusicClicked(_ sender: NSButton) {
-        if let dev = device {
-            let isChecked = sender.state == .on
-            dev.followMusic = isChecked
-            Logger.debug("dev.followMusic= \(dev.followMusic)")
-            if let app = NSApp.delegate as? AppDelegate {
-                app.checkAudioDriver()
-            }
-        }
-    }
+
 
     @objc func sourceClicked(_ sender: NSPopUpButton) {
         

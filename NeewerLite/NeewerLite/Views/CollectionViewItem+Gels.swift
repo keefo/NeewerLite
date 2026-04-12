@@ -58,16 +58,17 @@ final class GelState {
 
 extension CollectionViewItem: NSCollectionViewDelegate, NSCollectionViewDataSource {
 
-    // Gel state is associated via objc storage so it doesn't require
-    // modifying the main class declaration.
-    private static var gelStateKey = "gelState"
+    // Gel state is stored per-device (keyed by identifier) so it survives
+    // cell recycling when the collection view reloads.
+    private static var gelStateStore: [String: GelState] = [:]
 
     var gelState: GelState {
-        if let existing = objc_getAssociatedObject(self, &CollectionViewItem.gelStateKey) as? GelState {
+        let key = device?.identifier ?? ""
+        if let existing = CollectionViewItem.gelStateStore[key] {
             return existing
         }
         let state = GelState()
-        objc_setAssociatedObject(self, &CollectionViewItem.gelStateKey, state, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
+        CollectionViewItem.gelStateStore[key] = state
         return state
     }
 
@@ -132,7 +133,9 @@ extension CollectionViewItem: NSCollectionViewDelegate, NSCollectionViewDataSour
         intensitySlider.maxValue = 100.0
         intensitySlider.currentValue = CGFloat(dev.brrValue.value)
         intensitySlider.customBarDrawing = NLSlider.brightnessBar()
-        gelState.intentBrightness = Double(dev.brrValue.value)
+        if gelState.activeGel == nil {
+            gelState.intentBrightness = Double(dev.brrValue.value)
+        }
         gelState.intensitySlider = intensitySlider
         intensitySlider.callback = { [weak self] val in
             guard let self = self else { return }
@@ -208,6 +211,27 @@ extension CollectionViewItem: NSCollectionViewDelegate, NSCollectionViewDataSour
 
         scrollView.documentView = collectionView
         container.addSubview(scrollView)
+
+        // Restore previous gel selection after tab rebuild
+        let state = gelState
+        if let activeGel = state.activeGel {
+            let gels = GelLibrary.shared.all
+            if let idx = gels.firstIndex(of: activeGel) {
+                let indexPath = IndexPath(item: idx, section: 0)
+                collectionView.reloadData()
+                collectionView.selectItems(at: [indexPath], scrollPosition: .centeredVertically)
+            }
+            // Restore intensity slider to user's intended brightness
+            intensitySlider.currentValue = CGFloat(state.intentBrightness)
+            intensityValueLabel.stringValue = "\(Int(state.intentBrightness))%"
+            // Restore tint mode radio buttons
+            if state.tintMode {
+                radioFull.state = .off
+                radioTint.state = .on
+            }
+            // Update result display with restored state
+            updateGelResultDisplay()
+        }
 
         return container
     }

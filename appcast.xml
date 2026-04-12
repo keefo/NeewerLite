@@ -2,6 +2,7 @@
 <rss xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" version="2.0">
     <channel>
         <title>NeewerLite</title>
+        <link>https://github.com/keefo/NeewerLite/releases</link>
         <item>
             <title>1.7.0</title>
             <pubDate>Sat, 11 Apr 2026 01:38:44 -0700</pubDate>

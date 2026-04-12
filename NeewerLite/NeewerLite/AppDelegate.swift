@@ -25,7 +25,6 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuDele
     @IBOutlet var window: NSWindow!
     @IBOutlet weak var appMenu: NSMenu!
     @IBOutlet weak var collectionView: NSCollectionView!
-    @IBOutlet weak var audioSpectrogramView: AudioSpectrogramView!
     @IBOutlet weak var mylightTableView: NSTableView!
     @IBOutlet weak var scanTableView: NSTableView!
     @IBOutlet weak var scanningStatus: NSTextField!
@@ -44,8 +43,26 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuDele
     private var statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
     private var audioSpectrogram: AudioSpectrogram?
     private var spectrogramViewObject = SpectrogramViewObject()
+    private let audioAnalysisEngine = AudioAnalysisEngine()
+    private var soundToLightMode: SoundToLightMode = PulseMode()
+    private let bleThrottle = BLESmartThrottle()
     private let commandHandler = CommandHandler()
     private var renameVC: RenameViewController?
+    private var activeVisualization: AudioVisualizerPlugin?
+    private var visualizationPopup: NSPopUpButton?
+
+    // Sound-to-Light UI state
+    private var currentModeType: SoundToLightModeType = .pulse
+    private var currentReactivity: Reactivity = .moderate
+    private var currentPaletteIndex: Int = -1 // -1 = mode default
+    private var modePopup: NSPopUpButton?
+    private var reactivityPopup: NSPopUpButton?
+    private var palettePopup: NSPopUpButton?
+    private var presetPopup: NSPopUpButton?
+    private var musicLightListView: NSScrollView?
+    private let musicLightListId = NSUserInterfaceItemIdentifier("MusicLightCell")
+    /// Original light modes saved before Music View forces HSI.
+    private var musicModeOverrides: [String: NeewerLight.Mode] = [:]
 
     var cbCentralManager: CBCentralManager?
     /*
@@ -124,8 +141,9 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuDele
         collectionView.dataSource = self
         collectionView.delegate = self
 
-        audioSpectrogramView.mirror = true
-        audioSpectrogramView.clearFrequency()
+        setupMusicLightList()
+        setupVisualizationPlugins()
+        setupSoundToLightControls()
 
         NotificationCenter.default.addObserver(
             self,
@@ -143,6 +161,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuDele
         ContentManager.shared.downloadDatabase(force: false)
 
         loadLightsFromDisk()
+        restoreFollowMusicSelections()
         self.updateUI()
 
         cbCentralManager = CBCentralManager(delegate: self, queue: nil)
@@ -161,6 +180,24 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuDele
 
         // Start minimized to tray — hide the window
         window.orderOut(nil)
+
+#if DEBUG
+        // Stage-0 baseline: launch with --baseline-audio to auto-show the Music View
+        // and start the audio driver without manual UI interaction.
+        // Usage: NeewerLite --baseline-audio
+        // Remove this block (and its AppDelegate.swift counterpart) before shipping.
+        if CommandLine.arguments.contains("--baseline-audio") {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { [weak self] in
+                guard let self else { return }
+                self.showWindowAction(self)
+                self.viewsButton.selectSegment(withTag: 2)
+                self.switchViewAction(self.viewsButton)
+                self.audioDriveSwitch.state = .on
+                self.toggleAudioDriver(self.audioDriveSwitch)
+                print("[Baseline] --baseline-audio: window shown, Music View selected, audio driver started")
+            }
+        }
+#endif
 
         sync_sp_plugin()
     }
@@ -339,6 +376,19 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuDele
             _ = storageManager?.save(data: jsonData, to: "MyLights.dat")
         } catch {
             Logger.error("Save Lights Error encoding JSON: \(error)")
+        }
+    }
+
+    private func saveFollowMusicSelections() {
+        let ids = viewObjects.filter { $0.followMusic }.map { $0.deviceIdentifier }
+        UserDefaults.standard.set(ids, forKey: "stlFollowMusicDevices")
+    }
+
+    private func restoreFollowMusicSelections() {
+        guard let ids = UserDefaults.standard.stringArray(forKey: "stlFollowMusicDevices") else { return }
+        let idSet = Set(ids)
+        for device in viewObjects where idSet.contains(device.deviceIdentifier) {
+            device.device.followMusic = true
         }
     }
 
@@ -544,24 +594,92 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuDele
                 }))
     }
 
+    private var stlDebugFrameCount: UInt64 = 0
+
     private func driveLightFromFrequency(_ frequency: [Float]) {
-        let time = CFAbsoluteTimeGetCurrent()
-        if time - self.spectrogramViewObject.lastTime > 0.5 {
-            self.spectrogramViewObject.updateFrequency(frequencyData: frequency)
-            let hue = self.spectrogramViewObject.hue
-            let brr = self.spectrogramViewObject.brr
-            let sat = self.spectrogramViewObject.sat
-            self.viewObjects.forEach {
-                if $0.followMusic && $0.isON && $0.isHSIMode {
-                    $0.updateHSI(hue: CGFloat(hue), sat: CGFloat(sat), brr: CGFloat(brr))
-                }
+        // Only drive lights when Music View is active.
+        guard audioSpectrogramViewVisible else { return }
+
+        stlDebugFrameCount += 1
+
+        let normalized = normalizeMelSpectrum(frequency)
+
+        // Debug: log mel bin range and engine output once per second (~46 Hz)
+        let shouldLog = stlDebugFrameCount <= 3 || stlDebugFrameCount % 46 == 0
+        if shouldLog {
+            let melMax = frequency.filter { $0.isFinite }.max() ?? 0
+            let posCount = normalized.filter { $0 > 0 }.count
+            let normMax = normalized.max() ?? 0
+            Logger.debug(.none, "[STL] frame \(stlDebugFrameCount): melMax=\(String(format: "%.1f", melMax)) pos=\(posCount)/60 normMax=\(String(format: "%.3f", normMax))")
+        }
+
+        // Run the analysis engine every frame (~46 Hz) for accurate beat detection.
+        let features = audioAnalysisEngine.analyze(normalized)
+
+        if shouldLog {
+            Logger.debug(.none, "[STL]   features: bass=\(String(format: "%.3f", features.bassEnergy)) mid=\(String(format: "%.3f", features.midEnergy)) high=\(String(format: "%.3f", features.highEnergy)) overall=\(String(format: "%.3f", features.overallEnergy)) beat=\(features.isBeat) gate=\(features.noiseGateOpen) rms=\(String(format: "%.4f", features.rawRMS)) flat=\(String(format: "%.3f", features.spectralFlatness))")
+        }
+
+        // Compute light command from the active mapping mode
+        let command = soundToLightMode.process(features)
+
+        if shouldLog {
+            Logger.debug(.none, "[STL]   command: hue=\(String(format: "%.1f", command.hue)) sat=\(String(format: "%.2f", command.saturation)) brr=\(String(format: "%.3f", command.brightness))")
+        }
+
+        // Send to each device that has followMusic enabled, with smart throttling.
+        // Music View forces HSI mode, so always send HSI commands when supported.
+        // Call device BLE methods directly (not through the view layer) because
+        // this callback fires on the audio capture thread.
+        var sentCount = 0
+        var skipCount = 0
+        var offCount = 0
+        self.viewObjects.forEach { device in
+            guard device.followMusic && device.isON else {
+                if device.followMusic { offCount += 1 }
+                return
             }
+
+            let deviceId = device.deviceIdentifier
+            guard bleThrottle.shouldSend(command: command, deviceId: deviceId) else {
+                skipCount += 1
+                return
+            }
+
+            let light = device.device
+            if soundToLightMode.supportsHSI {
+                let hue360 = CGFloat(command.hue)
+                let sat = CGFloat(command.saturation)
+                let brr = CGFloat(command.brightness) * 100.0
+                light.setHSILightValues(
+                    brr100: brr,
+                    hue: hue360 / 360.0,
+                    hue360: hue360,
+                    sat: sat)
+                sentCount += 1
+            } else if soundToLightMode.supportsCCT {
+                light.setCCTLightValues(
+                    brr: CGFloat(command.brightness),
+                    cct: CGFloat(command.cct),
+                    gmm: CGFloat(command.gm))
+                sentCount += 1
+            }
+
+            bleThrottle.didSend(command: command, deviceId: deviceId)
+        }
+
+        if shouldLog || features.isBeat {
+            let followCount = self.viewObjects.filter { $0.followMusic }.count
+            Logger.debug(.none, "[STL]   send: \(sentCount) sent, \(skipCount) throttled, \(offCount) off | followMusic=\(followCount) total=\(self.viewObjects.count) | beat=\(features.isBeat) brr=\(String(format: "%.0f%%", command.brightness * 100))")
         }
     }
 
     func checkAudioDriver() {
-        audioDriveSwitch?.state = self.viewObjects.contains(where: { $0.followMusic }) ? .on : .off
-        toggleAudioDriver(audioDriveSwitch!)
+        // Only start/stop the audio driver based on the Listen switch state.
+        // Don't change the switch — it's a manual user control.
+        if audioDriveSwitch.state == .on {
+            toggleAudioDriver(audioDriveSwitch!)
+        }
     }
 
     @IBAction func checklogAction(_ sender: NSMenuItem) {
@@ -630,6 +748,419 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuDele
         gainValueField.stringValue = "\(sender.doubleValue)"
     }
 
+    // MARK: - Music View Light List
+
+    private func setupMusicLightList() {
+        let listFrame = NSRect(x: 10, y: 10, width: 145, height: 355)
+
+        let scrollView = NSScrollView(frame: listFrame)
+        scrollView.autoresizingMask = [.maxXMargin, .height]
+        scrollView.hasVerticalScroller = true
+        scrollView.borderType = .bezelBorder
+        scrollView.drawsBackground = false
+
+        let tableView = NSTableView()
+        tableView.headerView = nil
+        tableView.rowHeight = 24
+        tableView.intercellSpacing = NSSize(width: 0, height: 2)
+        tableView.backgroundColor = .clear
+        tableView.usesAlternatingRowBackgroundColors = false
+        tableView.selectionHighlightStyle = .none
+
+        let column = NSTableColumn(identifier: musicLightListId)
+        column.width = listFrame.width - 20
+        tableView.addTableColumn(column)
+
+        tableView.dataSource = self
+        tableView.delegate = self
+
+        scrollView.documentView = tableView
+        view2.addSubview(scrollView)
+        musicLightListView = scrollView
+    }
+
+    func refreshMusicLightList() {
+        guard let scrollView = musicLightListView,
+              let tableView = scrollView.documentView as? NSTableView else { return }
+        tableView.reloadData()
+    }
+
+    @objc private func toggleMusicLightList(_ sender: NSButton) {
+        guard let listView = musicLightListView else { return }
+        listView.isHidden = !listView.isHidden
+        layoutMusicViewContent()
+    }
+
+    /// Recalculates visualization and light-list frames from current view2 bounds.
+    private func layoutMusicViewContent() {
+        let bounds = view2.bounds
+        let listHidden = musicLightListView?.isHidden ?? false
+        let vizX: CGFloat = listHidden ? 10 : 160
+        let vizW = bounds.width - vizX - 10
+        let vizH = bounds.height - 70  // 10 bottom + 14 labels + 22 popups + 14 gap + 10 top
+
+        if let vizView = activeVisualization?.visualizerView {
+            vizView.frame = NSRect(x: vizX, y: 10, width: vizW, height: vizH)
+        }
+
+        if let listView = musicLightListView, !listHidden {
+            listView.frame = NSRect(x: 10, y: 10, width: 145, height: vizH)
+        }
+    }
+
+    @objc private func micButtonClicked(_ sender: NSButton) {
+        // Toggle the hidden NSSwitch state and trigger the audio driver
+        audioDriveSwitch.state = (audioDriveSwitch.state == .on) ? .off : .on
+        toggleAudioDriver(audioDriveSwitch)
+        // Update icon tint to reflect state
+        sender.contentTintColor = (audioDriveSwitch.state == .on) ? .controlAccentColor : .secondaryLabelColor
+    }
+
+    @objc func musicLightCheckboxClicked(_ sender: NSButton) {
+        let row = sender.tag
+        guard row >= 0 && row < viewObjects.count else { return }
+        let device = viewObjects[row]
+        let devId = device.deviceIdentifier
+        device.device.followMusic = (sender.state == .on)
+
+        // Persist follow-music selections
+        saveFollowMusicSelections()
+
+        if device.followMusic {
+            // Save original mode and force HSI for Sound-to-Light
+            if musicModeOverrides[devId] == nil {
+                musicModeOverrides[devId] = device.device.lightMode
+            }
+            device.device.lightMode = .HSIMode
+        } else {
+            // Restore original mode
+            restoreLightMode(device)
+        }
+        checkAudioDriver()
+    }
+
+    /// Force all follow-music lights into HSI mode (called when entering Music View).
+    private func applyMusicModeOverrides() {
+        for device in viewObjects where device.followMusic {
+            let devId = device.deviceIdentifier
+            if musicModeOverrides[devId] == nil {
+                musicModeOverrides[devId] = device.device.lightMode
+            }
+            device.device.lightMode = .HSIMode
+        }
+    }
+
+    /// Restore a single light to its pre-music mode and send the matching BLE command.
+    private func restoreLightMode(_ device: DeviceViewObject) {
+        let devId = device.deviceIdentifier
+        guard let originalMode = musicModeOverrides.removeValue(forKey: devId) else { return }
+        let light = device.device
+        switch originalMode {
+        case .CCTMode:
+            light.setCCTLightValues(
+                brr: CGFloat(light.brrValue.value),
+                cct: CGFloat(light.cctValue.value),
+                gmm: CGFloat(light.gmmValue.value))
+        case .HSIMode:
+            break // already in HSI, nothing to do
+        default:
+            light.lightMode = originalMode
+        }
+    }
+
+    /// Restore all follow-music lights to their original modes (called when leaving Music View).
+    private func restoreAllMusicModeOverrides() {
+        for device in viewObjects where musicModeOverrides[device.deviceIdentifier] != nil {
+            restoreLightMode(device)
+        }
+    }
+
+    // MARK: - Visualization Plugin System
+
+    private func setupVisualizationPlugins() {
+        let manager = VisualizationPluginManager.shared
+
+        // Register built-in visualizations (all code-driven, no XIB).
+        manager.register(name: SpectrumVisualization.displayName) { frame in
+            SpectrumVisualization(frame: frame)
+        }
+        manager.register(name: SpectrogramVisualization.displayName) { frame in
+            SpectrogramVisualization(frame: frame)
+        }
+        manager.register(name: WaveformVisualization.displayName) { frame in
+            WaveformVisualization(frame: frame)
+        }
+
+        // Discover any bundle-based plugins in PlugIns/Visualizations/.
+        manager.discoverBundlePlugins()
+
+        // Create the default visualization and add it to view2.
+        let vizFrame = NSRect(x: 160, y: 10, width: 469, height: 355)
+        if let defaultPlugin = manager.plugin(at: 0, frame: vizFrame) {
+            let v = defaultPlugin.visualizerView
+            v.frame = vizFrame
+            v.autoresizingMask = [.width, .height]
+            view2.addSubview(v)
+            activeVisualization = defaultPlugin
+        }
+
+        // Hide the static "Preview Feature (Not working)" label — replaced by the popup.
+        for subview in view2.subviews where subview is NSTextField {
+            if let tf = subview as? NSTextField, tf.stringValue.contains("Preview Feature") {
+                tf.isHidden = true
+                break
+            }
+        }
+
+        // Add a visualization picker popup to the Music View (view2).
+        let popup = NSPopUpButton(frame: NSRect(x: 105, y: 381, width: 85, height: 22), pullsDown: false)
+        popup.autoresizingMask = [.maxXMargin, .minYMargin]
+        popup.controlSize = .small
+        popup.font = NSFont.systemFont(ofSize: NSFont.smallSystemFontSize)
+        for name in manager.pluginNames {
+            popup.addItem(withTitle: name)
+        }
+        popup.selectItem(at: 0)
+        popup.target = self
+        popup.action = #selector(visualizationSelectionChanged(_:))
+        view2.addSubview(popup)
+        visualizationPopup = popup
+    }
+
+    // MARK: - Sound-to-Light Controls
+
+    private func setupSoundToLightControls() {
+        // Restore persisted settings
+        if let modeRaw = UserDefaults.standard.string(forKey: "stlMode"),
+           let modeType = SoundToLightModeType(rawValue: modeRaw) {
+            currentModeType = modeType
+        }
+        if let reactRaw = UserDefaults.standard.object(forKey: "stlReactivity") as? Int,
+           let react = Reactivity(rawValue: reactRaw) {
+            currentReactivity = react
+        }
+        currentPaletteIndex = UserDefaults.standard.object(forKey: "stlPalette") as? Int ?? -1
+
+        rebuildSoundToLightMode()
+
+        // Two-row layout: labels above popups
+        let smallFont = NSFont.systemFont(ofSize: NSFont.smallSystemFontSize)
+        let miniFont = NSFont.systemFont(ofSize: NSFont.systemFontSize(for: .mini))
+        let rowY: CGFloat = 381
+        let labelY: CGFloat = rowY + 22
+
+        // Sidebar toggle button
+        let sidebarBtn = NSButton(frame: NSRect(x: 6, y: rowY - 1, width: 24, height: 24))
+        sidebarBtn.bezelStyle = .inline
+        sidebarBtn.isBordered = false
+        sidebarBtn.image = NSImage(systemSymbolName: "sidebar.left", accessibilityDescription: "Toggle light list")
+        sidebarBtn.contentTintColor = .secondaryLabelColor
+        sidebarBtn.target = self
+        sidebarBtn.action = #selector(toggleMusicLightList(_:))
+        sidebarBtn.autoresizingMask = [.maxXMargin, .minYMargin]
+        view2.addSubview(sidebarBtn)
+
+        // Hide the original Listen label and switch (keep switch for state tracking)
+        for subview in view2.subviews where subview is NSTextField {
+            if let tf = subview as? NSTextField, tf.stringValue == "Listen" {
+                tf.isHidden = true
+                break
+            }
+        }
+        audioDriveSwitch.isHidden = true
+
+        // Mic toggle button
+        let micBtn = NSButton(frame: NSRect(x: 32, y: rowY - 1, width: 24, height: 24))
+        micBtn.bezelStyle = .inline
+        micBtn.isBordered = false
+        micBtn.image = NSImage(systemSymbolName: "microphone.fill", accessibilityDescription: "Listen")
+        micBtn.contentTintColor = .secondaryLabelColor
+        micBtn.target = self
+        micBtn.action = #selector(micButtonClicked(_:))
+        micBtn.autoresizingMask = [.maxXMargin, .minYMargin]
+        view2.addSubview(micBtn)
+
+        // Reposition Spectrum popup (created in setupVisualizationPlugins)
+        visualizationPopup?.frame = NSRect(x: 62, y: rowY, width: 96, height: 22)
+        addToolbarLabel("Visualization", x: 62, y: labelY, width: 96, font: miniFont)
+
+        // --- Mode popup ---
+        let modePop = NSPopUpButton(frame: NSRect(x: 166, y: rowY, width: 106, height: 22), pullsDown: false)
+        modePop.controlSize = .small
+        modePop.font = smallFont
+        modePop.autoresizingMask = [.maxXMargin, .minYMargin]
+        for mode in SoundToLightModeType.allCases {
+            modePop.addItem(withTitle: mode.rawValue)
+        }
+        modePop.selectItem(withTitle: currentModeType.rawValue)
+        modePop.target = self
+        modePop.action = #selector(modeSelectionChanged(_:))
+        view2.addSubview(modePop)
+        modePopup = modePop
+        addToolbarLabel("Mode", x: 166, y: labelY, width: 106, font: miniFont)
+
+        // --- Reactivity popup ---
+        let reactPop = NSPopUpButton(frame: NSRect(x: 280, y: rowY, width: 96, height: 22), pullsDown: false)
+        reactPop.controlSize = .small
+        reactPop.font = smallFont
+        reactPop.autoresizingMask = [.maxXMargin, .minYMargin]
+        for r in Reactivity.allCases {
+            reactPop.addItem(withTitle: r.displayName)
+        }
+        reactPop.selectItem(at: currentReactivity.rawValue)
+        reactPop.target = self
+        reactPop.action = #selector(reactivitySelectionChanged(_:))
+        view2.addSubview(reactPop)
+        reactivityPopup = reactPop
+        addToolbarLabel("Reactivity", x: 280, y: labelY, width: 96, font: miniFont)
+
+        // --- Palette popup ---
+        let palPop = NSPopUpButton(frame: NSRect(x: 384, y: rowY, width: 82, height: 22), pullsDown: false)
+        palPop.controlSize = .small
+        palPop.font = smallFont
+        palPop.autoresizingMask = [.maxXMargin, .minYMargin]
+        palPop.addItem(withTitle: "Default")
+        for p in ColorPalette.palettes {
+            palPop.addItem(withTitle: p.name)
+        }
+        palPop.selectItem(at: currentPaletteIndex + 1) // +1 because index 0 = "Default"
+        palPop.target = self
+        palPop.action = #selector(paletteSelectionChanged(_:))
+        view2.addSubview(palPop)
+        palettePopup = palPop
+        addToolbarLabel("Palette", x: 384, y: labelY, width: 82, font: miniFont)
+
+        // --- Preset popup ---
+        let prePop = NSPopUpButton(frame: NSRect(x: 474, y: rowY, width: 82, height: 22), pullsDown: false)
+        prePop.controlSize = .small
+        prePop.font = smallFont
+        prePop.autoresizingMask = [.maxXMargin, .minYMargin]
+        prePop.addItem(withTitle: "Custom")
+        for p in SoundToLightPreset.presets {
+            prePop.addItem(withTitle: p.name)
+        }
+        prePop.selectItem(at: 0)
+        prePop.target = self
+        prePop.action = #selector(presetSelectionChanged(_:))
+        view2.addSubview(prePop)
+        presetPopup = prePop
+        addToolbarLabel("Preset", x: 474, y: labelY, width: 82, font: miniFont)
+
+        updatePaletteAvailability()
+    }
+
+    private func addToolbarLabel(_ text: String, x: CGFloat, y: CGFloat, width: CGFloat, font: NSFont) {
+        let label = NSTextField(labelWithString: text)
+        label.font = font
+        label.textColor = .tertiaryLabelColor
+        label.alignment = .center
+        label.frame = NSRect(x: x, y: y, width: width, height: 14)
+        label.autoresizingMask = [.maxXMargin, .minYMargin]
+        view2.addSubview(label)
+    }
+
+    private func rebuildSoundToLightMode() {
+        let palette: ColorPalette? = (currentPaletteIndex >= 0 && currentPaletteIndex < ColorPalette.palettes.count)
+            ? ColorPalette.palettes[currentPaletteIndex] : nil
+        soundToLightMode = currentModeType.createMode(reactivity: currentReactivity, palette: palette)
+        bleThrottle.reset()
+    }
+
+    @objc private func modeSelectionChanged(_ sender: NSPopUpButton) {
+        let index = sender.indexOfSelectedItem
+        let allModes = SoundToLightModeType.allCases
+        guard index >= 0 && index < allModes.count else { return }
+        currentModeType = allModes[index]
+        UserDefaults.standard.set(currentModeType.rawValue, forKey: "stlMode")
+        rebuildSoundToLightMode()
+        presetPopup?.selectItem(at: 0) // back to "Custom"
+        updatePaletteAvailability()
+    }
+
+    /// Disable the palette popup for modes that ignore palettes (e.g. Bass Cannon, Strobe).
+    private func updatePaletteAvailability() {
+        let modeUsesPalette = (currentModeType == .pulse || currentModeType == .colorFlow)
+        palettePopup?.isEnabled = modeUsesPalette
+    }
+
+    @objc private func reactivitySelectionChanged(_ sender: NSPopUpButton) {
+        let index = sender.indexOfSelectedItem
+        guard let react = Reactivity(rawValue: index) else { return }
+        currentReactivity = react
+        UserDefaults.standard.set(currentReactivity.rawValue, forKey: "stlReactivity")
+        rebuildSoundToLightMode()
+        presetPopup?.selectItem(at: 0)
+    }
+
+    @objc private func paletteSelectionChanged(_ sender: NSPopUpButton) {
+        currentPaletteIndex = sender.indexOfSelectedItem - 1 // "Default" is at index 0
+        UserDefaults.standard.set(currentPaletteIndex, forKey: "stlPalette")
+        rebuildSoundToLightMode()
+        presetPopup?.selectItem(at: 0)
+    }
+
+    @objc private func presetSelectionChanged(_ sender: NSPopUpButton) {
+        let index = sender.indexOfSelectedItem - 1 // "Custom" is at index 0
+        let isPreset = index >= 0 && index < SoundToLightPreset.presets.count
+
+        // Enable/disable individual controls based on whether a named preset is active.
+        let unlocked = !isPreset
+        modePopup?.isEnabled = unlocked
+        reactivityPopup?.isEnabled = unlocked
+        // Palette availability depends on both preset lock AND mode support.
+        // It's updated after mode is set below, or here for "Custom".
+        if unlocked {
+            updatePaletteAvailability()
+        } else {
+            palettePopup?.isEnabled = false
+        }
+
+        guard isPreset else { return } // "Custom" selected — just unlock, don't change settings
+        let preset = SoundToLightPreset.presets[index]
+        currentModeType = preset.modeType
+        currentReactivity = preset.reactivity
+        currentPaletteIndex = preset.paletteIndex
+
+        // Update other popups to reflect the preset
+        modePopup?.selectItem(withTitle: currentModeType.rawValue)
+        reactivityPopup?.selectItem(at: currentReactivity.rawValue)
+        palettePopup?.selectItem(at: currentPaletteIndex + 1)
+
+        // Persist
+        UserDefaults.standard.set(currentModeType.rawValue, forKey: "stlMode")
+        UserDefaults.standard.set(currentReactivity.rawValue, forKey: "stlReactivity")
+        UserDefaults.standard.set(currentPaletteIndex, forKey: "stlPalette")
+
+        rebuildSoundToLightMode()
+    }
+
+    @objc private func visualizationSelectionChanged(_ sender: NSPopUpButton) {
+        switchVisualization(to: sender.indexOfSelectedItem)
+    }
+
+    private func switchVisualization(to index: Int) {
+        let manager = VisualizationPluginManager.shared
+        let frame = activeVisualization?.visualizerView.frame
+                     ?? NSRect(x: 160, y: 10, width: 469, height: 355)
+
+        guard let plugin = manager.plugin(at: index, frame: frame) else { return }
+        guard plugin !== activeVisualization else { return }
+
+        // Remove old visualization view.
+        activeVisualization?.visualizerView.removeFromSuperview()
+
+        // Add new visualization view in the same position.
+        let v = plugin.visualizerView
+        v.frame = frame
+        v.autoresizingMask = [.width, .height]
+        view2.addSubview(v)
+
+        activeVisualization = plugin
+
+        // Update waterfall/spectrogram image generation.
+        audioSpectrogram?.waterfallEnabled = plugin.needsSpectrogramImage
+    }
+
     @IBAction func toggleAudioDriver(_ sender: NSSwitch) {
         if sender.state == .on {
             if audioSpectrogram == nil {
@@ -638,28 +1169,28 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuDele
                 audioSpectrogram!.audioSpectrogramImageUpdateCallback = { [weak self] cgimg in
                     guard let safeSelf = self else { return }
                     if safeSelf.audioSpectrogramViewVisible {
-                        DispatchQueue.main.async {
-                            safeSelf.audioSpectrogramView?.updateFrequencyImage(img: cgimg)
-                        }
+                        safeSelf.activeVisualization?.updateSpectrogramImage(cgimg)
                     }
                 }
+                audioSpectrogram!.waterfallEnabled = activeVisualization?.needsSpectrogramImage ?? false
                 audioSpectrogram!.frequencyUpdateCallback = { [weak self] frequencyData in
                     guard let safeSelf = self else { return }
                     if safeSelf.audioSpectrogramViewVisible {
-                        DispatchQueue.main.async {
-                            safeSelf.audioSpectrogramView?.updateFrequency(
-                                frequencyData: frequencyData.map { CGFloat($0) })
-                        }
+                        safeSelf.activeVisualization?.updateFrequency(frequencyData)
                     }
                     safeSelf.driveLightFromFrequency(frequencyData)
                 }
                 audioSpectrogram!.volumeUpdateCallback = { [weak self] volume in
-                    guard let safeSelf = self else { return }
-                    safeSelf.audioSpectrogramView?.volume = CGFloat(volume)
+                    // Mac output volume — reserved for future use
+                    _ = volume
                 }
                 audioSpectrogram!.amplitudeUpdateCallback = { [weak self] amp in
                     guard let safeSelf = self else { return }
                     safeSelf.spectrogramViewObject.updateAmplitude(amplitude: amp)
+                    // Normalize mic RMS (0…~32767) to 0–1 on a log scale so the
+                    // bar heights track real-world loudness, not Mac output volume.
+                    let normalizedAmp = Float(min(1.0, max(0.0, log10(max(1.0, Double(amp))) / log10(10000.0))))
+                    safeSelf.activeVisualization?.volume = normalizedAmp
                 }
                 audioSpectrogram!.startRunning()
             }
@@ -669,10 +1200,12 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuDele
                 audioSpectrogram!.stopRunning()
                 audioSpectrogram!.frequencyUpdateCallback = nil
                 audioSpectrogram = nil
+                audioAnalysisEngine.reset()
+                soundToLightMode.reset()
+                bleThrottle.reset()
             }
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.24) {
-                // Your code here will be executed on the main thread after a 3-second delay.
-                self.audioSpectrogramView.clearFrequency()
+                self.activeVisualization?.clear()
             }
         }
     }
@@ -742,7 +1275,17 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuDele
                 updateUI()
                 if selectedView == self.view2 {
                     self.audioSpectrogramViewVisible = true
-                    audioSpectrogramView.clearFrequency()
+                    self.layoutMusicViewContent()
+                    self.activeVisualization?.clear()
+                    applyMusicModeOverrides()
+                    // Resume audio if Listen was on
+                    if self.audioDriveSwitch.state == .on {
+                        self.audioSpectrogram?.startRunning()
+                    }
+                } else {
+                    // Pause audio and restore lights when leaving Music View
+                    self.audioSpectrogram?.stopRunning()
+                    restoreAllMusicModeOverrides()
                 }
             }
         }
@@ -888,6 +1431,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuDele
         mylightTableView.display()
 
         scanTableView.reloadData()
+
+        refreshMusicLightList()
     }
 
     func forgetLight(_ light: NeewerLight) {
@@ -1196,6 +1741,9 @@ extension AppDelegate: NSTableViewDataSource, NSTableViewDelegate {
             return viewObjects.count
         } else if tableView == scanTableView {
             return scanningViewObjects.count
+        } else if let scrollView = musicLightListView,
+                  tableView == scrollView.documentView as? NSTableView {
+            return viewObjects.count
         }
         return 0
     }
@@ -1251,11 +1799,42 @@ extension AppDelegate: NSTableViewDataSource, NSTableViewDelegate {
                 cellView.light = viewObj.device
                 return cellView
             }
+        } else if let scrollView = musicLightListView,
+                  tableView == scrollView.documentView as? NSTableView {
+            guard row < viewObjects.count else { return nil }
+            let viewObj = viewObjects[row]
+            let cellId = musicLightListId
+            let cellView: NSTableCellView
+            if let reused = tableView.makeView(withIdentifier: cellId, owner: nil) as? NSTableCellView {
+                cellView = reused
+            } else {
+                cellView = NSTableCellView()
+                cellView.identifier = cellId
+                let checkbox = NSButton(checkboxWithTitle: "", target: self, action: #selector(musicLightCheckboxClicked(_:)))
+                checkbox.font = NSFont.systemFont(ofSize: 11)
+                checkbox.autoresizingMask = [.width]
+                cellView.addSubview(checkbox)
+            }
+            if let checkbox = cellView.subviews.first as? NSButton {
+                let name = viewObj.device.userLightName.value.isEmpty
+                    ? viewObj.device.nickName : viewObj.device.userLightName.value
+                checkbox.title = name
+                checkbox.tag = row
+                checkbox.state = viewObj.device.followMusic ? .on : .off
+                checkbox.frame = NSRect(x: 2, y: 0, width: 130, height: 22)
+                checkbox.toolTip = viewObj.deviceConnected ? "Connected" : "Disconnected"
+                checkbox.isEnabled = viewObj.deviceConnected
+            }
+            return cellView
         }
         return nil
     }
 
     func tableView(_ tableView: NSTableView, shouldSelectRow row: Int) -> Bool {
+        if let scrollView = musicLightListView,
+           tableView == scrollView.documentView as? NSTableView {
+            return false
+        }
         return tableView == mylightTableView
     }
 

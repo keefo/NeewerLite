@@ -1,237 +1,179 @@
 <p align="center">
-<a  href="https://github.com/keefo/NeewerLite">
-    <img src="Design/icon_128x128@2x.png" alt="Logo" width="150" height="150">
-</a>
+  <img src="https://github.com/keefo/NeewerLite/blob/main/Design/icon_128x128%402x.png?raw=true" width="128" height="128" alt="NeewerLite">
 </p>
 
 <h1 align="center">NeewerLite</h1>
 
-# About The Project
+<p align="center"><strong>Control your Neewer lights from your Mac. Finally.</strong></p>
 
-[![CI](https://github.com/keefo/NeewerLite/actions/workflows/ci.yml/badge.svg)](https://github.com/keefo/NeewerLite/actions/workflows/ci.yml)
-
-NeewerLite is a unofficial macOS app designed for controlling Neewer LED lights.
-
-While [Neewer](https://neewer.com/) provides official Android and [iOS app](https://apps.apple.com/us/app/neewer/id1455948340) for controlling their high-CRI LED lights via Bluetooth, they do not offer a means of control from a PC or Mac.
-
-This project aims to fill that gap by creating a macOS app that allows you to control your Bluetooth-enabled Neewer LED lights from your Mac. With NeewerLite, you can even integrate light control into your [Elgato Stream Deck](https://www.elgato.com/en/gaming/stream-deck) or shortcuts for better experince.
-
-Here is a video I made to demo the scene:
-
-<p>
-<a align="left" href="https://youtu.be/pbNi6HZTDEc">
-	<img src="https://j.gifs.com/3Qz2Ox.gif" />
-</a>
-<img src="screenshot.png" width="300px" />
+<p align="center">
+  <a href="https://github.com/keefo/NeewerLite/actions/workflows/ci.yml"><img src="https://github.com/keefo/NeewerLite/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+  <a href="https://github.com/keefo/NeewerLite/releases/latest"><img src="https://img.shields.io/github/v/release/keefo/NeewerLite" alt="Latest Release"></a>
+  <a href="https://github.com/keefo/NeewerLite/blob/main/LICENSE"><img src="https://img.shields.io/github/license/keefo/NeewerLite" alt="License"></a>
 </p>
 
-# Features
+---
 
-- Power On/Off control
-- Brightness control
-- Correlated color temperature control
-- RGB color control
-- Scene control
-- Script support
-- Sync RGB lights with music
-- Lighting gel simulation with 39 built-in presets (Color Correction and Creative)
+Neewer makes great LED lights. They have apps for iOS and Android. But nothing for the Mac.
 
-# What is a lighting gel?
+NeewerLite fixes that. Open the app, and it finds your Neewer lights over Bluetooth. Control brightness, color temperature, RGB, scenes, and gels — right from your menu bar. One app. Zero friction.
 
-A lighting gel is a transparent colour filter placed in front of a light to shift its colour or colour temperature — used in film, photography, and theatre to match light sources or set a mood. NeewerLite's Gel tab simulates this digitally.
+<p align="center">
+  <a href="https://youtu.be/pbNi6HZTDEc">
+    <img src="https://github.com/keefo/NeewerLite/blob/main/screenshot.png?raw=true" width="720" alt="NeewerLite Screenshot">
+  </a>
+</p>
 
-Read more: [Docs/Gels-Feature-Plan.md](./Docs/Gels-Feature-Plan.md)
+## Three Things That Make It Great
 
-# How to install pre-build app
+**1. Full Light Control** — Power, brightness, CCT (3200K–8500K), full RGB color, 9 built-in scene effects, music sync, and 39 professional lighting gel presets. Everything your phone app can do, now on your Mac.
 
-1. Download the latest dmg file from release page, double click the dmg to open it.
-2. Then drag .app file in dmg to your application folder.
-3. Go to application folder to double the app you just dropped from dmg.
-4. once the app is running, it should has a icon in the status bar on the right top of you screen.
+**2. Sound-to-Light Engine** — Your lights now listen to the room.
 
-## Script Usage
+NeewerLite captures audio from your microphone, runs it through a 60-bin mel-scale spectrogram at 46 Hz, extracts 14 audio features — bass, mids, highs, spectral flux, beat detection, BPM, the works — and maps them to your lights in real time. The entire pipeline, from sound wave to LED command, takes about 100 milliseconds. You hear the beat. You see the beat. No perceivable gap.
 
-Open the app and let it scans all Neewer lights through Bluetooth. Once it finds lights. Then you could use command to switch On/Off lights.
+Five modes. Each one designed for a different kind of moment:
 
-Turn on all lights:
+| Mode | What It Does |
+|------|-------------|
+| **Pulse** | Beat-driven brightness spikes. Lights punch on the kick drum and fade between hits. The default and probably all most people need. |
+| **Color Flow** | Frequency becomes color. Bass pulls warm, treble pulls cool, the room shifts with the music's tone. |
+| **Bass Cannon** | The subwoofer mode. Bass energy drives everything — brightness, warmth, intensity. For when the low end is the whole point. |
+| **Strobe** | Sharp white flashes on detected beats. Rate-limited to 3 Hz because we care about your eyeballs. |
+| **Aurora** | Slow, glacial color drift around the full 360° hue wheel. Sound gently shapes the drift — bass slows it, treble accelerates it — but the lights keep moving even in silence. Ambient lighting that breathes. |
+
+The engine includes automatic gain control (loud or quiet, it adapts), a dual noise gate that distinguishes silence from ambient noise using spectral flatness, four reactivity levels from Subtle to Extreme, five color palettes, six one-click presets, and a smart BLE throttle that sends only perceptually meaningful changes — per device.
+
+This isn't "volume goes up, brightness goes up." This is real-time audio analysis driving real-time light design. And it's built into a free, open-source menu bar app.
+
+**3. Automation Built In** — Every command has a URL scheme. Script it, shortcut it, voice-control it. Say "Meow" and your lights turn on. Press a Stream Deck button and your key light shifts from warm to cool. This isn't just an app — it's a control node for your entire lighting rig.
+
+## Install
+
+1. Download the latest `.dmg` from the [Releases](https://github.com/keefo/NeewerLite/releases/latest) page
+2. Drag NeewerLite to your Applications folder
+3. Launch it — the icon appears in your menu bar
+4. Your Neewer lights show up automatically via Bluetooth
+
+That's it.
+
+## Automate Everything
+
+NeewerLite speaks URL schemes. Use them from Terminal, Shortcuts, Stream Deck, or anything that can open a URL.
 
 ```bash
+# Lights on
 open "neewerlite://turnOnLight"
-```
 
-Turn off all lights:
-
-```bash
+# Lights off
 open "neewerlite://turnOffLight"
-```
 
-Toggle all lights:
-
-```bash
-open "neewerlite://toggleLight"
-```
-
-Scan all lights:
-
-```bash
-open "neewerlite://scanLight"
-```
-
-Set lights CCT:
-
-```bash
+# Set color temperature and brightness
 open "neewerlite://setLightCCT?CCT=3200&Brightness=100"
-```
 
-Set lights CCT+GM:
-
-```bash
-open "neewerlite://setLightCCT?CCT=3200&GM=-50&Brightness=100"
-```
-
-Most of light model support CCT range 3200K to 5600K, Some lights support long CCT range 3200K to 8500K. And some newer model of light support GM.
-
-Set lights Hue and Saturation and Brightness:
-
-```bash
+# Set RGB color
 open "neewerlite://setLightHSI?RGB=ff00ff&Saturation=100&Brightness=100"
-```
 
-```bash
-open "neewerlite://setLightHSI?HUE=360&Saturation=100&Brightness=100"
-```
-
-Set lights to scene:
-
-```bash
+# Trigger a scene
 open "neewerlite://setLightScene?Scene=SquadCar"
 ```
 
-```bash
-open "neewerlite://setLightScene?SceneId=1&Brightness=100"
-```
-
-Scene Names: SquadCar, Ambulance, FireEngine, Fireworks, Party, CandleLight, Lighting, Paparazzi, Screen
-
-Not all model follow these scene names. If your light support more scenes, you can use SceneId to switch.
-
-SceneId Range from 1 ~ 17 depends on light type.
-
-Turn on light by name:
+Control individual lights by name:
 
 ```bash
-open "neewerlite://turnOnLight?light=left"
+open "neewerlite://turnOnLight?light=KeyLight"
 ```
 
-The 'left' is the name I give one of my light. You could change your light's name in the app and use it in this command.
+> **Tip:** Paste any of these URLs into your browser address bar to test them instantly.
 
-Another way to test these commands is to copy a command(the string in the double quote) into your browser address bar, and press enter.
+### Stream Deck Integration
 
-## Using the Elgato Stream Deck
+NeewerLite includes a built-in Elgato Stream Deck plugin. Install it once, then drag light controls onto any button or dial. One press — instant lighting change.
 
-You can control NeewerLite from your Stream Deck in two different ways:
-
-1. **Install the built-in Stream Deck plugin**
-
-   - NeewerLite will prompt you to install the plugin automatically.
-   - Click **Install** when prompted, then open the Stream Deck app—our plugin will appear in your actions list.
-
-<p>
-<img src="Docs/StreamDeck_dial_ui.png" width="300px" />
-<img src="Docs/StreamDeck_dial.jpg" width="300px" />
+<p align="center">
+  <img src="https://github.com/keefo/NeewerLite/blob/main/Docs/StreamDeck_dial_ui.png?raw=true" width="360" alt="Stream Deck Plugin">
+  <img src="https://github.com/keefo/NeewerLite/blob/main/Docs/StreamDeck_dial.jpg?raw=true" width="360" alt="Stream Deck Dial">
 </p>
 
-2. **Bind a custom script to a Stream Deck button**
-   - Write a simple shell, Python, or Node.js script that sends commands to NeewerLite’s open schema.
-   - In the Stream Deck software, use the **System → Open** action (or **Run** action) to point at your script.
-   - Assign your button an icon and label, then you’re ready to go!
-   - Read this [Integrate with Elgato Stream Deck](./Docs/Integrate-with-streamdeck.md) for details.
+Or bind your own scripts — see [Stream Deck Integration Guide](Docs/Integrate-with-streamdeck.md).
 
-## How to use script to integrate with macOS Shortcuts?
+### macOS Shortcuts
 
-Read this [Integrate with Shortcuts](./Docs/Integrate-with-shortcut.md)
+Integrate light commands directly into Shortcuts workflows. See the [Shortcuts Guide](Docs/Integrate-with-shortcut.md).
 
-## Voice Control Interaction
+### Voice Control
 
-You could integrate these commands into Voice Control.
+Open **System Settings → Accessibility → Voice Control → Commands**. Create a new command, set it to open a URL like `neewerlite://toggleLight`, and give it any trigger word you want.
 
-Open “System Preferences” -> “Accessibility” -> “Voice Control” -> “Commands”, Click the “+” button to create a new command, give a name to your new command such as “Meow” and choose “Any Application” then choose perform “Open URL”. Type in “neewerlite://toggleLight” for example.
+Say "Meow" → lights toggle. Pretty cool, huh?
 
-Now, when you say “Meow” voice control will switch on/off your LED lights.
+## Lighting Gels
 
-# Tested Lights
+A lighting gel is a transparent colour filter placed in front of a light to shift its colour or colour temperature — used in film, photography, and theatre to match light sources or set a mood.
 
-- [Neewer CB60 RGB Light](https://neewer.com/products/neewer-led-video-light-66601007)
-- [Neewer 660 RGB Light](https://neewer.com/products/neewer-led-light-10096807)
-- [Neewer 480 RGB Light](https://neewer.com/collections/rgb-led-panel-light/products/neewer-led-light-10096594)
-- [Neewer RGB176 Light](https://neewer.com/products/neewer-rgb176-video-light-with-app-control-10098961)
-- [Neewer RGB 530 PRO Light](https://www.amazon.ca/360%C2%B0Full-Streaming-Broadcasting-Conference-Photography/dp/B08MVTJTVQ)
-- [Neewer RGB1-A Magnetic Handheld Light Stick](https://ca.neewer.com/products/neewer-cri98-rgb1-handheld-led-video-light-66601508)
-- [Neewer SL90 Pro Aluminum Alloy RGB Panel Video Light](https://ca.neewer.com/products/neewer-sl90-12w-on-camera-rgb-panel-video-light-66600927)
-- [Neewer BH-30S RGB LED Tube Light Wand](https://ca.neewer.com/products/neewer-bh30s-rgb-led-tube-light-wand-66602411)
+NeewerLite ships with **39 built-in gel presets** across two categories:
 
-# TO DO LIST
+| Category | Presets | Use Case |
+|----------|---------|----------|
+| **Color Correction** | CTO (¼, ½, Full), CTB (¼, ½, Full), Plus/Minus Green, Window Green | Match mixed light sources on set |
+| **Creative** | Bastard Amber, Congo Blue, Surprise Pink, Urban Sodium, Straw, Lavender, and more | Create mood, atmosphere, cinematic looks |
 
-If you find a way to implement these features, feel free to create a pull request.
+Pick a gel by its industry-standard name. The app translates it to the right HSI values and sends the command to your light. No manual lookup required.
 
-- [ ] Test more Neewer LED lights
-- [ ] Add support for other Neewer LED lights
-- [ ] Advanced scene management
+Read more: [Gels Feature Plan](Docs/Gels-Feature-Plan.md)
 
-# How to add support for a new light?
+## Supported Lights
 
-If you are unable to find your Neewer light using NeewerLite, you can easily add support for it by following these steps:
+NeewerLite works with a wide range of Neewer Bluetooth-enabled LED lights, including:
 
-1. Find your light bluetooth raw name.
-2. Find light type value from `NeewerLightConstant.getLightType` function from bluetooth raw name.
-3. Add new light type to the `Database/lights.json` file.
+- **Panel Lights** — 660 RGB, 480 RGB, RGB530 PRO, SL90 Pro
+- **Portable / Magnetic** — RGB176, RGB1-A, RGB62, TL21C, GR18C
+- **Key Lights** — GL1, GL1 Pro, GL1C
+- **Tube Lights** — BH-30S, TL60 RGB, TL40
+- **Studio Lights** — CB60 RGB, CB60B, CB100C, CB120B
 
-Here is an example of adding [neewer-tl21c-rgb-magnetic-light-wand](https://neewer.com/products/neewer-tl21c-rgb-magnetic-light-wand-with-app-control-66604585)
+And many more. The full light database is [updated on GitHub](Database/lights.json) — the app downloads it automatically, so new lights get supported without an app update.
 
-The bluetooth raw name is should contain `tl21c` by checking `NeewerLightConstant.getLightType` function, it converts to light type 69.
+### My Light Isn't Recognized?
 
-Add this into database json file. Make sure it reflects what this LED light supports including, cct range, rgb support and scene effect support.
+1. Use a Bluetooth scanner app to find your light's raw Bluetooth name
+2. Check `Database/lights.json` for the matching light type
+3. If it's missing or misconfigured, [open a PR](https://github.com/keefo/NeewerLite/pulls) — once merged, every user gets the fix automatically
 
-```
-{
-   "type": 69,
-   "image": "https://github.com/keefo/NeewerLite/blob/main/Database/light_images/tl21c.png?raw=true",
-   "link": "https://neewer.com/products/neewer-tl21c-rgb-magnetic-light-wand-with-app-control-66604585",
-   "supportRGB": true,
-   "supportCCTGM": false,
-   "supportMusic": true,
-   "support17FX": true,
-   "support9FX": false,
-   "cctRange": {
-         "min": 25,
-         "max": 85
-   }
-}
-```
+See [Adding Support for a New Light](Database/lights.json) for the JSON format.
 
-# It does not recognize my RGB light as RGB light, what to do?
+## URL Scheme Reference
 
-If you are have a Neewer RGB light but, the app does not show it as RGB light, then you could follow these steps:
+| Command | URL |
+|---------|-----|
+| Turn on all lights | `neewerlite://turnOnLight` |
+| Turn off all lights | `neewerlite://turnOffLight` |
+| Toggle all lights | `neewerlite://toggleLight` |
+| Scan for lights | `neewerlite://scanLight` |
+| Set CCT | `neewerlite://setLightCCT?CCT=3200&Brightness=100` |
+| Set CCT + GM | `neewerlite://setLightCCT?CCT=3200&GM=-50&Brightness=100` |
+| Set HSI (RGB hex) | `neewerlite://setLightHSI?RGB=ff00ff&Saturation=100&Brightness=100` |
+| Set HSI (Hue) | `neewerlite://setLightHSI?HUE=360&Saturation=100&Brightness=100` |
+| Set Scene by name | `neewerlite://setLightScene?Scene=SquadCar` |
+| Set Scene by ID | `neewerlite://setLightScene?SceneId=1&Brightness=100` |
+| Control by light name | `neewerlite://turnOnLight?light=KeyLight` |
 
-1. Use a Bluetooth app to find the raw name of your light.
-2. Check `Database/lights.json` file to find the light type section.
-3. Check if `supportRGB` value is true.
-4. If not, you need to rise a PR to update this value. Once PR is merged, app will get new database from github.
+**Scene names:** SquadCar, Ambulance, FireEngine, Fireworks, Party, CandleLight, Lighting, Paparazzi, Screen
 
-# License
+> Scene availability varies by light model. Use `SceneId` (1–17) for lights with more scenes.
 
-Follow NeewerLite, the code and examples of this project is released under MIT License.
+## Contributing
 
-# Donations
+Found a bug? Want to add your light model? PRs are welcome.
 
-If you would like to support me, donations are very welcome.
+The simplest contribution: add your light to `Database/lights.json`. It's a JSON file — no Swift required.
 
-You can go fund this project through my [sponsors](https://github.com/sponsors/keefo) page.
+## License
 
-or
+[MIT](LICENSE)
 
-You can send bitcoin to this address:
+## Support the Project
 
-```
-1A4mwftoNpuNCLbS8dHpk9XHrcyvtExrYF
-```
+If NeewerLite saves you time, consider [sponsoring the project](https://github.com/sponsors/keefo).
+
+Bitcoin: `1A4mwftoNpuNCLbS8dHpk9XHrcyvtExrYF`

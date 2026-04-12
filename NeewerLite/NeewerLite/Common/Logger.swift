@@ -57,7 +57,7 @@ public class Logger {
     static let bundleVersion = (Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String) ?? ""
     static let monitor: NWPathMonitor = NWPathMonitor()
     static let osVersionString = "\(ProcessInfo.processInfo.operatingSystemVersionString)"
-    
+
     private static var logBuffer: LogBuffer = LogBuffer(version: bundleVersion, osversion: osVersionString, logs: [])
     private static let logThreshold = 50 // Number of logs to collect before sending
     private static let batchingInterval = 60.0 // Time interval in seconds
