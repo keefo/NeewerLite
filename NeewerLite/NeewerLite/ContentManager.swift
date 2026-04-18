@@ -8,14 +8,16 @@
 import Cocoa
 import Foundation
 
-private let supportedVersion: Double = 3.0
+private let supportedVersion: Double = 4.0
 
 class ImageFetchOperation: Operation {
     var lightType: UInt8
+    var productId: String?
     var completionHandler: ((NSImage?) -> Void)?
 
-    init(lightType: UInt8, completionHandler: ((NSImage?) -> Void)?) {
+    init(lightType: UInt8, productId: String? = nil, completionHandler: ((NSImage?) -> Void)?) {
         self.lightType = lightType
+        self.productId = productId
         self.completionHandler = completionHandler
     }
 
@@ -24,7 +26,12 @@ class ImageFetchOperation: Operation {
             return
         }
         Task {
-            let image = try? await ContentManager.shared.fetchLightImage(lightType: self.lightType)
+            let image: NSImage?
+            if let pid = self.productId {
+                image = try? await ContentManager.shared.fetchLightImage(productId: pid)
+            } else {
+                image = try? await ContentManager.shared.fetchLightImage(lightType: self.lightType)
+            }
             if !isCancelled {
                 DispatchQueue.main.async {
                     self.completionHandler?(image)
@@ -62,18 +69,34 @@ struct NeewerLightDbItem: Decodable {
     let newRGBLightCommand: Bool?
     let commandPatterns: [String: String]?
     let sourcePatterns: [NamedPattern]?
-    let fxPatterns: [NamedPattern]?
+    let fxPreset: String?
+    let fxPatterns: [String]?
+}
+
+struct HomeDevice: Decodable {
+    let productId: String
+    let name: String
+    let image: String?
+    let supportColor: Bool?
+    let supportScene: Bool?
+    let supportDIY: Bool?
+    let supportMusic: Bool?
+    let commandPatterns: [String: String]?
 }
 
 struct Database: Decodable {
     let version: Double
+    let fxPresets: [String: [NamedPattern]]
     let lights: [NeewerLightDbItem]
     let gels: [NeewerGel]
+    let homeDevices: [HomeDevice]
 
     enum CodingKeys: String, CodingKey {
         case version
+        case fxPresets
         case lights
         case gels
+        case homeDevices = "neewer_home"
     }
 
     init(from decoder: Decoder) throws {
@@ -82,15 +105,19 @@ struct Database: Decodable {
         self.version = version
 
         guard version <= supportedVersion else {
+            self.fxPresets = [:]
             self.lights = []
             self.gels = []
+            self.homeDevices = []
             throw DecodingError.dataCorruptedError(
                 forKey: .version, in: container,
                 debugDescription: "Unsupported database version: \(version)")
         }
 
+        self.fxPresets = try container.decodeIfPresent([String: [NamedPattern]].self, forKey: .fxPresets) ?? [:]
         self.lights = try container.decode([NeewerLightDbItem].self, forKey: .lights)
         self.gels = try container.decodeIfPresent([NeewerGel].self, forKey: .gels) ?? []
+        self.homeDevices = try container.decodeIfPresent([HomeDevice].self, forKey: .homeDevices) ?? []
     }
 }
 
@@ -340,6 +367,11 @@ class ContentManager {
         fileManager.createFile(atPath: cachedURL.path, contents: data, attributes: nil)
     }
 
+    private func saveImageToCache(_ data: Data, url: URL) {
+        let cachedURL = self.cachedURL(for: url)
+        fileManager.createFile(atPath: cachedURL.path, contents: data, attributes: nil)
+    }
+
     // MARK: - Handling Network Failures
     func clearFailedURLs() {
         failedURLs.removeAll()
@@ -354,8 +386,80 @@ class ContentManager {
         return nil
     }
 
+    func fetchCachedLightImage(productId: String) -> NSImage? {
+        guard let device = fetchHomeDevice(productId: productId),
+              let imageUrlStr = device.image,
+              let url = URL(string: imageUrlStr) else {
+            return nil
+        }
+        let cached = cachedURL(for: url)
+        if fileManager.fileExists(atPath: cached.path),
+           let image = NSImage(contentsOf: cached)
+        {
+            return image
+        }
+        return nil
+    }
+
+    func fetchLightImage(productId: String) async throws -> NSImage? {
+        guard let device = fetchHomeDevice(productId: productId),
+              let imageUrlStr = device.image,
+              let url = URL(string: imageUrlStr) else {
+            return nil
+        }
+
+        if failedURLs.contains(url) {
+            return nil
+        }
+
+        let cached = cachedURL(for: url)
+        if fileManager.fileExists(atPath: cached.path),
+           let image = NSImage(contentsOf: cached)
+        {
+            return image
+        }
+
+        do {
+            let (data, response) = try await session.data(from: url)
+            guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
+                return nil
+            }
+            if let img = NSImage(data: data) {
+                saveImageToCache(data, url: url)
+                return img
+            }
+        } catch {
+            failedURLs.insert(url)
+        }
+        return nil
+    }
+
     func fetchLightProperty(lightType: UInt8) -> NeewerLightDbItem? {
         return databaseCache?.lights.first(where: { $0.type == lightType })
+    }
+
+    func resolvedFxPatterns(for item: NeewerLightDbItem) -> [NamedPattern] {
+        // Priority: fxPatterns (refs) > fxPreset > none
+        if let refs = item.fxPatterns, !refs.isEmpty {
+            return refs.compactMap { resolveFxRef($0) }
+        }
+        if let presetName = item.fxPreset,
+           let patterns = databaseCache?.fxPresets[presetName] {
+            return patterns
+        }
+        return []
+    }
+
+    private func resolveFxRef(_ ref: String) -> NamedPattern? {
+        let parts = ref.split(separator: "/", maxSplits: 1)
+        guard parts.count == 2,
+              let id = Int(parts[1]),
+              let patterns = databaseCache?.fxPresets[String(parts[0])] else { return nil }
+        return patterns.first(where: { $0.id == id })
+    }
+
+    func fetchHomeDevice(productId: String) -> HomeDevice? {
+        return databaseCache?.homeDevices.first(where: { $0.productId == productId })
     }
 
     func fetchGels() -> [NeewerGel] {

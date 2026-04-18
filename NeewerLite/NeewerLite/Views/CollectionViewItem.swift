@@ -1478,10 +1478,11 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
         device = viewObj.device
         if let dev = device {
             self.image = ContentManager.shared.fetchCachedLightImage(lightType: dev.lightType)
+                ?? (dev.productId.flatMap { ContentManager.shared.fetchCachedLightImage(productId: $0) })
             updateDeviceName()
             self.nameField.toolTip = "\(dev.rawName)\n\(viewObj.deviceIdentifier)"
             imageFetchOperation?.cancel() // Cancel any ongoing operation
-            let operation = ImageFetchOperation(lightType: dev.lightType) { [weak self] image in
+            let operation = ImageFetchOperation(lightType: dev.lightType, productId: dev.productId) { [weak self] image in
                 self?.image = image
             }
             ContentManager.shared.operationQueue.addOperation(operation)

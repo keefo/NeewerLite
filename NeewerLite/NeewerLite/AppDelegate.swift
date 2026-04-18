@@ -164,9 +164,13 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuDele
         restoreFollowMusicSelections()
         self.updateUI()
 
+        // Skip BLE and network services when running under unit tests
+        if ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil {
+            return
+        }
+
         cbCentralManager = CBCentralManager(delegate: self, queue: nil)
         keepLightConnectionAlive()
-        cbCentralManager = CBCentralManager(delegate: self, queue: nil)
 
         self.switchViewAction(self.viewsButton)
 
@@ -554,12 +558,26 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuDele
             command: Command(
                 type: .setLightScene,
                 action: { cmdParameter in
-                    let sceneId = cmdParameter.sceneId() ?? cmdParameter.scene()
+                    let explicitSceneId = cmdParameter.sceneId()
+                    let sceneName = cmdParameter.sceneName()
                     let brr = cmdParameter.brightness()
 
                     func act(_ viewObj: DeviceViewObject, showAlert: Bool) {
                         if viewObj.isON {
                             if viewObj.device.supportRGB {
+                                let sceneId: Int
+                                if let id = explicitSceneId {
+                                    sceneId = id
+                                } else if let name = sceneName {
+                                    let nameKey = name.lowercased().replacingOccurrences(of: "\\s+", with: "", options: .regularExpression)
+                                    if let match = viewObj.device.supportedFX.first(where: { $0.name_key == nameKey }) {
+                                        sceneId = Int(match.id)
+                                    } else {
+                                        sceneId = cmdParameter.scene()
+                                    }
+                                } else {
+                                    sceneId = 1
+                                }
                                 Task { @MainActor in
                                     viewObj.changeToSCEMode()
                                     viewObj.changeToSCE(sceneId, brr)
@@ -1324,6 +1342,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuDele
 
         Logger.debug("\(peripheralCache)")
         peripheralCache.removeAll()
+        peripheralInvalidCache.removeAll()
         Logger.debug("\(peripheralCache)")
 
         let list = cbCentralManager?.retrieveConnectedPeripherals(withServices: [
@@ -1765,6 +1784,7 @@ extension AppDelegate: NSTableViewDataSource, NSTableViewDelegate {
                 cellView.subtitleLabel?.stringValue = viewObj.device.userLightName.value
                 cellView.iconImageView?.image =
                     ContentManager.shared.fetchCachedLightImage(lightType: viewObj.device.lightType)
+                    ?? (viewObj.device.productId.flatMap { ContentManager.shared.fetchCachedLightImage(productId: $0) })
                     ?? NSImage(named: "defaultLightImage")
                 cellView.button?.tag = row
                 cellView.button?.action = #selector(forgetAction(_:))
@@ -1790,6 +1810,7 @@ extension AppDelegate: NSTableViewDataSource, NSTableViewDelegate {
                 let viewObj = scanningViewObjects[row]
                 cellView.iconImageView?.image =
                     ContentManager.shared.fetchCachedLightImage(lightType: viewObj.device.lightType)
+                    ?? (viewObj.device.productId.flatMap { ContentManager.shared.fetchCachedLightImage(productId: $0) })
                     ?? NSImage(named: "defaultLightImage")
                 cellView.titleLabel?.stringValue = viewObj.device.rawName
                 cellView.subtitleLabel?.stringValue = viewObj.device.nickName
@@ -1896,6 +1917,7 @@ extension AppDelegate: NSTableViewDataSource, NSTableViewDelegate {
             let alert = NSAlert()
             alert.icon =
                 ContentManager.shared.fetchCachedLightImage(lightType: viewObject.device.lightType)
+                ?? (viewObject.device.productId.flatMap { ContentManager.shared.fetchCachedLightImage(productId: $0) })
                 ?? NSImage(named: "defaultLightImage")
             alert.messageText = "Remove light \"\(viewObject.deviceName)\""
             alert.informativeText = "Are you sure you want to remove this light from you library?"

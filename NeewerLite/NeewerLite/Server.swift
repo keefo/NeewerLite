@@ -304,43 +304,34 @@ final class NeewerLiteServer {
         
         server.POST["/fx"] = { request in
             let data = Data(request.body)
-            struct BrightnessPayload: Codable {
+            struct FXPayload: Codable {
                 let lights: [String]
-                let fx9: Int  // 1-9
-                let fx17: Int  // 1-17
+                let fx9: Int?
+                let fx17: Int?
+                let sceneId: Int?
             }
-            let payload: BrightnessPayload
+            let payload: FXPayload
             do {
-                payload = try JSONDecoder().decode(BrightnessPayload.self, from: data)
+                payload = try JSONDecoder().decode(FXPayload.self, from: data)
             } catch {
-                Logger.error(LogTag.server, "/switch: invalid JSON - \(error)")
+                Logger.error(LogTag.server, "/fx: invalid JSON - \(error)")
                 return HttpResponse.badRequest(.json(["error", "invalid JSON"]))
             }
-            // Perform your switch logic here
-            Logger.debug(LogTag.server, "cct lights: \(payload.lights) fx9: \(payload.fx9) fx17: \(payload.fx17)")
+            Logger.debug(LogTag.server, "fx lights: \(payload.lights) sceneId: \(String(describing: payload.sceneId)) fx9: \(String(describing: payload.fx9)) fx17: \(String(describing: payload.fx17))")
             for light in payload.lights {
                 self.appDelegate?.viewObjects
                     .filter { $0.matches(lightId: light) }
                     .forEach { viewObj in
-                         if viewObj.device.maxChannel == 9 {
-                            if payload.fx9 > 0 && payload.fx9 <= viewObj.device.maxChannel {
-                                Task { @MainActor in
-                                    viewObj.changeToSCEMode()
-                                    viewObj.changeToSCE(payload.fx9, CGFloat(viewObj.device.brrValue.value))
-                                }
-                            }
-                        }
-                        else if viewObj.device.maxChannel == 17 {
-                            if payload.fx9 > 0 && payload.fx17 <= viewObj.device.maxChannel {
-                                Task { @MainActor in
-                                    viewObj.changeToSCEMode()
-                                    viewObj.changeToSCE(payload.fx17, CGFloat(viewObj.device.brrValue.value))
-                                }
+                        let fxCount = viewObj.device.supportedFX.count
+                        let resolvedId = payload.sceneId ?? (fxCount <= 9 ? payload.fx9 : payload.fx17)
+                        if let id = resolvedId, id > 0 && id <= fxCount {
+                            Task { @MainActor in
+                                viewObj.changeToSCEMode()
+                                viewObj.changeToSCE(id, CGFloat(viewObj.device.brrValue.value))
                             }
                         }
                     }
             }
-            // Respond with success and echoed list
             return HttpResponse.ok(.json(["success": true, "switched": payload.lights]))
         }
         

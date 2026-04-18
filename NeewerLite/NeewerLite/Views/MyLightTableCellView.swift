@@ -20,7 +20,7 @@ class MyLightTableCellView: NSTableCellView {
         didSet {
             if let safeLight = light {
                 imageFetchOperation?.cancel() // Cancel any ongoing operation
-                let operation = ImageFetchOperation(lightType: safeLight.lightType) { [weak self] image in
+                let operation = ImageFetchOperation(lightType: safeLight.lightType, productId: safeLight.productId) { [weak self] image in
                     self?.iconImageView?.image = image
                 }
                 ContentManager.shared.operationQueue.addOperation(operation)

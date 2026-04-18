@@ -132,6 +132,10 @@ struct CommandParameter {
         return 1
     }
 
+    func sceneName() -> String? {
+        return components.queryItems?.first(where: { $0.name == "Scene" })?.value
+    }
+
     func sceneId() -> Int? {
         if let val = components.queryItems?.first(where: { $0.name == "SceneId" })?.value {
             let valInt = Int(val)!

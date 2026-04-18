@@ -52,6 +52,7 @@ class NeewerLightConstant {
             name.contains("neewer") ||
             name.contains("sl") ||
             name.starts(with: "nw-") || // https://github.com/keefo/NeewerLite/issues/19
+            name.starts(with: "nh-") || // NEEWER Home new protocol lights (NH-PD*)
             name.starts(with: "neewer-") ||
             name.contains("nee") // https://github.com/keefo/NeewerLite/issues/15
         {
@@ -248,7 +249,19 @@ class NeewerLightConstant {
         var name = String(rawName)
         let suffix = identifier == "" ? "" : "-\(identifier.suffix(6))"
 
-        if name.hasPrefix("NWR") {
+        if name.uppercased().hasPrefix("NH-") {
+            // NEEWER Home devices: NH-PD20250030 or NH-PD20250030&FFFFFFFF
+            var stripped = String(name.dropFirst(3))
+            if let ampIdx = stripped.firstIndex(of: "&") {
+                stripped = String(stripped[stripped.startIndex..<ampIdx])
+            }
+            // Look up friendly name from neewer_home DB
+            if let device = ContentManager.shared.fetchHomeDevice(productId: stripped.uppercased()) {
+                projectName = device.name
+            } else {
+                projectName = stripped
+            }
+        } else if name.hasPrefix("NWR") {
             projectName = String(name.dropFirst(4))
         } else if name.hasPrefix("NEEWER") {
             projectName = String(name.dropFirst(7))
@@ -273,44 +286,9 @@ class NeewerLightConstant {
         var fxs: [NeewerLightFX] = []
         if let item = ContentManager.shared.fetchLightProperty(lightType: lightType)
         {
-            if item.support17FX ?? false
-            {
-                fxs.append(NeewerLightFX.lightingScene())
-                fxs.append(NeewerLightFX.paparazziScene())
-                fxs.append(NeewerLightFX.defectiveBulbScene())
-                fxs.append(NeewerLightFX.explosionScene())
-                fxs.append(NeewerLightFX.weldingScene())
-                fxs.append(NeewerLightFX.cctFlashScene())
-                fxs.append(NeewerLightFX.hueFlashScene())
-                fxs.append(NeewerLightFX.cctPulseScene())
-                fxs.append(NeewerLightFX.huePulseScene())
-                fxs.append(NeewerLightFX.copCarScene())
-                fxs.append(NeewerLightFX.candlelightScene())
-                fxs.append(NeewerLightFX.hueLoopScene())
-                fxs.append(NeewerLightFX.cctLoopScene())
-                fxs.append(NeewerLightFX.intLoopScene())
-                fxs.append(NeewerLightFX.tvScreenScene())
-                fxs.append(NeewerLightFX.fireworkScene())
-                fxs.append(NeewerLightFX.partyScene())
-            }
-            else if item.support9FX ?? false
-            {
-                fxs.append(NeewerLightFX(id: 0x1, name: "Squard Car", brr: true))
-                fxs.append(NeewerLightFX(id: 0x2, name: "Ambulance", brr: true))
-                fxs.append(NeewerLightFX(id: 0x3, name: "Fire Engine", brr: true))
-
-                fxs.append(NeewerLightFX(id: 0x4, name: "Fireworks", brr: true))
-                fxs.append(NeewerLightFX(id: 0x5, name: "Party", brr: true))
-                fxs.append(NeewerLightFX(id: 0x6, name: "Candle Light", brr: true))
-
-                fxs.append(NeewerLightFX(id: 0x7, name: "Paparazzi", brr: true))
-                fxs.append(NeewerLightFX(id: 0x8, name: "Screen", brr: true))
-                fxs.append(NeewerLightFX(id: 0x9, name: "Lighting", brr: true))
-            }
-            else{
-                item.fxPatterns?.forEach { (item) in
-                    fxs.append(NeewerLightFX.parseNamedCmdToFX(item: item))
-                }
+            let patterns = ContentManager.shared.resolvedFxPatterns(for: item)
+            for pattern in patterns {
+                fxs.append(NeewerLightFX.parseNamedCmdToFX(item: pattern))
             }
         }
         return fxs

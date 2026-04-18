@@ -1,5 +1,393 @@
 {
-    "version": 3,
+    "version": 4,
+    "fxPresets": {
+        "fx17_mac": [
+            {
+                "id": 1,
+                "name": "Lighting",
+                "icon": "bolt.fill",
+                "cmd": "{cmdtag} {fxdatatag} {size} {mac} {fxsubtag} 0x01 {brr:uint8:range(0,100)} {cct:uint8:range(29,70)} {speed:uint8:range(1,10)} {checksum}"
+            },
+            {
+                "id": 2,
+                "name": "Paparazzi",
+                "icon": "camera.shutter.button",
+                "cmd": "{cmdtag} {fxdatatag} {size} {mac} {fxsubtag} 0x02 {brr:uint8:range(0,100)} {cct:uint8:range(29,70)} {gm:uint8:range(0,100)} {speed:uint8:range(1,10)} {checksum}"
+            },
+            {
+                "id": 3,
+                "name": "Defective bulb",
+                "icon": "lightbulb.min.badge.exclamationmark.fill",
+                "cmd": "{cmdtag} {fxdatatag} {size} {mac} {fxsubtag} 0x03 {brr:uint8:range(0,100)} {cct:uint8:range(29,70)} {gm:uint8:range(0,100)} {speed:uint8:range(1,10)} {checksum}"
+            },
+            {
+                "id": 4,
+                "name": "Explosion",
+                "icon": "timelapse",
+                "cmd": "{cmdtag} {fxdatatag} {size} {mac} {fxsubtag} 0x04 {brr:uint8:range(0,100)} {cct:uint8:range(29,70)} {gm:uint8:range(0,100)} {speed:uint8:range(1,10)} {sparks:uint8:range(1,10)} {checksum}"
+            },
+            {
+                "id": 5,
+                "name": "Welding",
+                "cmd": "{cmdtag} {fxdatatag} {size} {mac} {fxsubtag} 0x05 {brr:uint8:range(0,100)} {brr2:uint8:range(0,100)} {cct:uint8:range(29,70)} {gm:uint8:range(0,100)} {speed:uint8:range(1,10)} {checksum}"
+            },
+            {
+                "id": 6,
+                "name": "CCT flash",
+                "cmd": "{cmdtag} {fxdatatag} {size} {mac} {fxsubtag} 0x06 {brr:uint8:range(0,100)} {cct:uint8:range(29,70)} {gm:uint8:range(0,100)} {speed:uint8:range(1,10)} {checksum}"
+            },
+            {
+                "id": 7,
+                "name": "HUE flash",
+                "cmd": "{cmdtag} {fxdatatag} {size} {mac} {fxsubtag} 0x07 {brr:uint8:range(0,100)} {hue:uint16_le:range(0,360)} {sat:uint8:range(0,100)} {speed:uint8:range(1,10)} {checksum}"
+            },
+            {
+                "id": 8,
+                "name": "CCT pulse",
+                "cmd": "{cmdtag} {fxdatatag} {size} {mac} {fxsubtag} 0x08 {brr:uint8:range(0,100)} {cct:uint8:range(29,70)} {gm:uint8:range(0,100)} {speed:uint8:range(1,10)} {checksum}"
+            },
+            {
+                "id": 9,
+                "name": "HUE pulse",
+                "cmd": "{cmdtag} {fxdatatag} {size} {mac} {fxsubtag} 0x09 {brr:uint8:range(0,100)} {hue:uint16_le:range(0,360)} {sat:uint8:range(0,100)} {speed:uint8:range(1,10)} {checksum}"
+            },
+            {
+                "id": 10,
+                "name": "Cop Car",
+                "cmd": "{cmdtag} {fxdatatag} {size} {mac} {fxsubtag} 0x0A {brr:uint8:range(0,100)} {color:uint8:range(0,4)} {speed:uint8:range(1,10)} {checksum}",
+                "color": [
+                    "Red",
+                    "Blue",
+                    "Red and Blue",
+                    "White and Blue",
+                    "Red blue white"
+                ]
+            },
+            {
+                "id": 11,
+                "name": "Candlelight",
+                "cmd": "{cmdtag} {fxdatatag} {size} {mac} {fxsubtag} 0x0B {brr:uint8:range(0,100)} {brr2:uint8:range(0,100)} {cct:uint8:range(29,70)} {gm:uint8:range(0,100)} {speed:uint8:range(1,10)} {sparks:uint8:range(1,10)} {checksum}"
+            },
+            {
+                "id": 12,
+                "name": "HUE Loop",
+                "cmd": "{cmdtag} {fxdatatag} {size} {mac} {fxsubtag} 0x0C {brr:uint8:range(0,100)} {hue:uint16_le:range(0,360)} {hue2:uint16_le:range(0,360)} {speed:uint8:range(1,10)} {checksum}"
+            },
+            {
+                "id": 13,
+                "name": "CCT Loop",
+                "cmd": "{cmdtag} {fxdatatag} {size} {mac} {fxsubtag} 0x0D {brr:uint8:range(0,100)} {cct:uint8:range(29,70)} {cct2:uint8:range(29,70)} {speed:uint8:range(1,10)} {checksum}"
+            },
+            {
+                "id": 14,
+                "name": "INT loop",
+                "cmd": "{cmdtag} {fxdatatag} {size} {mac} {fxsubtag} 0x0E {brr:uint8:range(0,100)} {brr2:uint8:range(0,100)} {hue:uint16_le:range(0,360)} {speed:uint8:range(1,10)} {checksum}"
+            },
+            {
+                "id": 15,
+                "name": "TV Screen",
+                "icon": "tv",
+                "cmd": "{cmdtag} {fxdatatag} {size} {mac} {fxsubtag} 0x0F {brr:uint8:range(0,100)} {cct:uint8:range(29,70)} {gm:uint8:range(0,100)} {speed:uint8:range(1,10)} {checksum}"
+            },
+            {
+                "id": 16,
+                "name": "Firework",
+                "icon": "fireworks",
+                "cmd": "{cmdtag} {fxdatatag} {size} {mac} {fxsubtag} 0x10 {brr:uint8:range(0,100)} {color:uint8:range(0,2)} {speed:uint8:range(1,10)} {sparks:uint8:range(1,10)} {checksum}",
+                "color": [
+                    "Single color",
+                    "Color",
+                    "Combined"
+                ]
+            },
+            {
+                "id": 17,
+                "name": "Party",
+                "icon": "party.popper.fill",
+                "cmd": "{cmdtag} {fxdatatag} {size} {mac} {fxsubtag} 0x11 {brr:uint8:range(0,100)} {color:uint8:range(0,2)} {speed:uint8:range(1,10)} {checksum}",
+                "color": [
+                    "Single color",
+                    "Color",
+                    "Combined"
+                ]
+            }
+        ],
+        "fx9_simple": [
+            {
+                "id": 1,
+                "name": "Squard Car",
+                "cmd": "{cmdtag} {fxtag} {size} {brr:uint8:range(0,100)} 0x01 {checksum}"
+            },
+            {
+                "id": 2,
+                "name": "Ambulance",
+                "cmd": "{cmdtag} {fxtag} {size} {brr:uint8:range(0,100)} 0x02 {checksum}"
+            },
+            {
+                "id": 3,
+                "name": "Fire Engine",
+                "cmd": "{cmdtag} {fxtag} {size} {brr:uint8:range(0,100)} 0x03 {checksum}"
+            },
+            {
+                "id": 4,
+                "name": "Fireworks",
+                "cmd": "{cmdtag} {fxtag} {size} {brr:uint8:range(0,100)} 0x04 {checksum}"
+            },
+            {
+                "id": 5,
+                "name": "Party",
+                "cmd": "{cmdtag} {fxtag} {size} {brr:uint8:range(0,100)} 0x05 {checksum}"
+            },
+            {
+                "id": 6,
+                "name": "Candle Light",
+                "cmd": "{cmdtag} {fxtag} {size} {brr:uint8:range(0,100)} 0x06 {checksum}"
+            },
+            {
+                "id": 7,
+                "name": "Paparazzi",
+                "cmd": "{cmdtag} {fxtag} {size} {brr:uint8:range(0,100)} 0x07 {checksum}"
+            },
+            {
+                "id": 8,
+                "name": "Screen",
+                "cmd": "{cmdtag} {fxtag} {size} {brr:uint8:range(0,100)} 0x08 {checksum}"
+            },
+            {
+                "id": 9,
+                "name": "Lighting",
+                "cmd": "{cmdtag} {fxtag} {size} {brr:uint8:range(0,100)} 0x09 {checksum}"
+            }
+        ],
+        "fx18_sub": [
+            {
+                "id": 1,
+                "name": "Lighting",
+                "icon": "bolt.fill",
+                "cmd": "{cmdtag} {fxsubtag} {size} 0x01 {brr:uint8:range(0,100)} {cct:uint8:range(29,70)} {speed:uint8:range(1,10)} {checksum}"
+            },
+            {
+                "id": 2,
+                "name": "Paparazzi",
+                "icon": "camera.shutter.button",
+                "cmd": "{cmdtag} {fxsubtag} {size} 0x02 {brr:uint8:range(0,100)} {cct:uint8:range(29,70)} {gm:uint8:range(0,100)} {speed:uint8:range(1,10)} {checksum}"
+            },
+            {
+                "id": 3,
+                "name": "Defective bulb",
+                "icon": "lightbulb.min.badge.exclamationmark.fill",
+                "cmd": "{cmdtag} {fxsubtag} {size} 0x03 {brr:uint8:range(0,100)} {cct:uint8:range(29,70)} {gm:uint8:range(0,100)} {speed:uint8:range(1,10)} {checksum}"
+            },
+            {
+                "id": 4,
+                "name": "Explosion",
+                "icon": "timelapse",
+                "cmd": "{cmdtag} {fxsubtag} {size} 0x04 {brr:uint8:range(0,100)} {cct:uint8:range(29,70)} {gm:uint8:range(0,100)} {speed:uint8:range(1,10)} {sparks:uint8:range(1,10)} {checksum}"
+            },
+            {
+                "id": 5,
+                "name": "Welding",
+                "cmd": "{cmdtag} {fxsubtag} {size} 0x05 {brr:uint8:range(0,100)} {cct:uint8:range(29,70)} {gm:uint8:range(0,100)} {speed:uint8:range(1,10)} {checksum}"
+            },
+            {
+                "id": 6,
+                "name": "CCT flash",
+                "cmd": "{cmdtag} {fxsubtag} {size} 0x05 {brr:uint8:range(0,100)} {cct:uint8:range(29,70)} {gm:uint8:range(0,100)} {speed:uint8:range(1,10)} {checksum}"
+            },
+            {
+                "id": 7,
+                "name": "H.U.E flash",
+                "cmd": "{cmdtag} {fxsubtag} {size} 0x07 {brr:uint8:range(0,100)} {hue:uint16_le:range(0,360)} {sat:uint8:range(0,100)} {speed:uint8:range(1,10)} {checksum}"
+            },
+            {
+                "id": 8,
+                "name": "CCT pulse",
+                "cmd": "{cmdtag} {fxsubtag} {size} 0x08 {brr:uint8:range(0,100)} {cct:uint8:range(29,70)} {gm:uint8:range(0,100)} {speed:uint8:range(1,10)} {checksum}"
+            },
+            {
+                "id": 9,
+                "name": "H.U.E pulse",
+                "cmd": "{cmdtag} {fxsubtag} {size} 0x09 {brr:uint8:range(0,100)} {hue:uint16_le:range(0,360)} {sat:uint8:range(0,100)} {speed:uint8:range(1,10)} {checksum}"
+            },
+            {
+                "id": 10,
+                "name": "Cop Car",
+                "cmd": "{cmdtag} {fxsubtag} {size} 0x0A {brr:uint8:range(0,100)} {color:uint8:range(0,4)} {speed:uint8:range(1,10)} {checksum}",
+                "color": [
+                    "Red",
+                    "Blue",
+                    "Red and Blue",
+                    "White and Blue",
+                    "Red, Blue, White"
+                ]
+            },
+            {
+                "id": 11,
+                "name": "Candlelight",
+                "cmd": "{cmdtag} {fxsubtag} {size} 0x0B {brr:uint8:range(0,100)} {brr2:uint8:range(0,100)} {cct:uint8:range(29,70)} {gm:uint8:range(0,100)} {speed:uint8:range(1,10)} {sparks:uint8:range(1,10)} {checksum}"
+            },
+            {
+                "id": 12,
+                "name": "H.U.E loop",
+                "cmd": "{cmdtag} {fxsubtag} {size} 0x0C {brr:uint8:range(0,100)} {hue:uint16_le:range(0,360)} {hue2:uint16_le:range(0,360)} {speed:uint8:range(1,10)} {checksum}"
+            },
+            {
+                "id": 13,
+                "name": "CCT loop",
+                "cmd": "{cmdtag} {fxsubtag} {size} 0x0D {brr:uint8:range(0,100)} {cct:uint8:range(29,70)} {cct2:uint8:range(29,70)} {speed:uint8:range(1,10)} {checksum}"
+            },
+            {
+                "id": 14,
+                "name": "INT loop",
+                "cmd": "{cmdtag} {fxsubtag} {size} 0x0E {brr:uint8:range(0,100)} {brr2:uint8:range(0,100)} {hue:uint16_le:range(0,360)} {speed:uint8:range(1,10)} {checksum}"
+            },
+            {
+                "id": 15,
+                "name": "TV screen",
+                "icon": "tv",
+                "cmd": "{cmdtag} {fxsubtag} {size} 0x0E {brr:uint8:range(0,100)} {cct:uint8:range(29,70)} {gm:uint8:range(0,100)} {speed:uint8:range(1,10)} {checksum}"
+            },
+            {
+                "id": 16,
+                "name": "Fireworks",
+                "icon": "fireworks",
+                "cmd": "{cmdtag} {fxsubtag} {size} 0x10 {brr:uint8:range(0,100)} {color:uint8:range(0,2)} {speed:uint8:range(1,10)} {sparks:uint8:range(1,10)} {checksum}",
+                "color": [
+                    "Signle Color",
+                    "Color",
+                    "Combined"
+                ]
+            },
+            {
+                "id": 17,
+                "name": "Party",
+                "icon": "party.popper.fill",
+                "cmd": "{cmdtag} {fxsubtag} {size} 0x11 {brr:uint8:range(0,100)} {color:uint8:range(0,2)} {speed:uint8:range(1,10)} {checksum}",
+                "color": [
+                    "Signle Color",
+                    "Color",
+                    "Combined"
+                ]
+            },
+            {
+                "id": 18,
+                "name": "Music",
+                "icon": "music.quarternote.3",
+                "cmd": "{cmdtag} {fxsubtag} {size} 0x12 {brr:uint8:range(0,100)} {checksum}"
+            }
+        ],
+        "fx17_sub": [
+            {
+                "id": 1,
+                "name": "Lighting",
+                "icon": "bolt.fill",
+                "cmd": "{cmdtag} {fxsubtag} {size} 0x01 {brr:uint8:range(0,100)} {cct:uint8:range(29,70)} {speed:uint8:range(1,10)} {checksum}"
+            },
+            {
+                "id": 2,
+                "name": "Paparazzi",
+                "icon": "camera.shutter.button",
+                "cmd": "{cmdtag} {fxsubtag} {size} 0x02 {brr:uint8:range(0,100)} {cct:uint8:range(29,70)} {gm:uint8:range(0,100)} {speed:uint8:range(1,10)} {checksum}"
+            },
+            {
+                "id": 3,
+                "name": "Defective bulb",
+                "icon": "lightbulb.min.badge.exclamationmark.fill",
+                "cmd": "{cmdtag} {fxsubtag} {size} 0x03 {brr:uint8:range(0,100)} {cct:uint8:range(29,70)} {gm:uint8:range(0,100)} {speed:uint8:range(1,10)} {checksum}"
+            },
+            {
+                "id": 4,
+                "name": "Explosion",
+                "icon": "timelapse",
+                "cmd": "{cmdtag} {fxsubtag} {size} 0x04 {brr:uint8:range(0,100)} {cct:uint8:range(29,70)} {gm:uint8:range(0,100)} {speed:uint8:range(1,10)} {sparks:uint8:range(1,10)} {checksum}"
+            },
+            {
+                "id": 5,
+                "name": "Welding",
+                "cmd": "{cmdtag} {fxsubtag} {size} 0x05 {brr:uint8:range(0,100)} {cct:uint8:range(29,70)} {gm:uint8:range(0,100)} {speed:uint8:range(1,10)} {checksum}"
+            },
+            {
+                "id": 6,
+                "name": "CCT flash",
+                "cmd": "{cmdtag} {fxsubtag} {size} 0x05 {brr:uint8:range(0,100)} {cct:uint8:range(29,70)} {gm:uint8:range(0,100)} {speed:uint8:range(1,10)} {checksum}"
+            },
+            {
+                "id": 7,
+                "name": "H.U.E flash",
+                "cmd": "{cmdtag} {fxsubtag} {size} 0x07 {brr:uint8:range(0,100)} {hue:uint16_le:range(0,360)} {sat:uint8:range(0,100)} {speed:uint8:range(1,10)} {checksum}"
+            },
+            {
+                "id": 8,
+                "name": "CCT pulse",
+                "cmd": "{cmdtag} {fxsubtag} {size} 0x08 {brr:uint8:range(0,100)} {cct:uint8:range(29,70)} {gm:uint8:range(0,100)} {speed:uint8:range(1,10)} {checksum}"
+            },
+            {
+                "id": 9,
+                "name": "H.U.E pulse",
+                "cmd": "{cmdtag} {fxsubtag} {size} 0x09 {brr:uint8:range(0,100)} {hue:uint16_le:range(0,360)} {sat:uint8:range(0,100)} {speed:uint8:range(1,10)} {checksum}"
+            },
+            {
+                "id": 10,
+                "name": "Cop Car",
+                "cmd": "{cmdtag} {fxsubtag} {size} 0x0A {brr:uint8:range(0,100)} {color:uint8:range(0,4)} {speed:uint8:range(1,10)} {checksum}",
+                "color": [
+                    "Red",
+                    "Blue",
+                    "Red and Blue",
+                    "White and Blue",
+                    "Red, Blue, White"
+                ]
+            },
+            {
+                "id": 11,
+                "name": "Candlelight",
+                "cmd": "{cmdtag} {fxsubtag} {size} 0x0B {brr:uint8:range(0,100)} {brr2:uint8:range(0,100)} {cct:uint8:range(29,70)} {gm:uint8:range(0,100)} {speed:uint8:range(1,10)} {sparks:uint8:range(1,10)} {checksum}"
+            },
+            {
+                "id": 12,
+                "name": "H.U.E loop",
+                "cmd": "{cmdtag} {fxsubtag} {size} 0x0C {brr:uint8:range(0,100)} {hue:uint16_le:range(0,360)} {hue2:uint16_le:range(0,360)} {speed:uint8:range(1,10)} {checksum}"
+            },
+            {
+                "id": 13,
+                "name": "CCT loop",
+                "cmd": "{cmdtag} {fxsubtag} {size} 0x0D {brr:uint8:range(0,100)} {cct:uint8:range(29,70)} {cct2:uint8:range(29,70)} {speed:uint8:range(1,10)} {checksum}"
+            },
+            {
+                "id": 14,
+                "name": "INT loop",
+                "cmd": "{cmdtag} {fxsubtag} {size} 0x0E {brr:uint8:range(0,100)} {brr2:uint8:range(0,100)} {hue:uint16_le:range(0,360)} {speed:uint8:range(1,10)} {checksum}"
+            },
+            {
+                "id": 15,
+                "name": "TV screen",
+                "icon": "tv",
+                "cmd": "{cmdtag} {fxsubtag} {size} 0x0E {brr:uint8:range(0,100)} {cct:uint8:range(29,70)} {gm:uint8:range(0,100)} {speed:uint8:range(1,10)} {checksum}"
+            },
+            {
+                "id": 16,
+                "name": "Fireworks",
+                "icon": "fireworks",
+                "cmd": "{cmdtag} {fxsubtag} {size} 0x10 {brr:uint8:range(0,100)} {color:uint8:range(0,2)} {speed:uint8:range(1,10)} {sparks:uint8:range(1,10)} {checksum}",
+                "color": [
+                    "Signle Color",
+                    "Color",
+                    "Combined"
+                ]
+            },
+            {
+                "id": 17,
+                "name": "Party",
+                "icon": "party.popper.fill",
+                "cmd": "{cmdtag} {fxsubtag} {size} 0x11 {brr:uint8:range(0,100)} {color:uint8:range(0,2)} {speed:uint8:range(1,10)} {checksum}",
+                "color": [
+                    "Signle Color",
+                    "Color",
+                    "Combined"
+                ]
+            }
+        ]
+    },
     "lights": [
         {
             "type": 3,
@@ -14,7 +402,8 @@
                 "power": "{cmdtag} {powertag} {size} {state:uint8:enum(1=on,2=off)} {checksum}",
                 "cct": "{cmdtag} {ccttag} {size} {brr:uint8:range(0,100)} {cct:uint8:range(32,56)} 0x32 0x00 0x00 {checksum}",
                 "hsi": "{cmdtag} {hsitag} {size} {hue:uint16_le:range(0,360)} {sat:uint8:range(0,100)} {brr:uint8:range(0,100)} {checksum}"
-            }
+            },
+            "fxPreset": "fx9_simple"
         },
         {
             "type": 4,
@@ -43,7 +432,8 @@
                 "power": "{cmdtag} {powertag} {size} {state:uint8:enum(1=on,2=off)} {checksum}",
                 "cct": "{cmdtag} {ccttag} {size} {brr:uint8:range(0,100)} {cct:uint8:range(32,56)} 0x32 0x00 0x00 {checksum}",
                 "hsi": "{cmdtag} {hsitag} {size} {hue:uint16_le:range(0,360)} {sat:uint8:range(0,100)} {brr:uint8:range(0,100)} {checksum}"
-            }
+            },
+            "fxPreset": "fx9_simple"
         },
         {
             "type": 7,
@@ -72,7 +462,8 @@
                 "power": "{cmdtag} {powertag} {size} {state:uint8:enum(1=on,2=off)} {checksum}",
                 "cct": "{cmdtag} {ccttag} {size} {brr:uint8:range(0,100)} {cct:uint8:range(32,56)} 0x32 0x00 0x00 {checksum}",
                 "hsi": "{cmdtag} {hsitag} {size} {hue:uint16_le:range(0,360)} {sat:uint8:range(0,100)} {brr:uint8:range(0,100)} {checksum}"
-            }
+            },
+            "fxPreset": "fx17_mac"
         },
         {
             "type": 9,
@@ -161,7 +552,8 @@
                 "power": "{cmdtag} {powertag} {size} {state:uint8:enum(1=on,2=off)} {checksum}",
                 "cct": "{cmdtag} {ccttag} {size} {brr:uint8:range(0,100)} {cct:uint8:range(25,85)} 0x32 0x00 0x00 {checksum}",
                 "hsi": "{cmdtag} {hsitag} {size} {hue:uint16_le:range(0,360)} {sat:uint8:range(0,100)} {brr:uint8:range(0,100)} {checksum}"
-            }
+            },
+            "fxPreset": "fx17_mac"
         },
         {
             "type": 18,
@@ -206,7 +598,8 @@
                 "power": "{cmdtag} {powertag} {size} {state:uint8:enum(1=on,2=off)} {checksum}",
                 "cct": "{cmdtag} {ccttag} {size} {brr:uint8:range(0,100)} {cct:uint8:range(32,56)} 0x32 0x00 0x00 {checksum}",
                 "hsi": "{cmdtag} {hsitag} {size} {hue:uint16_le:range(0,360)} {sat:uint8:range(0,100)} {brr:uint8:range(0,100)} {checksum}"
-            }
+            },
+            "fxPreset": "fx17_mac"
         },
         {
             "type": 21,
@@ -239,7 +632,8 @@
             "commandPatterns": {
                 "power": "{cmdtag} {powertag} {size} {state:uint8:enum(1=on,2=off)} {checksum}",
                 "cct": "{cmdtag} {ccttag} {size} {brr:uint8:range(0,100)} {cct:uint8:range(27,65)} {gm:uint8:range(0,100)} 0x00 0x00 {checksum}"
-            }
+            },
+            "fxPreset": "fx17_mac"
         },
         {
             "type": 25,
@@ -253,7 +647,8 @@
             "cctRange": {
                 "min": 32,
                 "max": 56
-            }
+            },
+            "fxPreset": "fx17_mac"
         },
         {
             "type": 26,
@@ -390,7 +785,8 @@
             "cctRange": {
                 "min": 25,
                 "max": 100
-            }
+            },
+            "fxPreset": "fx17_mac"
         },
         {
             "type": 37,
@@ -509,123 +905,7 @@
                     "defaultCmd": "{cmdtag} {ccttag} {size} 0x32 0x46 0x32 {checksum}"
                 }
             ],
-            "fxPatterns": [
-                {
-                    "id": 1,
-                    "name": "Lighting",
-                    "icon": "bolt.fill",
-                    "cmd": "{cmdtag} {fxsubtag} {size} 0x01 {brr:uint8:range(0,100)} {cct:uint8:range(29,70)} {speed:uint8:range(1,10)} {checksum}"
-                },
-                {
-                    "id": 2,
-                    "name": "Paparazzi",
-                    "icon": "camera.shutter.button",
-                    "cmd": "{cmdtag} {fxsubtag} {size} 0x02 {brr:uint8:range(0,100)} {cct:uint8:range(29,70)} {gm:uint8:range(0,100)} {speed:uint8:range(1,10)} {checksum}"
-                },
-                {
-                    "id": 3,
-                    "name": "Defective bulb",
-                    "icon": "lightbulb.min.badge.exclamationmark.fill",
-                    "cmd": "{cmdtag} {fxsubtag} {size} 0x03 {brr:uint8:range(0,100)} {cct:uint8:range(29,70)} {gm:uint8:range(0,100)} {speed:uint8:range(1,10)} {checksum}"
-                },
-                {
-                    "id": 4,
-                    "name": "Explosion",
-                    "icon": "timelapse",
-                    "cmd": "{cmdtag} {fxsubtag} {size} 0x04 {brr:uint8:range(0,100)} {cct:uint8:range(29,70)} {gm:uint8:range(0,100)} {speed:uint8:range(1,10)} {sparks:uint8:range(1,10)} {checksum}"
-                },
-                {
-                    "id": 5,
-                    "name": "Welding",
-                    "cmd": "{cmdtag} {fxsubtag} {size} 0x05 {brr:uint8:range(0,100)} {cct:uint8:range(29,70)} {gm:uint8:range(0,100)} {speed:uint8:range(1,10)} {checksum}"
-                },
-                {
-                    "id": 6,
-                    "name": "CCT flash",
-                    "cmd": "{cmdtag} {fxsubtag} {size} 0x05 {brr:uint8:range(0,100)} {cct:uint8:range(29,70)} {gm:uint8:range(0,100)} {speed:uint8:range(1,10)} {checksum}"
-                },
-                {
-                    "id": 7,
-                    "name": "H.U.E flash",
-                    "cmd": "{cmdtag} {fxsubtag} {size} 0x07 {brr:uint8:range(0,100)} {hue:uint16_le:range(0,360)} {sat:uint8:range(0,100)} {speed:uint8:range(1,10)} {checksum}"
-                },
-                {
-                    "id": 8,
-                    "name": "CCT pulse",
-                    "cmd": "{cmdtag} {fxsubtag} {size} 0x08 {brr:uint8:range(0,100)} {cct:uint8:range(29,70)} {gm:uint8:range(0,100)} {speed:uint8:range(1,10)} {checksum}"
-                },
-                {
-                    "id": 9,
-                    "name": "H.U.E pulse",
-                    "cmd": "{cmdtag} {fxsubtag} {size} 0x09 {brr:uint8:range(0,100)} {hue:uint16_le:range(0,360)} {sat:uint8:range(0,100)} {speed:uint8:range(1,10)} {checksum}"
-                },
-                {
-                    "id": 10,
-                    "name": "Cop Car",
-                    "cmd": "{cmdtag} {fxsubtag} {size} 0x0A {brr:uint8:range(0,100)} {color:uint8:range(0,4)} {speed:uint8:range(1,10)} {checksum}",
-                    "color": [
-                        "Red",
-                        "Blue",
-                        "Red and Blue",
-                        "White and Blue",
-                        "Red, Blue, White"
-                    ]
-                },
-                {
-                    "id": 11,
-                    "name": "Candlelight",
-                    "cmd": "{cmdtag} {fxsubtag} {size} 0x0B {brr:uint8:range(0,100)} {brr2:uint8:range(0,100)} {cct:uint8:range(29,70)} {gm:uint8:range(0,100)} {speed:uint8:range(1,10)} {sparks:uint8:range(1,10)} {checksum}"
-                },
-                {
-                    "id": 12,
-                    "name": "H.U.E loop",
-                    "cmd": "{cmdtag} {fxsubtag} {size} 0x0C {brr:uint8:range(0,100)} {hue:uint16_le:range(0,360)} {hue2:uint16_le:range(0,360)} {speed:uint8:range(1,10)} {checksum}"
-                },
-                {
-                    "id": 13,
-                    "name": "CCT loop",
-                    "cmd": "{cmdtag} {fxsubtag} {size} 0x0D {brr:uint8:range(0,100)} {cct:uint8:range(29,70)} {cct2:uint8:range(29,70)} {speed:uint8:range(1,10)} {checksum}"
-                },
-                {
-                    "id": 14,
-                    "name": "INT loop",
-                    "cmd": "{cmdtag} {fxsubtag} {size} 0x0E {brr:uint8:range(0,100)} {brr2:uint8:range(0,100)} {hue:uint16_le:range(0,360)} {speed:uint8:range(1,10)} {checksum}"
-                },
-                {
-                    "id": 15,
-                    "name": "TV screen",
-                    "icon": "tv",
-                    "cmd": "{cmdtag} {fxsubtag} {size} 0x0E {brr:uint8:range(0,100)} {cct:uint8:range(29,70)} {gm:uint8:range(0,100)} {speed:uint8:range(1,10)} {checksum}"
-                },
-                {
-                    "id": 16,
-                    "name": "Fireworks",
-                    "icon": "fireworks",
-                    "cmd": "{cmdtag} {fxsubtag} {size} 0x10 {brr:uint8:range(0,100)} {color:uint8:range(0,2)} {speed:uint8:range(1,10)} {sparks:uint8:range(1,10)} {checksum}",
-                    "color": [
-                        "Signle Color",
-                        "Color",
-                        "Combined"
-                    ]
-                },
-                {
-                    "id": 17,
-                    "name": "Party",
-                    "icon": "party.popper.fill",
-                    "cmd": "{cmdtag} {fxsubtag} {size} 0x11 {brr:uint8:range(0,100)} {color:uint8:range(0,2)} {speed:uint8:range(1,10)} {checksum}",
-                    "color": [
-                        "Signle Color",
-                        "Color",
-                        "Combined"
-                    ]
-                },
-                {
-                    "id": 18,
-                    "name": "Music",
-                    "icon": "music.quarternote.3",
-                    "cmd": "{cmdtag} {fxsubtag} {size} 0x12 {brr:uint8:range(0,100)} {checksum}"
-                }
-            ]
+            "fxPreset": "fx18_sub"
         },
         {
             "type": 40,
@@ -637,117 +917,7 @@
                 "cct": "{cmdtag} {ccttag} {size} {brr:uint8:range(0,100)} {cct:uint8:range(25,85)} {gm:uint8:range(0,100)} 0x00 0x00 {checksum}",
                 "hsi": "{cmdtag} {hsitag} {size} {hue:uint16_le:range(0,360)} {sat:uint8:range(0,100)} {brr:uint8:range(0,100)} {checksum}"
             },
-            "fxPatterns": [
-                {
-                    "id": 1,
-                    "name": "Lighting",
-                    "icon": "bolt.fill",
-                    "cmd": "{cmdtag} {fxsubtag} {size} 0x01 {brr:uint8:range(0,100)} {cct:uint8:range(29,70)} {speed:uint8:range(1,10)} {checksum}"
-                },
-                {
-                    "id": 2,
-                    "name": "Paparazzi",
-                    "icon": "camera.shutter.button",
-                    "cmd": "{cmdtag} {fxsubtag} {size} 0x02 {brr:uint8:range(0,100)} {cct:uint8:range(29,70)} {gm:uint8:range(0,100)} {speed:uint8:range(1,10)} {checksum}"
-                },
-                {
-                    "id": 3,
-                    "name": "Defective bulb",
-                    "icon": "lightbulb.min.badge.exclamationmark.fill",
-                    "cmd": "{cmdtag} {fxsubtag} {size} 0x03 {brr:uint8:range(0,100)} {cct:uint8:range(29,70)} {gm:uint8:range(0,100)} {speed:uint8:range(1,10)} {checksum}"
-                },
-                {
-                    "id": 4,
-                    "name": "Explosion",
-                    "icon": "timelapse",
-                    "cmd": "{cmdtag} {fxsubtag} {size} 0x04 {brr:uint8:range(0,100)} {cct:uint8:range(29,70)} {gm:uint8:range(0,100)} {speed:uint8:range(1,10)} {sparks:uint8:range(1,10)} {checksum}"
-                },
-                {
-                    "id": 5,
-                    "name": "Welding",
-                    "cmd": "{cmdtag} {fxsubtag} {size} 0x05 {brr:uint8:range(0,100)} {cct:uint8:range(29,70)} {gm:uint8:range(0,100)} {speed:uint8:range(1,10)} {checksum}"
-                },
-                {
-                    "id": 6,
-                    "name": "CCT flash",
-                    "cmd": "{cmdtag} {fxsubtag} {size} 0x05 {brr:uint8:range(0,100)} {cct:uint8:range(29,70)} {gm:uint8:range(0,100)} {speed:uint8:range(1,10)} {checksum}"
-                },
-                {
-                    "id": 7,
-                    "name": "H.U.E flash",
-                    "cmd": "{cmdtag} {fxsubtag} {size} 0x07 {brr:uint8:range(0,100)} {hue:uint16_le:range(0,360)} {sat:uint8:range(0,100)} {speed:uint8:range(1,10)} {checksum}"
-                },
-                {
-                    "id": 8,
-                    "name": "CCT pulse",
-                    "cmd": "{cmdtag} {fxsubtag} {size} 0x08 {brr:uint8:range(0,100)} {cct:uint8:range(29,70)} {gm:uint8:range(0,100)} {speed:uint8:range(1,10)} {checksum}"
-                },
-                {
-                    "id": 9,
-                    "name": "H.U.E pulse",
-                    "cmd": "{cmdtag} {fxsubtag} {size} 0x09 {brr:uint8:range(0,100)} {hue:uint16_le:range(0,360)} {sat:uint8:range(0,100)} {speed:uint8:range(1,10)} {checksum}"
-                },
-                {
-                    "id": 10,
-                    "name": "Cop Car",
-                    "cmd": "{cmdtag} {fxsubtag} {size} 0x0A {brr:uint8:range(0,100)} {color:uint8:range(0,4)} {speed:uint8:range(1,10)} {checksum}",
-                    "color": [
-                        "Red",
-                        "Blue",
-                        "Red and Blue",
-                        "White and Blue",
-                        "Red, Blue, White"
-                    ]
-                },
-                {
-                    "id": 11,
-                    "name": "Candlelight",
-                    "cmd": "{cmdtag} {fxsubtag} {size} 0x0B {brr:uint8:range(0,100)} {brr2:uint8:range(0,100)} {cct:uint8:range(29,70)} {gm:uint8:range(0,100)} {speed:uint8:range(1,10)} {sparks:uint8:range(1,10)} {checksum}"
-                },
-                {
-                    "id": 12,
-                    "name": "H.U.E loop",
-                    "cmd": "{cmdtag} {fxsubtag} {size} 0x0C {brr:uint8:range(0,100)} {hue:uint16_le:range(0,360)} {hue2:uint16_le:range(0,360)} {speed:uint8:range(1,10)} {checksum}"
-                },
-                {
-                    "id": 13,
-                    "name": "CCT loop",
-                    "cmd": "{cmdtag} {fxsubtag} {size} 0x0D {brr:uint8:range(0,100)} {cct:uint8:range(29,70)} {cct2:uint8:range(29,70)} {speed:uint8:range(1,10)} {checksum}"
-                },
-                {
-                    "id": 14,
-                    "name": "INT loop",
-                    "cmd": "{cmdtag} {fxsubtag} {size} 0x0E {brr:uint8:range(0,100)} {brr2:uint8:range(0,100)} {hue:uint16_le:range(0,360)} {speed:uint8:range(1,10)} {checksum}"
-                },
-                {
-                    "id": 15,
-                    "name": "TV screen",
-                    "icon": "tv",
-                    "cmd": "{cmdtag} {fxsubtag} {size} 0x0E {brr:uint8:range(0,100)} {cct:uint8:range(29,70)} {gm:uint8:range(0,100)} {speed:uint8:range(1,10)} {checksum}"
-                },
-                {
-                    "id": 16,
-                    "name": "Fireworks",
-                    "icon": "fireworks",
-                    "cmd": "{cmdtag} {fxsubtag} {size} 0x10 {brr:uint8:range(0,100)} {color:uint8:range(0,2)} {speed:uint8:range(1,10)} {sparks:uint8:range(1,10)} {checksum}",
-                    "color": [
-                        "Signle Color",
-                        "Color",
-                        "Combined"
-                    ]
-                },
-                {
-                    "id": 17,
-                    "name": "Party",
-                    "icon": "party.popper.fill",
-                    "cmd": "{cmdtag} {fxsubtag} {size} 0x11 {brr:uint8:range(0,100)} {color:uint8:range(0,2)} {speed:uint8:range(1,10)} {checksum}",
-                    "color": [
-                        "Signle Color",
-                        "Color",
-                        "Combined"
-                    ]
-                }
-            ]
+            "fxPreset": "fx17_sub"
         },
         {
             "type": 42,
@@ -763,7 +933,8 @@
                 "max": 100
             },
             "newPowerLightCommand": true,
-            "newRGBLightCommand": true
+            "newRGBLightCommand": true,
+            "fxPreset": "fx17_mac"
         },
         {
             "type": 43,
@@ -932,103 +1103,7 @@
                     "defaultCmd": "{cmdtag} {ccttag} {size} 0x32 0x41 0x00 {checksum}"
                 }
             ],
-            "fxPatterns": [
-                {
-                    "id": 1,
-                    "name": "Lighting",
-                    "icon": "bolt.fill",
-                    "cmd": "{cmdtag} {fxsubtag} {size} 0x01 {brr:uint8:range(0,100)} {cct:uint8:range(27,65)} {speed:uint8:range(1,10)} {checksum}"
-                },
-                {
-                    "id": 2,
-                    "name": "Paparazzi",
-                    "icon": "camera.shutter.button",
-                    "cmd": "{cmdtag} {fxsubtag} {size} 0x02 {brr:uint8:range(0,100)} {cct:uint8:range(27,65)} {gm:int8:range(-50,50)} {speed:uint8:range(1,10)} {checksum}"
-                },
-                {
-                    "id": 3,
-                    "name": "Defective bulb",
-                    "icon": "lightbulb.min.badge.exclamationmark.fill",
-                    "cmd": "{cmdtag} {fxsubtag} {size} 0x03 {brr:uint8:range(0,100)} {cct:uint8:range(27,65)} {gm:int8:range(-50,50)} {speed:uint8:range(1,10)} {checksum}"
-                },
-                {
-                    "id": 4,
-                    "name": "Explosion",
-                    "icon": "timelapse",
-                    "cmd": "{cmdtag} {fxsubtag} {size} 0x04 {brr:uint8:range(0,100)} {cct:uint8:range(27,65)} {gm:int8:range(-50,50)} {speed:uint8:range(1,10)} {sparks:uint8:range(1,10)} {checksum}"
-                },
-                {
-                    "id": 5,
-                    "name": "Welding",
-                    "cmd": "{cmdtag} {fxsubtag} {size} 0x05 {brr:uint8:range(0,100)} {cct:uint8:range(27,65)} {gm:int8:range(-50,50)} {speed:uint8:range(1,10)} {checksum}"
-                },
-                {
-                    "id": 6,
-                    "name": "CCT flash",
-                    "cmd": "{cmdtag} {fxsubtag} {size} 0x06 {brr:uint8:range(0,100)} {cct:uint8:range(27,65)} {gm:int8:range(-50,50)} {speed:uint8:range(1,10)} {checksum}"
-                },
-                {
-                    "id": 7,
-                    "name": "H.U.E flash",
-                    "cmd": "{cmdtag} {fxsubtag} {size} 0x07 {brr:uint8:range(0,100)} {hue:uint16_le:range(0,360)} {sat:uint8:range(0,100)} {speed:uint8:range(1,10)} {checksum}"
-                },
-                {
-                    "id": 8,
-                    "name": "CCT pulse",
-                    "cmd": "{cmdtag} {fxsubtag} {size} 0x08 {brr:uint8:range(0,100)} {cct:uint8:range(27,65)} {gm:int8:range(-50,50)} {speed:uint8:range(1,10)} {checksum}"
-                },
-                {
-                    "id": 9,
-                    "name": "H.U.E pulse",
-                    "cmd": "{cmdtag} {fxsubtag} {size} 0x09 {brr:uint8:range(0,100)} {hue:uint16_le:range(0,360)} {sat:uint8:range(0,100)} {speed:uint8:range(1,10)} {checksum}"
-                },
-                {
-                    "id": 10,
-                    "name": "Cop Car",
-                    "cmd": "{cmdtag} {fxsubtag} {size} 0x0A {brr:uint8:range(0,100)} {color:uint8:range(0,4)} {speed:uint8:range(1,10)} {checksum}",
-                    "color": ["Red", "Blue", "Red and Blue", "White and Blue", "Red, Blue, White"]
-                },
-                {
-                    "id": 11,
-                    "name": "Candlelight",
-                    "cmd": "{cmdtag} {fxsubtag} {size} 0x0B {brr:uint8:range(0,100)} {brr2:uint8:range(0,100)} {cct:uint8:range(27,65)} {gm:int8:range(-50,50)} {speed:uint8:range(1,10)} {sparks:uint8:range(1,10)} {checksum}"
-                },
-                {
-                    "id": 12,
-                    "name": "H.U.E loop",
-                    "cmd": "{cmdtag} {fxsubtag} {size} 0x0C {brr:uint8:range(0,100)} {hue:uint16_le:range(0,360)} {hue2:uint16_le:range(0,360)} {speed:uint8:range(1,10)} {checksum}"
-                },
-                {
-                    "id": 13,
-                    "name": "CCT loop",
-                    "cmd": "{cmdtag} {fxsubtag} {size} 0x0D {brr:uint8:range(0,100)} {cct:uint8:range(27,65)} {cct2:uint8:range(27,65)} {speed:uint8:range(1,10)} {checksum}"
-                },
-                {
-                    "id": 14,
-                    "name": "INT loop",
-                    "cmd": "{cmdtag} {fxsubtag} {size} 0x0E {brr:uint8:range(0,100)} {brr2:uint8:range(0,100)} {hue:uint16_le:range(0,360)} {speed:uint8:range(1,10)} {checksum}"
-                },
-                {
-                    "id": 15,
-                    "name": "TV screen",
-                    "icon": "tv",
-                    "cmd": "{cmdtag} {fxsubtag} {size} 0x0F {brr:uint8:range(0,100)} {cct:uint8:range(27,65)} {gm:int8:range(-50,50)} {speed:uint8:range(1,10)} {checksum}"
-                },
-                {
-                    "id": 16,
-                    "name": "Fireworks",
-                    "icon": "fireworks",
-                    "cmd": "{cmdtag} {fxsubtag} {size} 0x10 {brr:uint8:range(0,100)} {color:uint8:range(0,2)} {speed:uint8:range(1,10)} {sparks:uint8:range(1,10)} {checksum}",
-                    "color": ["Single Color", "Color", "Combined"]
-                },
-                {
-                    "id": 17,
-                    "name": "Party",
-                    "icon": "party.popper.fill",
-                    "cmd": "{cmdtag} {fxsubtag} {size} 0x11 {brr:uint8:range(0,100)} {color:uint8:range(0,2)} {speed:uint8:range(1,10)} {checksum}",
-                    "color": ["Single Color", "Color", "Combined"]
-                }
-            ]
+            "fxPreset": "fx17_mac"
         },
         {
             "type": 50,
@@ -1220,7 +1295,8 @@
                 "power": "{cmdtag} {powertag} {size} {state:uint8:enum(1=on,2=off)} {checksum}",
                 "cct": "{cmdtag} {ccttag} {size} {brr:uint8:range(0,100)} {cct:uint8:range(32,56)} 0x32 0x00 0x00 {checksum}",
                 "hsi": "{cmdtag} {hsitag} {size} {hue:uint16_le:range(0,360)} {sat:uint8:range(0,100)} {brr:uint8:range(0,100)} {checksum}"
-            }
+            },
+            "fxPreset": "fx17_mac"
         },
         {
             "type": 63,
@@ -1266,7 +1342,8 @@
             "cctRange": {
                 "min": 25,
                 "max": 85
-            }
+            },
+            "fxPreset": "fx17_mac"
         },
         {
             "type": 70,
@@ -1301,7 +1378,8 @@
                 "max": 100
             },
             "newPowerLightCommand": true,
-            "newRGBLightCommand": true
+            "newRGBLightCommand": true,
+            "fxPreset": "fx17_mac"
         }
     ],
     "gels": [
@@ -1733,6 +1811,568 @@
             "category": "Creative",
             "manufacturer": "Lee",
             "code": "142"
+        }
+    ],
+    "neewer_home": [
+        {
+            "productId": "PD20240039",
+            "name": "NG01",
+            "supportColor": true,
+            "supportScene": true,
+            "supportDIY": true,
+            "supportMusic": true,
+            "diyType": "normal",
+            "commandPatterns": {
+                "power": "0x7A 0x0A {size} {state:uint8:enum(1=on,2=off)} {checksum}",
+                "cct": "0x7A 0x0C {size} {brr_hi:uint8} {brr_lo:uint8} {cct:uint8} 0x00 0x01 0x00 {checksum}",
+                "brightness": "0x7A 0x0B {size} 0x00 {brr_hi:uint8} {brr_lo:uint8} {checksum}",
+                "query_all": "0x7A 0x08 {size} 0x00 {checksum}",
+                "query_current": "0x7A 0x08 {size} 0x01 {checksum}",
+                "hsi": "0x7A 0x0D {size16} {brr_hi:uint8} {brr_lo:uint8} 0x01 0x64 {hue:uint16_be:range(0,360)} {sat:uint8:range(0,100)} 0x00 0x01 0x00 {checksum}"
+            }
+        },
+        {
+            "productId": "PD20240081",
+            "name": "NF01",
+            "supportColor": true,
+            "supportScene": true,
+            "supportDIY": true,
+            "supportMusic": true,
+            "diyType": "effectV2",
+            "commandPatterns": {
+                "power": "0x7A 0x0A {size} {state:uint8:enum(1=on,2=off)} {checksum}",
+                "cct": "0x7A 0x0C {size} {brr_hi:uint8} {brr_lo:uint8} {cct:uint8} 0x00 0x01 0x00 {checksum}",
+                "brightness": "0x7A 0x0B {size} 0x00 {brr_hi:uint8} {brr_lo:uint8} {checksum}",
+                "query_all": "0x7A 0x08 {size} 0x00 {checksum}",
+                "query_current": "0x7A 0x08 {size} 0x01 {checksum}",
+                "hsi": "0x7A 0x0D {size16} {brr_hi:uint8} {brr_lo:uint8} 0x01 0x64 {hue:uint16_be:range(0,360)} {sat:uint8:range(0,100)} 0x00 0x01 0x00 {checksum}"
+            }
+        },
+        {
+            "productId": "PD20250092",
+            "name": "NF01 (v2)",
+            "supportColor": true,
+            "supportScene": true,
+            "supportDIY": true,
+            "supportMusic": true,
+            "diyType": "effectV2",
+            "commandPatterns": {
+                "power": "0x7A 0x0A {size} {state:uint8:enum(1=on,2=off)} {checksum}",
+                "cct": "0x7A 0x0C {size} {brr_hi:uint8} {brr_lo:uint8} {cct:uint8} 0x00 0x01 0x00 {checksum}",
+                "brightness": "0x7A 0x0B {size} 0x00 {brr_hi:uint8} {brr_lo:uint8} {checksum}",
+                "query_all": "0x7A 0x08 {size} 0x00 {checksum}",
+                "query_current": "0x7A 0x08 {size} 0x01 {checksum}",
+                "hsi": "0x7A 0x0D {size16} {brr_hi:uint8} {brr_lo:uint8} 0x01 0x64 {hue:uint16_be:range(0,360)} {sat:uint8:range(0,100)} 0x00 0x01 0x00 {checksum}"
+            }
+        },
+        {
+            "productId": "PD20250151",
+            "name": "NF01 (v3)",
+            "supportColor": true,
+            "supportScene": true,
+            "supportDIY": true,
+            "supportMusic": true,
+            "diyType": "effectV2",
+            "commandPatterns": {
+                "power": "0x7A 0x0A {size} {state:uint8:enum(1=on,2=off)} {checksum}",
+                "cct": "0x7A 0x0C {size} {brr_hi:uint8} {brr_lo:uint8} {cct:uint8} 0x00 0x01 0x00 {checksum}",
+                "brightness": "0x7A 0x0B {size} 0x00 {brr_hi:uint8} {brr_lo:uint8} {checksum}",
+                "query_all": "0x7A 0x08 {size} 0x00 {checksum}",
+                "query_current": "0x7A 0x08 {size} 0x01 {checksum}",
+                "hsi": "0x7A 0x0D {size16} {brr_hi:uint8} {brr_lo:uint8} 0x01 0x64 {hue:uint16_be:range(0,360)} {sat:uint8:range(0,100)} 0x00 0x01 0x00 {checksum}"
+            }
+        },
+        {
+            "productId": "PD20250133",
+            "name": "BF04",
+            "supportColor": true,
+            "supportScene": true,
+            "supportDIY": true,
+            "supportMusic": true,
+            "diyType": "normal",
+            "commandPatterns": {
+                "power": "0x7A 0x0A {size} {state:uint8:enum(1=on,2=off)} {checksum}",
+                "cct": "0x7A 0x0C {size} {brr_hi:uint8} {brr_lo:uint8} {cct:uint8} 0x00 0x01 0x00 {checksum}",
+                "brightness": "0x7A 0x0B {size} 0x00 {brr_hi:uint8} {brr_lo:uint8} {checksum}",
+                "query_all": "0x7A 0x08 {size} 0x00 {checksum}",
+                "query_current": "0x7A 0x08 {size} 0x01 {checksum}",
+                "hsi": "0x7A 0x0D {size16} {brr_hi:uint8} {brr_lo:uint8} 0x01 0x64 {hue:uint16_be:range(0,360)} {sat:uint8:range(0,100)} 0x00 0x01 0x00 {checksum}"
+            }
+        },
+        {
+            "productId": "PD20250051",
+            "name": "NF04",
+            "supportColor": true,
+            "supportScene": true,
+            "supportDIY": true,
+            "supportMusic": true,
+            "diyType": "normal",
+            "commandPatterns": {
+                "power": "0x7A 0x0A {size} {state:uint8:enum(1=on,2=off)} {checksum}",
+                "cct": "0x7A 0x0C {size} {brr_hi:uint8} {brr_lo:uint8} {cct:uint8} 0x00 0x01 0x00 {checksum}",
+                "brightness": "0x7A 0x0B {size} 0x00 {brr_hi:uint8} {brr_lo:uint8} {checksum}",
+                "query_all": "0x7A 0x08 {size} 0x00 {checksum}",
+                "query_current": "0x7A 0x08 {size} 0x01 {checksum}",
+                "hsi": "0x7A 0x0D {size16} {brr_hi:uint8} {brr_lo:uint8} 0x01 0x64 {hue:uint16_be:range(0,360)} {sat:uint8:range(0,100)} 0x00 0x01 0x00 {checksum}"
+            }
+        },
+        {
+            "productId": "PD20250087",
+            "name": "NF06",
+            "supportColor": true,
+            "supportScene": true,
+            "supportDIY": true,
+            "supportMusic": true,
+            "multiPanel": true,
+            "diyType": "normal",
+            "commandPatterns": {
+                "power": "0x7A 0x0A {size} {state:uint8:enum(1=on,2=off)} {checksum}",
+                "cct": "0x7A 0x0C {size} {brr_hi:uint8} {brr_lo:uint8} {cct:uint8} 0x00 0x01 0x00 {checksum}",
+                "brightness": "0x7A 0x0B {size} 0x00 {brr_hi:uint8} {brr_lo:uint8} {checksum}",
+                "query_all": "0x7A 0x08 {size} 0x00 {checksum}",
+                "query_current": "0x7A 0x08 {size} 0x01 {checksum}",
+                "hsi": "0x7A 0x0D {size16} {brr_hi:uint8} {brr_lo:uint8} 0x01 0x64 {hue:uint16_be:range(0,360)} {sat:uint8:range(0,100)} 0x00 0x01 0x00 {checksum}"
+            }
+        },
+        {
+            "productId": "PD20250004",
+            "name": "NR01",
+            "supportColor": true,
+            "supportScene": true,
+            "supportDIY": true,
+            "supportMusic": true,
+            "multiSegment": true,
+            "diyType": "normal",
+            "commandPatterns": {
+                "power": "0x7A 0x0A {size} {state:uint8:enum(1=on,2=off)} {checksum}",
+                "cct": "0x7A 0x0C {size} {brr_hi:uint8} {brr_lo:uint8} {cct:uint8} 0x00 0x01 0x00 {checksum}",
+                "brightness": "0x7A 0x0B {size} 0x00 {brr_hi:uint8} {brr_lo:uint8} {checksum}",
+                "query_all": "0x7A 0x08 {size} 0x00 {checksum}",
+                "query_current": "0x7A 0x08 {size} 0x01 {checksum}",
+                "hsi": "0x7A 0x0D {size16} {brr_hi:uint8} {brr_lo:uint8} 0x01 0x64 {hue:uint16_be:range(0,360)} {sat:uint8:range(0,100)} 0x00 0x01 0x00 {checksum}"
+            }
+        },
+        {
+            "productId": "PD20250007",
+            "name": "NR02",
+            "supportColor": true,
+            "supportScene": true,
+            "supportDIY": true,
+            "supportMusic": true,
+            "multiSegment": true,
+            "diyType": "normal",
+            "commandPatterns": {
+                "power": "0x7A 0x0A {size} {state:uint8:enum(1=on,2=off)} {checksum}",
+                "cct": "0x7A 0x0C {size} {brr_hi:uint8} {brr_lo:uint8} {cct:uint8} 0x00 0x01 0x00 {checksum}",
+                "brightness": "0x7A 0x0B {size} 0x00 {brr_hi:uint8} {brr_lo:uint8} {checksum}",
+                "query_all": "0x7A 0x08 {size} 0x00 {checksum}",
+                "query_current": "0x7A 0x08 {size} 0x01 {checksum}",
+                "hsi": "0x7A 0x0D {size16} {brr_hi:uint8} {brr_lo:uint8} 0x01 0x64 {hue:uint16_be:range(0,360)} {sat:uint8:range(0,100)} 0x00 0x01 0x00 {checksum}"
+            }
+        },
+        {
+            "productId": "PD20250005",
+            "name": "NS01 3M",
+            "image": "https://github.com/keefo/NeewerLite/blob/main/Database/light_images/ns02.png?raw=true",
+            "supportColor": true,
+            "supportScene": true,
+            "supportDIY": true,
+            "supportMusic": true,
+            "diyType": "normal",
+            "commandPatterns": {
+                "power": "0x7A 0x0A {size} {state:uint8:enum(1=on,2=off)} {checksum}",
+                "cct": "0x7A 0x0C {size} {brr_hi:uint8} {brr_lo:uint8} {cct:uint8} 0x00 0x01 0x00 {checksum}",
+                "brightness": "0x7A 0x0B {size} 0x00 {brr_hi:uint8} {brr_lo:uint8} {checksum}",
+                "query_all": "0x7A 0x08 {size} 0x00 {checksum}",
+                "query_current": "0x7A 0x08 {size} 0x01 {checksum}",
+                "hsi": "0x7A 0x0D {size16} {brr_hi:uint8} {brr_lo:uint8} 0x01 0x64 {hue:uint16_be:range(0,360)} {sat:uint8:range(0,100)} 0x00 0x01 0x00 {checksum}"
+            }
+        },
+        {
+            "productId": "PD20250029",
+            "name": "NS01 5M",
+            "image": "https://github.com/keefo/NeewerLite/blob/main/Database/light_images/ns02.png?raw=true",
+            "supportColor": true,
+            "supportScene": true,
+            "supportDIY": true,
+            "supportMusic": true,
+            "diyType": "normal",
+            "commandPatterns": {
+                "power": "0x7A 0x0A {size} {state:uint8:enum(1=on,2=off)} {checksum}",
+                "cct": "0x7A 0x0C {size} {brr_hi:uint8} {brr_lo:uint8} {cct:uint8} 0x00 0x01 0x00 {checksum}",
+                "brightness": "0x7A 0x0B {size} 0x00 {brr_hi:uint8} {brr_lo:uint8} {checksum}",
+                "query_all": "0x7A 0x08 {size} 0x00 {checksum}",
+                "query_current": "0x7A 0x08 {size} 0x01 {checksum}",
+                "hsi": "0x7A 0x0D {size16} {brr_hi:uint8} {brr_lo:uint8} 0x01 0x64 {hue:uint16_be:range(0,360)} {sat:uint8:range(0,100)} 0x00 0x01 0x00 {checksum}"
+            }
+        },
+        {
+            "productId": "PD20250006",
+            "name": "NS02 3M",
+            "image": "https://github.com/keefo/NeewerLite/blob/main/Database/light_images/ns02.png?raw=true",
+            "supportColor": true,
+            "supportScene": true,
+            "supportDIY": true,
+            "supportMusic": true,
+            "diyType": "normal",
+            "commandPatterns": {
+                "power": "0x7A 0x0A {size} {state:uint8:enum(1=on,2=off)} {checksum}",
+                "cct": "0x7A 0x0C {size} {brr_hi:uint8} {brr_lo:uint8} {cct:uint8} 0x00 0x01 0x00 {checksum}",
+                "brightness": "0x7A 0x0B {size} 0x00 {brr_hi:uint8} {brr_lo:uint8} {checksum}",
+                "query_all": "0x7A 0x08 {size} 0x00 {checksum}",
+                "query_current": "0x7A 0x08 {size} 0x01 {checksum}",
+                "hsi": "0x7A 0x0D {size16} {brr_hi:uint8} {brr_lo:uint8} 0x01 0x64 {hue:uint16_be:range(0,360)} {sat:uint8:range(0,100)} 0x00 0x01 0x00 {checksum}"
+            }
+        },
+        {
+            "productId": "PD20250030",
+            "name": "NS02 5M",
+            "image": "https://github.com/keefo/NeewerLite/blob/main/Database/light_images/ns02.png?raw=true",
+            "supportColor": true,
+            "supportScene": true,
+            "supportDIY": true,
+            "supportMusic": true,
+            "diyType": "normal",
+            "commandPatterns": {
+                "power": "0x7A 0x0A {size} {state:uint8:enum(1=on,2=off)} {checksum}",
+                "cct": "0x7A 0x0C {size} {brr_hi:uint8} {brr_lo:uint8} {cct:uint8} 0x00 0x01 0x00 {checksum}",
+                "brightness": "0x7A 0x0B {size} 0x00 {brr_hi:uint8} {brr_lo:uint8} {checksum}",
+                "query_all": "0x7A 0x08 {size} 0x00 {checksum}",
+                "query_current": "0x7A 0x08 {size} 0x01 {checksum}",
+                "hsi": "0x7A 0x0D {size16} {brr_hi:uint8} {brr_lo:uint8} 0x01 0x64 {hue:uint16_be:range(0,360)} {sat:uint8:range(0,100)} 0x00 0x01 0x00 {checksum}"
+            }
+        },
+        {
+            "productId": "PD20250039",
+            "name": "NF02",
+            "supportColor": true,
+            "supportScene": true,
+            "supportDIY": true,
+            "supportMusic": true,
+            "diyType": "advanced",
+            "twoDimensionalMusic": true,
+            "soundDevice": true,
+            "commandPatterns": {
+                "power": "0x7A 0x0A {size} {state:uint8:enum(1=on,2=off)} {checksum}",
+                "cct": "0x7A 0x0C {size} {brr_hi:uint8} {brr_lo:uint8} {cct:uint8} 0x00 0x01 0x00 {checksum}",
+                "brightness": "0x7A 0x0B {size} 0x00 {brr_hi:uint8} {brr_lo:uint8} {checksum}",
+                "query_all": "0x7A 0x08 {size} 0x00 {checksum}",
+                "query_current": "0x7A 0x08 {size} 0x01 {checksum}",
+                "hsi": "0x7A 0x0D {size16} {brr_hi:uint8} {brr_lo:uint8} 0x01 0x64 {hue:uint16_be:range(0,360)} {sat:uint8:range(0,100)} 0x00 0x01 0x00 {checksum}"
+            }
+        },
+        {
+            "productId": "PD20250008",
+            "name": "NW03",
+            "supportColor": true,
+            "supportScene": true,
+            "supportDIY": true,
+            "supportMusic": true,
+            "multiPanel": true,
+            "diyType": "normal",
+            "commandPatterns": {
+                "power": "0x7A 0x0A {size} {state:uint8:enum(1=on,2=off)} {checksum}",
+                "cct": "0x7A 0x0C {size} {brr_hi:uint8} {brr_lo:uint8} {cct:uint8} 0x00 0x01 0x00 {checksum}",
+                "brightness": "0x7A 0x0B {size} 0x00 {brr_hi:uint8} {brr_lo:uint8} {checksum}",
+                "query_all": "0x7A 0x08 {size} 0x00 {checksum}",
+                "query_current": "0x7A 0x08 {size} 0x01 {checksum}",
+                "hsi": "0x7A 0x0D {size16} {brr_hi:uint8} {brr_lo:uint8} 0x01 0x64 {hue:uint16_be:range(0,360)} {sat:uint8:range(0,100)} 0x00 0x01 0x00 {checksum}"
+            }
+        },
+        {
+            "productId": "PD20250052",
+            "name": "NF05",
+            "supportColor": true,
+            "supportScene": true,
+            "supportDIY": true,
+            "supportMusic": true,
+            "diyType": "advanced",
+            "twoDimensional": true,
+            "twoDimensionalMusic": true,
+            "commandPatterns": {
+                "power": "0x7A 0x0A {size} {state:uint8:enum(1=on,2=off)} {checksum}",
+                "cct": "0x7A 0x0C {size} {brr_hi:uint8} {brr_lo:uint8} {cct:uint8} 0x00 0x01 0x00 {checksum}",
+                "brightness": "0x7A 0x0B {size} 0x00 {brr_hi:uint8} {brr_lo:uint8} {checksum}",
+                "query_all": "0x7A 0x08 {size} 0x00 {checksum}",
+                "query_current": "0x7A 0x08 {size} 0x01 {checksum}",
+                "hsi": "0x7A 0x0D {size16} {brr_hi:uint8} {brr_lo:uint8} 0x01 0x64 {hue:uint16_be:range(0,360)} {sat:uint8:range(0,100)} 0x00 0x01 0x00 {checksum}"
+            }
+        },
+        {
+            "productId": "PD20250128",
+            "name": "NS05",
+            "image": "https://github.com/keefo/NeewerLite/blob/main/Database/light_images/ns02.png?raw=true",
+            "supportColor": true,
+            "supportScene": true,
+            "supportDIY": true,
+            "supportMusic": true,
+            "diyType": "advanced",
+            "twoDimensional": true,
+            "multiSegment": true,
+            "commandPatterns": {
+                "power": "0x7A 0x0A {size} {state:uint8:enum(1=on,2=off)} {checksum}",
+                "cct": "0x7A 0x0C {size} {brr_hi:uint8} {brr_lo:uint8} {cct:uint8} 0x00 0x01 0x00 {checksum}",
+                "brightness": "0x7A 0x0B {size} 0x00 {brr_hi:uint8} {brr_lo:uint8} {checksum}",
+                "query_all": "0x7A 0x08 {size} 0x00 {checksum}",
+                "query_current": "0x7A 0x08 {size} 0x01 {checksum}",
+                "hsi": "0x7A 0x0D {size16} {brr_hi:uint8} {brr_lo:uint8} 0x01 0x64 {hue:uint16_be:range(0,360)} {sat:uint8:range(0,100)} 0x00 0x01 0x00 {checksum}"
+            }
+        },
+        {
+            "productId": "PD20250058",
+            "name": "NF08",
+            "supportColor": true,
+            "supportScene": true,
+            "supportDIY": true,
+            "supportMusic": true,
+            "diyType": "normal",
+            "commandPatterns": {
+                "power": "0x7A 0x0A {size} {state:uint8:enum(1=on,2=off)} {checksum}",
+                "cct": "0x7A 0x0C {size} {brr_hi:uint8} {brr_lo:uint8} {cct:uint8} 0x00 0x01 0x00 {checksum}",
+                "brightness": "0x7A 0x0B {size} 0x00 {brr_hi:uint8} {brr_lo:uint8} {checksum}",
+                "query_all": "0x7A 0x08 {size} 0x00 {checksum}",
+                "query_current": "0x7A 0x08 {size} 0x01 {checksum}",
+                "hsi": "0x7A 0x0D {size16} {brr_hi:uint8} {brr_lo:uint8} 0x01 0x64 {hue:uint16_be:range(0,360)} {sat:uint8:range(0,100)} 0x00 0x01 0x00 {checksum}"
+            }
+        },
+        {
+            "productId": "PD20250150",
+            "name": "NF03",
+            "supportColor": true,
+            "supportScene": true,
+            "supportDIY": true,
+            "supportMusic": true,
+            "soundDevice": true,
+            "commandPatterns": {
+                "power": "0x7A 0x0A {size} {state:uint8:enum(1=on,2=off)} {checksum}",
+                "cct": "0x7A 0x0C {size} {brr_hi:uint8} {brr_lo:uint8} {cct:uint8} 0x00 0x01 0x00 {checksum}",
+                "brightness": "0x7A 0x0B {size} 0x00 {brr_hi:uint8} {brr_lo:uint8} {checksum}",
+                "query_all": "0x7A 0x08 {size} 0x00 {checksum}",
+                "query_current": "0x7A 0x08 {size} 0x01 {checksum}",
+                "hsi": "0x7A 0x0D {size16} {brr_hi:uint8} {brr_lo:uint8} 0x01 0x64 {hue:uint16_be:range(0,360)} {sat:uint8:range(0,100)} 0x00 0x01 0x00 {checksum}"
+            }
+        },
+        {
+            "productId": "PD20250103",
+            "name": "NS03 3M",
+            "image": "https://github.com/keefo/NeewerLite/blob/main/Database/light_images/ns02.png?raw=true",
+            "supportColor": false,
+            "supportScene": false,
+            "supportDIY": false,
+            "supportMusic": false,
+            "singleBluetooth": true,
+            "commandPatterns": {
+                "power": "0x7A 0x0A {size} {state:uint8:enum(1=on,2=off)} {checksum}",
+                "brightness": "0x7A 0x0B {size} 0x00 {brr_hi:uint8} {brr_lo:uint8} {checksum}",
+                "query_all": "0x7A 0x08 {size} 0x00 {checksum}",
+                "query_current": "0x7A 0x08 {size} 0x01 {checksum}"
+            }
+        },
+        {
+            "productId": "PD20250145",
+            "name": "NS03 5M",
+            "image": "https://github.com/keefo/NeewerLite/blob/main/Database/light_images/ns02.png?raw=true",
+            "supportColor": false,
+            "supportScene": false,
+            "supportDIY": false,
+            "supportMusic": false,
+            "singleBluetooth": true,
+            "commandPatterns": {
+                "power": "0x7A 0x0A {size} {state:uint8:enum(1=on,2=off)} {checksum}",
+                "brightness": "0x7A 0x0B {size} 0x00 {brr_hi:uint8} {brr_lo:uint8} {checksum}",
+                "query_all": "0x7A 0x08 {size} 0x00 {checksum}",
+                "query_current": "0x7A 0x08 {size} 0x01 {checksum}"
+            }
+        },
+        {
+            "productId": "PD20250122",
+            "name": "BF01",
+            "supportColor": true,
+            "supportScene": true,
+            "supportDIY": true,
+            "supportMusic": true,
+            "commandPatterns": {
+                "power": "0x7A 0x0A {size} {state:uint8:enum(1=on,2=off)} {checksum}",
+                "cct": "0x7A 0x0C {size} {brr_hi:uint8} {brr_lo:uint8} {cct:uint8} 0x00 0x01 0x00 {checksum}",
+                "brightness": "0x7A 0x0B {size} 0x00 {brr_hi:uint8} {brr_lo:uint8} {checksum}",
+                "query_all": "0x7A 0x08 {size} 0x00 {checksum}",
+                "query_current": "0x7A 0x08 {size} 0x01 {checksum}",
+                "hsi": "0x7A 0x0D {size16} {brr_hi:uint8} {brr_lo:uint8} 0x01 0x64 {hue:uint16_be:range(0,360)} {sat:uint8:range(0,100)} 0x00 0x01 0x00 {checksum}"
+            }
+        },
+        {
+            "productId": "PD20250123",
+            "name": "BF02",
+            "supportColor": true,
+            "supportScene": true,
+            "supportDIY": true,
+            "supportMusic": true,
+            "commandPatterns": {
+                "power": "0x7A 0x0A {size} {state:uint8:enum(1=on,2=off)} {checksum}",
+                "cct": "0x7A 0x0C {size} {brr_hi:uint8} {brr_lo:uint8} {cct:uint8} 0x00 0x01 0x00 {checksum}",
+                "brightness": "0x7A 0x0B {size} 0x00 {brr_hi:uint8} {brr_lo:uint8} {checksum}",
+                "query_all": "0x7A 0x08 {size} 0x00 {checksum}",
+                "query_current": "0x7A 0x08 {size} 0x01 {checksum}",
+                "hsi": "0x7A 0x0D {size16} {brr_hi:uint8} {brr_lo:uint8} 0x01 0x64 {hue:uint16_be:range(0,360)} {sat:uint8:range(0,100)} 0x00 0x01 0x00 {checksum}"
+            }
+        },
+        {
+            "productId": "PD20250050",
+            "name": "NW01",
+            "supportColor": true,
+            "supportScene": true,
+            "supportDIY": true,
+            "supportMusic": true,
+            "diyType": "advanced",
+            "twoDimensional": true,
+            "twoDimensionalMusic": true,
+            "commandPatterns": {
+                "power": "0x7A 0x0A {size} {state:uint8:enum(1=on,2=off)} {checksum}",
+                "cct": "0x7A 0x0C {size} {brr_hi:uint8} {brr_lo:uint8} {cct:uint8} 0x00 0x01 0x00 {checksum}",
+                "brightness": "0x7A 0x0B {size} 0x00 {brr_hi:uint8} {brr_lo:uint8} {checksum}",
+                "query_all": "0x7A 0x08 {size} 0x00 {checksum}",
+                "query_current": "0x7A 0x08 {size} 0x01 {checksum}",
+                "hsi": "0x7A 0x0D {size16} {brr_hi:uint8} {brr_lo:uint8} 0x01 0x64 {hue:uint16_be:range(0,360)} {sat:uint8:range(0,100)} 0x00 0x01 0x00 {checksum}"
+            }
+        },
+        {
+            "productId": "PD20250130",
+            "name": "NF10",
+            "supportColor": false,
+            "supportScene": true,
+            "supportDIY": false,
+            "supportMusic": false,
+            "specialClock": true,
+            "commandPatterns": {
+                "power": "0x7A 0x0A {size} {state:uint8:enum(1=on,2=off)} {checksum}",
+                "brightness": "0x7A 0x0B {size} 0x00 {brr_hi:uint8} {brr_lo:uint8} {checksum}",
+                "query_all": "0x7A 0x08 {size} 0x00 {checksum}",
+                "query_current": "0x7A 0x08 {size} 0x01 {checksum}"
+            }
+        },
+        {
+            "productId": "PD20250132",
+            "name": "NS09 4M",
+            "image": "https://github.com/keefo/NeewerLite/blob/main/Database/light_images/ns02.png?raw=true",
+            "supportColor": true,
+            "supportScene": true,
+            "supportDIY": true,
+            "supportMusic": true,
+            "diyType": "normal",
+            "commandPatterns": {
+                "power": "0x7A 0x0A {size} {state:uint8:enum(1=on,2=off)} {checksum}",
+                "cct": "0x7A 0x0C {size} {brr_hi:uint8} {brr_lo:uint8} {cct:uint8} 0x00 0x01 0x00 {checksum}",
+                "brightness": "0x7A 0x0B {size} 0x00 {brr_hi:uint8} {brr_lo:uint8} {checksum}",
+                "query_all": "0x7A 0x08 {size} 0x00 {checksum}",
+                "query_current": "0x7A 0x08 {size} 0x01 {checksum}",
+                "hsi": "0x7A 0x0D {size16} {brr_hi:uint8} {brr_lo:uint8} 0x01 0x64 {hue:uint16_be:range(0,360)} {sat:uint8:range(0,100)} 0x00 0x01 0x00 {checksum}"
+            }
+        },
+        {
+            "productId": "PD20250134",
+            "name": "NS09 6M",
+            "image": "https://github.com/keefo/NeewerLite/blob/main/Database/light_images/ns02.png?raw=true",
+            "supportColor": true,
+            "supportScene": true,
+            "supportDIY": true,
+            "supportMusic": true,
+            "diyType": "normal",
+            "commandPatterns": {
+                "power": "0x7A 0x0A {size} {state:uint8:enum(1=on,2=off)} {checksum}",
+                "cct": "0x7A 0x0C {size} {brr_hi:uint8} {brr_lo:uint8} {cct:uint8} 0x00 0x01 0x00 {checksum}",
+                "brightness": "0x7A 0x0B {size} 0x00 {brr_hi:uint8} {brr_lo:uint8} {checksum}",
+                "query_all": "0x7A 0x08 {size} 0x00 {checksum}",
+                "query_current": "0x7A 0x08 {size} 0x01 {checksum}",
+                "hsi": "0x7A 0x0D {size16} {brr_hi:uint8} {brr_lo:uint8} 0x01 0x64 {hue:uint16_be:range(0,360)} {sat:uint8:range(0,100)} 0x00 0x01 0x00 {checksum}"
+            }
+        },
+        {
+            "productId": "PD20250129",
+            "name": "BF05",
+            "supportColor": false,
+            "supportScene": true,
+            "supportDIY": false,
+            "supportMusic": false,
+            "specialClock": true,
+            "singlePage": true,
+            "commandPatterns": {
+                "power": "0x7A 0x0A {size} {state:uint8:enum(1=on,2=off)} {checksum}",
+                "brightness": "0x7A 0x0B {size} 0x00 {brr_hi:uint8} {brr_lo:uint8} {checksum}",
+                "query_all": "0x7A 0x08 {size} 0x00 {checksum}",
+                "query_current": "0x7A 0x08 {size} 0x01 {checksum}"
+            }
+        },
+        {
+            "productId": "PD20250138",
+            "name": "NF12",
+            "supportColor": true,
+            "supportScene": true,
+            "supportDIY": true,
+            "supportMusic": true,
+            "diyType": "normal",
+            "commandPatterns": {
+                "power": "0x7A 0x0A {size} {state:uint8:enum(1=on,2=off)} {checksum}",
+                "cct": "0x7A 0x0C {size} {brr_hi:uint8} {brr_lo:uint8} {cct:uint8} 0x00 0x01 0x00 {checksum}",
+                "brightness": "0x7A 0x0B {size} 0x00 {brr_hi:uint8} {brr_lo:uint8} {checksum}",
+                "query_all": "0x7A 0x08 {size} 0x00 {checksum}",
+                "query_current": "0x7A 0x08 {size} 0x01 {checksum}",
+                "hsi": "0x7A 0x0D {size16} {brr_hi:uint8} {brr_lo:uint8} 0x01 0x64 {hue:uint16_be:range(0,360)} {sat:uint8:range(0,100)} 0x00 0x01 0x00 {checksum}"
+            }
+        },
+        {
+            "productId": "PD20250139",
+            "name": "NF13",
+            "supportColor": true,
+            "supportScene": true,
+            "supportDIY": true,
+            "supportMusic": true,
+            "diyType": "normal",
+            "starrySky": true,
+            "starrySkyPanel": true,
+            "commandPatterns": {
+                "power": "0x7A 0x0A {size} {state:uint8:enum(1=on,2=off)} {checksum}",
+                "cct": "0x7A 0x0C {size} {brr_hi:uint8} {brr_lo:uint8} {cct:uint8} 0x00 0x01 0x00 {checksum}",
+                "brightness": "0x7A 0x0B {size} 0x00 {brr_hi:uint8} {brr_lo:uint8} {checksum}",
+                "query_all": "0x7A 0x08 {size} 0x00 {checksum}",
+                "query_current": "0x7A 0x08 {size} 0x01 {checksum}",
+                "hsi": "0x7A 0x0D {size16} {brr_hi:uint8} {brr_lo:uint8} 0x01 0x64 {hue:uint16_be:range(0,360)} {sat:uint8:range(0,100)} 0x00 0x01 0x00 {checksum}"
+            }
+        },
+        {
+            "productId": "PD20250140",
+            "name": "NF14",
+            "supportColor": true,
+            "supportScene": true,
+            "supportDIY": true,
+            "supportMusic": true,
+            "diyType": "normal",
+            "starrySky": true,
+            "commandPatterns": {
+                "power": "0x7A 0x0A {size} {state:uint8:enum(1=on,2=off)} {checksum}",
+                "cct": "0x7A 0x0C {size} {brr_hi:uint8} {brr_lo:uint8} {cct:uint8} 0x00 0x01 0x00 {checksum}",
+                "brightness": "0x7A 0x0B {size} 0x00 {brr_hi:uint8} {brr_lo:uint8} {checksum}",
+                "query_all": "0x7A 0x08 {size} 0x00 {checksum}",
+                "query_current": "0x7A 0x08 {size} 0x01 {checksum}",
+                "hsi": "0x7A 0x0D {size16} {brr_hi:uint8} {brr_lo:uint8} 0x01 0x64 {hue:uint16_be:range(0,360)} {sat:uint8:range(0,100)} 0x00 0x01 0x00 {checksum}"
+            }
+        },
+        {
+            "productId": "PD20250141",
+            "name": "NF15",
+            "supportColor": true,
+            "supportScene": true,
+            "supportDIY": true,
+            "supportMusic": true,
+            "diyType": "normal",
+            "starrySky": true,
+            "commandPatterns": {
+                "power": "0x7A 0x0A {size} {state:uint8:enum(1=on,2=off)} {checksum}",
+                "cct": "0x7A 0x0C {size} {brr_hi:uint8} {brr_lo:uint8} {cct:uint8} 0x00 0x01 0x00 {checksum}",
+                "brightness": "0x7A 0x0B {size} 0x00 {brr_hi:uint8} {brr_lo:uint8} {checksum}",
+                "query_all": "0x7A 0x08 {size} 0x00 {checksum}",
+                "query_current": "0x7A 0x08 {size} 0x01 {checksum}",
+                "hsi": "0x7A 0x0D {size16} {brr_hi:uint8} {brr_lo:uint8} 0x01 0x64 {hue:uint16_be:range(0,360)} {sat:uint8:range(0,100)} 0x00 0x01 0x00 {checksum}"
+            }
         }
     ]
 }

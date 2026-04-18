@@ -85,6 +85,23 @@ class NeewerLight: NSObject, ObservableNeewerLightProtocol {
     private var _nickName: String?
     private var _projectName: String?
     private var _macAddress: String?
+    private var _productId: String?
+
+    /// Extracts product ID (e.g. "PD20250030") from NH-style rawName like "NH-PD20250030" or "NH-PD20250030&FFFFFFFF"
+    var productId: String? {
+        if _productId == nil {
+            let name = rawName.uppercased()
+            guard name.hasPrefix("NH-") else { return nil }
+            let stripped = String(name.dropFirst(3)) // remove "NH-"
+            if let ampIdx = stripped.firstIndex(of: "&") {
+                _productId = String(stripped[stripped.startIndex..<ampIdx])
+            } else {
+                _productId = stripped
+            }
+        }
+        return _productId
+    }
+
     private var _lightType: UInt8 = 0 {
         didSet {
             let fxs = NeewerLightConstant.getLightFX(lightType: _lightType)
@@ -479,6 +496,13 @@ class NeewerLight: NSObject, ObservableNeewerLightProtocol {
             let pattern = patterns[command] {
             return pattern
         }
+        // Fall back to neewer_home lookup by productId for NH-PD* lights
+        if let pid = productId,
+            let device = ContentManager.shared.fetchHomeDevice(productId: pid),
+            let patterns = device.commandPatterns,
+            let pattern = patterns[command] {
+            return pattern
+        }
         return nil
     }
     
@@ -573,6 +597,10 @@ class NeewerLight: NSObject, ObservableNeewerLightProtocol {
             let newCctValue = Int(cct).clamped(to: cctRange.minCCT...cctRange.maxCCT)
             let newGmValue = Int(gmm).clamped(to: -50...50)
             values["brr"] = newBrrValue
+            // Home-protocol brightness is 0-1000 (1000 = 100%), encoded as [value/10, value%10]
+            let brrScaled = newBrrValue * 10
+            values["brr_hi"] = brrScaled / 10
+            values["brr_lo"] = brrScaled % 10
             values["cct"] = newCctValue
             values["gm"] = newGmValue + 50
             
@@ -622,7 +650,11 @@ class NeewerLight: NSObject, ObservableNeewerLightProtocol {
             values["hue"] = newHue360Value
             values["sat"] = newSatValue
             values["brr"] = newBrrValue
-  
+            // Home-protocol brightness is 0-1000 (1000 = 100%), encoded as [value/10, value%10]
+            let brrScaled = newBrrValue * 10
+            values["brr_hi"] = brrScaled / 10
+            values["brr_lo"] = brrScaled % 10
+
             brrValue.value = newBrrValue
             hueValue.value = newHue360Value
             satValue.value = newSatValue
@@ -702,6 +734,8 @@ class NeewerLight: NSObject, ObservableNeewerLightProtocol {
                 if let cmdPattern = matchingFx.cmdPattern {
                     // Compose values for the pattern
                     var values: [String: Any] = [:]
+                    // Always provide MAC for patterns that need it
+                    values["mac"] = _macAddress ?? ""
                     if fxx.needSpeed {
                         values["speed"] = fxx.speedValue
                     }
@@ -742,21 +776,6 @@ class NeewerLight: NSObject, ObservableNeewerLightProtocol {
                     }
                 }
             }
-
-            if cmd.isEmpty {
-                if item.support17FX ?? false {
-                    cmd = getSceneValue(UInt8(fxx.id), brightness: CGFloat(fxx.brrValue))
-                }
-                else
-                {
-                    cmd = getSceneCommand(_macAddress ?? "", fxx)
-                }
-                cmd = getSceneCommand(_macAddress ?? "", fxx)
-            }
-        }
-        else
-        {
-            cmd = getSceneValue(UInt8(fxx.id), brightness: CGFloat(fxx.brrValue))
         }
         
         if cmd.isEmpty
@@ -1137,157 +1156,6 @@ class NeewerLight: NSObject, ObservableNeewerLightProtocol {
 
         let bArr1: [UInt8] = appendCheckSum(bArr)
 
-        let data = NSData(bytes: bArr1, length: bArr1.count)
-        return data as Data
-    }
-
-    func getSceneCommand(_ mac: String, _ fxx: NeewerLightFX) -> Data {
-
-        /*
-         Oct 25 01:41:40.143  ATT Send         0x004A  00:00:00:00:00:00  Write Command - Handle:0x000E - Value: 7891 0BDF 243A B446 5D8B 1107 0103 4F  SEND
-         Oct 25 01:41:42.493  ATT Send         0x004A  00:00:00:00:00:00  Write Command - Handle:0x000E - Value: 7891 0BDF 243A B446 5D8B 1107 0101 4D  SEND
-
-         CMD TAG   SIZE       MAC                     SCE_TAG  SCE_ID(01~0C)     (BRR 00~64)    (COLOR 00~02)      (Speed 00~0A)      (checksum)
-         78   91   0B         (DF 24 3A B4 46 5D)     8B       11                 07             01                 03                 4F
-
-         Name               ID
-         Lighting           01             BRR   CTT   SPEED
-         Paparazzi          02             BRR   CTT   GM       SPEED
-         Defective bulb     03             BRR   CTT   GM       SPEED
-         Explosion          04             BRR   CTT   GM       SPEED     Sparks(01~0A)
-         Welding            05             BRR_low   BRR_high     CTT   GM       SPEED
-         CCT flash          06             BRR   CTT   GM       SPEED
-         HUE flash          07             BRR   HUE (2Bytes little Endian 0000~6801)   SAT (00~64)   SPEED
-         CCT pulse          08             BRR   CCT   GM       SPEED
-         HUE pulse          09             BRR   HUE (2Bytes little Endian 0000~6801)   SAT (00~64)   SPEED
-         Cop Car            0A             BRR   RED_AND_BLUE(00~05 Red,Blue, Red and Blue, White and Blue, Red blue  white) SPEED
-         Candlelight        0B             BRR_low   BRR_high   CTT     GM       SPEED     Sparks
-         HUE Loop           0C             BRR   HUE_low  HUE_high      SPEED
-         CCT Loop           0D             BRR   CCT_low  CCT_high      SPEED
-         INT loop           0E             BRR_low   BRR_high   HUE     SPEED
-         TV Screen          0F             BRR   CCT   GM       SPEED
-         Firework           10             BRR   COLOR(00 Single color, 01 Color, 02 Combined)   SPEED   Sparks
-         Party              11             BRR   COLOR(00 Single color, 01 Color, 02 Combined)   SPEED
-         */
-        // scene from 1 ~ 9
-        channel.value = UInt8(fxx.id).clamped(to: 1...maxChannel)
-
-        var byteCount = 8
-        if fxx.needBRR {
-            byteCount += 1
-        }
-        if fxx.needBRRUpperBound {
-            byteCount += 1
-        }
-        if fxx.needHUE {
-            byteCount += 2
-        }
-        if fxx.needHUEUpperBound {
-            byteCount += 2
-        }
-        if fxx.needSAT {
-            byteCount += 1
-        }
-        if fxx.needCCT {
-            byteCount += 1
-        }
-        if fxx.needCCTUpperBound {
-            byteCount += 1
-        }
-        if fxx.needGM {
-            byteCount += 1
-        }
-        if fxx.needColor && fxx.colors.count > 0 {
-            byteCount += 1
-        }
-        if fxx.needSpeed {
-            byteCount += 1
-        }
-        if fxx.needSparks && fxx.sparkLevel.count > 0 {
-            byteCount += 1
-        }
-        var bArr: [Int] = [Int](repeating: 0, count: byteCount + 4)
-        bArr[0] = NeewerLightConstant.BleCommand.prefixTag      // 78
-        bArr[1] = NeewerLightConstant.BleCommand.setSCEDataTag  // 91
-        bArr[2] = byteCount
-        var macArray = mac.split(separator: ":").compactMap { Int($0, radix: 16) }
-        while macArray.count < 6 {
-            macArray.append(0)
-        }
-        bArr[3] = macArray[0]
-        bArr[4] = macArray[1]
-        bArr[5] = macArray[2]
-        bArr[6] = macArray[3]
-        bArr[7] = macArray[4]
-        bArr[8] = macArray[5]
-        bArr[9] = NeewerLightConstant.BleCommand.setSCESubTag
-        bArr[10] = Int(channel.value)
-        var idx = 11
-        if fxx.needBRR {
-            let newBrrValue: Int = Int(fxx.brrValue).clamped(to: 0...100)
-            bArr[idx] = newBrrValue
-            idx += 1
-        }
-        if fxx.needBRRUpperBound {
-            let newBrrValue: Int = Int(fxx.brrUpperValue).clamped(to: 0...100)
-            bArr[idx] = newBrrValue
-            idx += 1
-        }
-        if fxx.needHUE {
-            let newHueValue = Int(fxx.hueValue).clamped(to: 0...360)
-            bArr[idx] = Int(newHueValue & 0xFF)
-            idx += 1
-            bArr[idx] = Int((newHueValue & 0xFF00) >> 8) // callcuated from rgb
-            idx += 1
-        }
-        if fxx.needHUEUpperBound {
-            let newHueValue = Int(fxx.hueUpperValue).clamped(to: 0...360)
-            bArr[idx] = Int(newHueValue & 0xFF)
-            idx += 1
-            bArr[idx] = Int((newHueValue & 0xFF00) >> 8) // callcuated from rgb
-            idx += 1
-        }
-        if fxx.needSAT {
-            let newSatValue: Int = Int(fxx.satValue).clamped(to: 0...100)
-            bArr[idx] = newSatValue
-            idx += 1
-        }
-        if fxx.needCCT {
-            let cctrange = CCTRange()
-            let newCctValue: Int = Int(fxx.cctValue).clamped(to: cctrange.minCCT...cctrange.maxCCT)
-            bArr[idx] = newCctValue
-            idx += 1
-        }
-        if fxx.needCCTUpperBound {
-            let cctrange = CCTRange()
-            let newCctValue: Int = Int(fxx.cctUpperValue).clamped(to: cctrange.minCCT...cctrange.maxCCT)
-            bArr[idx] = newCctValue
-            idx += 1
-        }
-        if fxx.needGM {
-            let newValue: Int = Int(fxx.gmValue).clamped(to: -50...50) + 50
-            bArr[idx] = newValue
-            idx += 1
-        }
-        if fxx.needColor && fxx.colors.count > 0 {
-            let newValue: Int = Int(fxx.colorValue).clamped(to: 0...fxx.colors.count)
-            bArr[idx] = newValue
-            idx += 1
-        }
-        if fxx.needSpeed {
-            let newValue: Int = Int(fxx.speedValue).clamped(to: 1...10)
-            bArr[idx] = newValue
-            idx += 1
-        }
-        if fxx.needSparks && fxx.sparkLevel.count > 0 {
-            let newValue: Int = Int(fxx.sparksValue).clamped(to: 1...fxx.sparkLevel.count)
-            bArr[idx] = newValue
-            idx += 1
-        }
-
-        let bArr1: [UInt8] = appendCheckSum(bArr)
-
-        // Nov 06 23:52:46.851  ATT Send         0x005B  00:00:00:00:00:00  Write Command - Handle:0x000E - Value: 7891 0BDF 243A B446 5D8B 0132 3706 A3  SEND
         let data = NSData(bytes: bArr1, length: bArr1.count)
         return data as Data
     }
