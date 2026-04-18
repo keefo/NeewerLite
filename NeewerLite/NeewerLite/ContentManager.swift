@@ -166,6 +166,17 @@ class ContentManager {
     // JSON Database URL
     private let jsonDatabaseURL = URL(
         string: "https://raw.githubusercontent.com/keefo/NeewerLite/main/Database/lights.json")!
+    private let imageBaseURL = URL(
+        string: "https://raw.githubusercontent.com/keefo/NeewerLite/main/Database/")!
+
+    /// Resolves image references from the database.
+    /// Accepts either a full URL (legacy) or a bare filename resolved against imageBaseURL.
+    func resolveImageURL(_ ref: String, subdirectory: String) -> URL? {
+        if ref.hasPrefix("http://") || ref.hasPrefix("https://") {
+            return URL(string: ref)
+        }
+        return imageBaseURL.appendingPathComponent(subdirectory).appendingPathComponent(ref)
+    }
     private var localDatabaseURL: URL {
         let appSupportURL = fileManager.urls(for: .applicationSupportDirectory, in: .userDomainMask)
             .first!
@@ -384,7 +395,7 @@ class ContentManager {
     // MARK: - Scene Image Fetching and Caching
 
     func fetchCachedSceneImage(urlString: String) -> NSImage? {
-        guard let url = URL(string: urlString) else { return nil }
+        guard let url = resolveImageURL(urlString, subdirectory: "scene_images") else { return nil }
         let cached = cachedURL(for: url)
         if fileManager.fileExists(atPath: cached.path),
            let image = NSImage(contentsOf: cached)
@@ -395,7 +406,7 @@ class ContentManager {
     }
 
     func fetchSceneImage(urlString: String) async -> NSImage? {
-        guard let url = URL(string: urlString) else { return nil }
+        guard let url = resolveImageURL(urlString, subdirectory: "scene_images") else { return nil }
         if failedURLs.contains(url) { return nil }
 
         let cached = cachedURL(for: url)
@@ -434,8 +445,8 @@ class ContentManager {
 
     func fetchCachedLightImage(productId: String) -> NSImage? {
         guard let device = fetchHomeDevice(productId: productId),
-              let imageUrlStr = device.image,
-              let url = URL(string: imageUrlStr) else {
+              let imageRef = device.image,
+              let url = resolveImageURL(imageRef, subdirectory: "light_images") else {
             return nil
         }
         let cached = cachedURL(for: url)
@@ -449,8 +460,8 @@ class ContentManager {
 
     func fetchLightImage(productId: String) async throws -> NSImage? {
         guard let device = fetchHomeDevice(productId: productId),
-              let imageUrlStr = device.image,
-              let url = URL(string: imageUrlStr) else {
+              let imageRef = device.image,
+              let url = resolveImageURL(imageRef, subdirectory: "light_images") else {
             return nil
         }
 
@@ -524,13 +535,14 @@ class ContentManager {
     }
 
     func fetchLightImage(lightType: UInt8) async throws -> NSImage? {
-        guard let imageUrl = fetchImageUrl(for: lightType) else {
+        guard let imageRef = fetchImageRef(for: lightType),
+              let url = resolveImageURL(imageRef, subdirectory: "light_images") else {
             throw NSError(domain: "NoImageURLFound", code: Int(lightType), userInfo: nil)
         }
-        return try await fetchImage(from: imageUrl, lightType: lightType)
+        return try await fetchImage(from: url.absoluteString, lightType: lightType)
     }
 
-    private func fetchImageUrl(for lightType: UInt8) -> String? {
+    private func fetchImageRef(for lightType: UInt8) -> String? {
         if let safeCache = databaseCache {
             let lights = safeCache.lights
             if let found = lights.first(where: { $0.type == lightType }) {
