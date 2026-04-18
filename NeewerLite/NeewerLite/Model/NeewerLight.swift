@@ -63,8 +63,11 @@ class NeewerLight: NSObject, ObservableNeewerLightProtocol {
     }
 
     var maxChannel: UInt8 {
-        let fxs = NeewerLightConstant.getLightFX(lightType: _lightType)
         if supportedFX.isEmpty {
+            var fxs = NeewerLightConstant.getLightFX(lightType: _lightType)
+            if fxs.isEmpty, let pid = productId {
+                fxs = NeewerLightConstant.getHomeLightFX(productId: pid)
+            }
             supportedFX = fxs
         }
         return UInt8(supportedFX.count)
@@ -104,7 +107,10 @@ class NeewerLight: NSObject, ObservableNeewerLightProtocol {
 
     private var _lightType: UInt8 = 0 {
         didSet {
-            let fxs = NeewerLightConstant.getLightFX(lightType: _lightType)
+            var fxs = NeewerLightConstant.getLightFX(lightType: _lightType)
+            if fxs.isEmpty, let pid = productId {
+                fxs = NeewerLightConstant.getHomeLightFX(productId: pid)
+            }
             if supportedFX.isEmpty {
                 supportedFX = fxs
             } else {
@@ -728,53 +734,49 @@ class NeewerLight: NSObject, ObservableNeewerLightProtocol {
     public func sendSceneCommand(_ fxx: NeewerLightFX) {
         var cmd: Data = Data()
 
-        if let item = ContentManager.shared.fetchLightProperty(lightType: _lightType)
-        {
-            if let matchingFx = supportedFX.first(where: { $0.id == fxx.id }) {
-                if let cmdPattern = matchingFx.cmdPattern {
-                    // Compose values for the pattern
-                    var values: [String: Any] = [:]
-                    // Always provide MAC for patterns that need it
-                    values["mac"] = _macAddress ?? ""
-                    if fxx.needSpeed {
-                        values["speed"] = fxx.speedValue
-                    }
-                    if fxx.needColor {
-                        values["color"] = fxx.colorValue
-                    }
-                    if fxx.needBRR {
-                        values["brr"] = fxx.brrValue
-                    }
-                    if fxx.needBRRUpperBound {
-                        values["brr2"] = fxx.brrUpperValue
-                    }
-                    if fxx.needCCT {
-                        values["cct"] = fxx.cctValue
-                        Logger.debug("cct: \(fxx.cctValue)")
-                    }
-                    if fxx.needCCTUpperBound {
-                        values["cct2"] = fxx.cctUpperValue
-                    }
-                    if fxx.needGM {
-                        values["gm"] = fxx.gmValue + 50
-                    }
-                    if fxx.needSAT {
-                        values["sat"] = fxx.satValue
-                    }
-                    if fxx.needHUE {
-                        values["hue"] = fxx.hueValue
-                    }
-                    if fxx.needHUEUpperBound {
-                        values["hue2"] = fxx.hueUpperValue
-                    }
-                    if fxx.needSparks {
-                        values["sparks"] = fxx.sparksValue
-                    }
-                    let data = CommandPatternParser.buildCommand(from: cmdPattern, values: values)
-                    if !data.isEmpty {
-                        cmd = data
-                    }
-                }
+        if let matchingFx = supportedFX.first(where: { $0.id == fxx.id }),
+           let cmdPattern = matchingFx.cmdPattern {
+            // Compose values for the pattern
+            var values: [String: Any] = [:]
+            // Always provide MAC for patterns that need it
+            values["mac"] = _macAddress ?? ""
+            if fxx.needSpeed {
+                values["speed"] = fxx.speedValue
+            }
+            if fxx.needColor {
+                values["color"] = fxx.colorValue
+            }
+            if fxx.needBRR {
+                values["brr"] = fxx.brrValue
+            }
+            if fxx.needBRRUpperBound {
+                values["brr2"] = fxx.brrUpperValue
+            }
+            if fxx.needCCT {
+                values["cct"] = fxx.cctValue
+                Logger.debug("cct: \(fxx.cctValue)")
+            }
+            if fxx.needCCTUpperBound {
+                values["cct2"] = fxx.cctUpperValue
+            }
+            if fxx.needGM {
+                values["gm"] = fxx.gmValue + 50
+            }
+            if fxx.needSAT {
+                values["sat"] = fxx.satValue
+            }
+            if fxx.needHUE {
+                values["hue"] = fxx.hueValue
+            }
+            if fxx.needHUEUpperBound {
+                values["hue2"] = fxx.hueUpperValue
+            }
+            if fxx.needSparks {
+                values["sparks"] = fxx.sparksValue
+            }
+            let data = CommandPatternParser.buildCommand(from: cmdPattern, values: values)
+            if !data.isEmpty {
+                cmd = data
             }
         }
         
@@ -999,7 +1001,15 @@ class NeewerLight: NSObject, ObservableNeewerLightProtocol {
                 cmd = getCCTOnlyLightCommand(brightness: brr, correlatedColorTemperature: CGFloat(cctValue.value))
             }
         } else if lightMode == .HSIMode {
-            
+            // For pattern-based lights (NH devices), resend full HSI with updated brightness
+            if let pattern = findCommandPatternFromDB("hsi") {
+                setHSILightValues(brr100: brr,
+                                  hue: CGFloat(hueValue.value) / 360.0,
+                                  hue360: CGFloat(hueValue.value),
+                                  sat: CGFloat(satValue.value) / 100.0)
+                return
+            }
+
             var useNew = false
             if let item = ContentManager.shared.fetchLightProperty(lightType: _lightType)
             {

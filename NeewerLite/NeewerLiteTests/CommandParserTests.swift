@@ -622,4 +622,172 @@ final class CommandPatternParserTests: XCTestCase {
         let resolved = ContentManager.shared.resolvedFxPatterns(for: item)
         XCTAssertTrue(resolved.isEmpty)
     }
+
+    // MARK: - NH Scene FX Tests
+
+    func testNhSceneNs02PresetExistsInDatabase() {
+        ContentManager.shared.loadDatabaseFromDisk()
+        guard let device = ContentManager.shared.fetchHomeDevice(productId: "PD20250006") else {
+            XCTFail("NS02 3M (PD20250006) not found"); return
+        }
+        XCTAssertEqual(device.fxPreset, "nh_scene_ns02")
+        let resolved = ContentManager.shared.resolvedFxPatterns(for: device)
+        XCTAssertEqual(resolved.count, 73)
+        XCTAssertEqual(resolved[0].name, "Rainbow")
+        XCTAssertEqual(resolved[1].name, "Starry Sky")
+        XCTAssertEqual(resolved.last?.name, "Las Vegas Hockey")
+    }
+
+    func testNhSceneNs02BothDevicesSharePreset() {
+        ContentManager.shared.loadDatabaseFromDisk()
+        let d3m = ContentManager.shared.fetchHomeDevice(productId: "PD20250006")
+        let d5m = ContentManager.shared.fetchHomeDevice(productId: "PD20250030")
+        XCTAssertNotNil(d3m)
+        XCTAssertNotNil(d5m)
+        XCTAssertEqual(d3m?.fxPreset, d5m?.fxPreset)
+    }
+
+    func testNhSceneRainbowPatternBuildsCorrectPacket() {
+        ContentManager.shared.loadDatabaseFromDisk()
+        guard let device = ContentManager.shared.fetchHomeDevice(productId: "PD20250006") else {
+            XCTFail("NS02 3M not found"); return
+        }
+        let patterns = ContentManager.shared.resolvedFxPatterns(for: device)
+        guard let rainbow = patterns.first(where: { $0.id == 1 }) else {
+            XCTFail("Rainbow pattern not found"); return
+        }
+        // Build with brr=70 (no speed control for NH scenes)
+        let values: [String: Any] = ["brr": 70]
+        let data = CommandPatternParser.buildCommand(from: rainbow.cmd, values: values)
+        XCTAssertFalse(data.isEmpty)
+        let bytes = [UInt8](data)
+        // Header: 7A 12
+        XCTAssertEqual(bytes[0], 0x7A)
+        XCTAssertEqual(bytes[1], 0x12)
+        // effectId: 00 01 (Rainbow)
+        XCTAssertEqual(bytes[4], 0x00)
+        XCTAssertEqual(bytes[5], 0x01)
+        // brr=70
+        XCTAssertEqual(bytes[6], 70)
+        XCTAssertEqual(bytes[7], 0x00)
+        // effectMode=0x0D (Progressive), speed=0x32 (fixed)
+        XCTAssertEqual(bytes[13], 0x0D)
+        XCTAssertEqual(bytes[14], 0x32)
+        // colorCount=2
+        XCTAssertEqual(bytes[22], 0x02)
+        // Verify checksum
+        let sum = bytes.dropLast().reduce(0) { $0 + UInt16($1) }
+        XCTAssertEqual(bytes.last, UInt8(sum & 0xFF))
+    }
+
+    func testNhSceneStarrySkryPatternBuildsCorrectPacket() {
+        ContentManager.shared.loadDatabaseFromDisk()
+        guard let device = ContentManager.shared.fetchHomeDevice(productId: "PD20250030") else {
+            XCTFail("NS02 5M not found"); return
+        }
+        let patterns = ContentManager.shared.resolvedFxPatterns(for: device)
+        guard let starry = patterns.first(where: { $0.id == 2 }) else {
+            XCTFail("Starry Sky pattern not found"); return
+        }
+        // Build with brr=70 (no speed control for NH scenes)
+        let values: [String: Any] = ["brr": 70]
+        let data = CommandPatternParser.buildCommand(from: starry.cmd, values: values)
+        XCTAssertFalse(data.isEmpty)
+        let bytes = [UInt8](data)
+        // Header
+        XCTAssertEqual(bytes[0], 0x7A)
+        XCTAssertEqual(bytes[1], 0x12)
+        // effectId: 00 02 (Starry Sky)
+        XCTAssertEqual(bytes[4], 0x00)
+        XCTAssertEqual(bytes[5], 0x02)
+        // brr
+        XCTAssertEqual(bytes[6], 70)
+        XCTAssertEqual(bytes[7], 0x00)
+        // effectMode=0x0D (Progressive), speed=0x3C (fixed)
+        XCTAssertEqual(bytes[13], 0x0D)
+        XCTAssertEqual(bytes[14], 0x3C)
+        // colorCount=10 (0x0A)
+        XCTAssertEqual(bytes[22], 0x0A)
+        // Verify checksum
+        let sum = bytes.dropLast().reduce(0) { $0 + UInt16($1) }
+        XCTAssertEqual(bytes.last, UInt8(sum & 0xFF))
+    }
+
+    func testNhSceneRainbowParsesFxNeedFlags() {
+        ContentManager.shared.loadDatabaseFromDisk()
+        guard let device = ContentManager.shared.fetchHomeDevice(productId: "PD20250006") else {
+            XCTFail("NS02 3M not found"); return
+        }
+        let patterns = ContentManager.shared.resolvedFxPatterns(for: device)
+        guard let rainbow = patterns.first(where: { $0.id == 1 }) else {
+            XCTFail("Rainbow pattern not found"); return
+        }
+        let fx = NeewerLightFX.parseNamedCmdToFX(item: rainbow)
+        XCTAssertTrue(fx.needBRR, "Rainbow should need brightness")
+        XCTAssertFalse(fx.needSpeed, "NH scenes have no speed control")
+        XCTAssertFalse(fx.needColor, "Rainbow should not need color selector")
+        XCTAssertFalse(fx.needCCT, "Rainbow should not need CCT")
+        XCTAssertEqual(fx.iconName, "rainbow")
+    }
+
+    func testGetHomeLightFXReturnsNhScenes() {
+        ContentManager.shared.loadDatabaseFromDisk()
+        let fxs = NeewerLightConstant.getHomeLightFX(productId: "PD20250006")
+        XCTAssertEqual(fxs.count, 73)
+        XCTAssertEqual(fxs[0].name, "Rainbow")
+        XCTAssertEqual(fxs[1].name, "Starry Sky")
+        XCTAssertEqual(fxs[2].name, "Flame")
+        XCTAssertEqual(fxs.last?.name, "Las Vegas Hockey")
+    }
+
+    func testNhSceneFlamePatternBuildsCorrectPacket() {
+        ContentManager.shared.loadDatabaseFromDisk()
+        guard let device = ContentManager.shared.fetchHomeDevice(productId: "PD20250006") else {
+            XCTFail("NS02 3M not found"); return
+        }
+        let patterns = ContentManager.shared.resolvedFxPatterns(for: device)
+        guard let flame = patterns.first(where: { $0.id == 3 }) else {
+            XCTFail("Flame pattern not found"); return
+        }
+        let values: [String: Any] = ["brr": 100]
+        let data = CommandPatternParser.buildCommand(from: flame.cmd, values: values)
+        XCTAssertFalse(data.isEmpty)
+        let bytes = [UInt8](data)
+        XCTAssertEqual(bytes[0], 0x7A)
+        XCTAssertEqual(bytes[1], 0x12)
+        // effectId: 00 03
+        XCTAssertEqual(bytes[4], 0x00)
+        XCTAssertEqual(bytes[5], 0x03)
+        // brr=100
+        XCTAssertEqual(bytes[6], 100)
+        XCTAssertEqual(bytes[7], 0x00)
+        // Verify checksum
+        let sum = bytes.dropLast().reduce(0) { $0 + UInt16($1) }
+        XCTAssertEqual(bytes.last, UInt8(sum & 0xFF))
+    }
+
+    func testNhSceneAllPatternsHaveOnlyBrrControl() {
+        ContentManager.shared.loadDatabaseFromDisk()
+        guard let device = ContentManager.shared.fetchHomeDevice(productId: "PD20250006") else {
+            XCTFail("NS02 3M not found"); return
+        }
+        let patterns = ContentManager.shared.resolvedFxPatterns(for: device)
+        for pattern in patterns {
+            let fx = NeewerLightFX.parseNamedCmdToFX(item: pattern)
+            XCTAssertTrue(fx.needBRR, "\(pattern.name) should need brightness")
+            XCTAssertFalse(fx.needSpeed, "\(pattern.name) should not need speed")
+            XCTAssertFalse(fx.needColor, "\(pattern.name) should not need color")
+            XCTAssertFalse(fx.needCCT, "\(pattern.name) should not need CCT")
+        }
+    }
+
+    func testHomeDeviceWithoutFxPresetReturnsEmptyFx() {
+        ContentManager.shared.loadDatabaseFromDisk()
+        // PD20250004 is an NH device without fxPreset
+        guard let device = ContentManager.shared.fetchHomeDevice(productId: "PD20250004") else {
+            XCTFail("PD20250004 not found"); return
+        }
+        let resolved = ContentManager.shared.resolvedFxPatterns(for: device)
+        XCTAssertTrue(resolved.isEmpty)
+    }
 }
