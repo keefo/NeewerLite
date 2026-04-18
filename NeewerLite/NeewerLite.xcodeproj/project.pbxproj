@@ -121,7 +121,6 @@
 		A76E1F2226649F2A00E5788B /* Credits.rtf */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.rtf; path = Credits.rtf; sourceTree = "<group>"; };
 		A77414D12AEA2C8D0085F149 /* BlockingOverlayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlockingOverlayView.swift; sourceTree = "<group>"; };
 		A77414D32AEA43A90085F149 /* NeewerLightFX.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NeewerLightFX.swift; sourceTree = "<group>"; };
-		A77414D52AEA4B2F0085F149 /* lights_db.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = lights_db.json; sourceTree = "<group>"; };
 		A77414D62AEB637D0085F149 /* NLSlider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NLSlider.swift; sourceTree = "<group>"; };
 		A77414F72AF0E7890085F149 /* FXView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FXView.swift; sourceTree = "<group>"; };
 		A7770BF12AF6EEB30046E571 /* RenameViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RenameViewController.swift; sourceTree = "<group>"; };
@@ -294,7 +293,6 @@
 				A731DD3725A57D0B00302E25 /* MainMenu.xib */,
 				A76E1F2226649F2A00E5788B /* Credits.rtf */,
 				A731DD3A25A57D0B00302E25 /* Info.plist */,
-				A77414D52AEA4B2F0085F149 /* lights_db.json */,
 			);
 			path = Resources;
 			sourceTree = "<group>";
