@@ -776,49 +776,60 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
         return view
     }
 
+    /// Tag used to find the category segmented control inside the FX view.
+    private static let fxCategorySegmentTag = 9001
+
     func buildFXView(device dev: NeewerLight) -> NSView {
         let viewWidth = self.lightModeTabView.bounds.width
         let viewHeight = self.lightModeTabView.bounds.height - 46
         let view = NSView(frame: NSRect(x: 0, y: 0, width: viewWidth, height: viewHeight))
         view.autoresizingMask = [.width, .height]
-        //view.wantsLayer = true
-        //view.layer?.backgroundColor = NSColor.yellow.cgColor
 
         let fxs = dev.supportedFX
-        //let cctrange = dev.CCTRange()
 
-//        let createLabel: (CGFloat, String) -> NSTextField = { offsetY, stringValue in
-//            let label = NSTextField(frame: NSRect(x: 15, y: offsetY, width: 35, height: 20))
-//            label.autoresizingMask = [.minYMargin, .maxXMargin]
-//            label.stringValue = stringValue
-//            label.alignment = .right
-//            label.isEditable = false
-//            label.isSelectable = false
-//            label.isBordered = false
-//            label.drawsBackground = false
-//            label.font = NSFont.labelFont(ofSize: 9)
-//            return label
-//        }
-        //view.addSubview(createLabel(viewHeight - 30, "Scene"))
+        // Detect categories: ordered list of unique non-nil categories
+        let categoryOrder = NSOrderedSet(array: fxs.compactMap { $0.category }).array as! [String]
+        let hasCategories = categoryOrder.count > 1
 
-        // Create an NSPopUpButton and set its frame
-        let popUpButton = NSPopUpButton(frame: NSRect(x: 60, y: viewHeight - 28, width: viewWidth - 120, height: 20), pullsDown: false)
+        var popUpTopY = viewHeight - 28
+
+        if hasCategories {
+            // Build segmented control for category sub-tabs
+            let segmentHeight: CGFloat = 22
+            let segmentY = viewHeight - segmentHeight - 4
+            let seg = NSSegmentedControl(frame: NSRect(x: 10, y: segmentY, width: viewWidth - 20, height: segmentHeight))
+            seg.autoresizingMask = [.minYMargin, .width]
+            seg.segmentCount = categoryOrder.count
+            seg.segmentStyle = .texturedRounded
+            seg.controlSize = .small
+            (seg.cell as? NSSegmentedCell)?.trackingMode = .selectOne
+            for (i, cat) in categoryOrder.enumerated() {
+                seg.setLabel(cat, forSegment: i)
+                seg.setWidth(0, forSegment: i) // auto width
+            }
+            seg.selectedSegment = 0
+            seg.tag = CollectionViewItem.fxCategorySegmentTag
+            seg.target = self
+            seg.action = #selector(fxCategoryChanged(_:))
+            view.addSubview(seg)
+
+            popUpTopY = segmentY - 30
+        }
+
+        // Create the FX popup button
+        let popUpButton = NSPopUpButton(frame: NSRect(x: 60, y: popUpTopY, width: viewWidth - 120, height: 20), pullsDown: false)
         popUpButton.autoresizingMask = [.minYMargin, .width]
         popUpButton.controlSize = .small
         popUpButton.target = self
         popUpButton.action = #selector(fxClicked(_:))
-        let menu = NSMenu()
-        // Populate the menu with menu items
-        for scene in fxs {
-            let menuItem = NSMenuItem(title: "\(scene.id) - \(scene.name)", action: nil, keyEquivalent: "")
-            if !scene.iconName.isEmpty {
-                menuItem.image = NSImage(systemSymbolName: scene.iconName, accessibilityDescription: "")
-            }
-            menuItem.tag = Int(scene.id)
-            menuItem.target = self // Set the target to your desired target
-            menu.addItem(menuItem)
+
+        if hasCategories {
+            // Initially populate with the first category
+            populateFXPopUp(popUpButton, fxs: fxs, category: categoryOrder[0])
+        } else {
+            populateFXPopUp(popUpButton, fxs: fxs, category: nil)
         }
-        popUpButton.menu = menu
+
         view.addSubview(popUpButton)
 
         popUpButton.selectItem(withTag: Int(dev.channel.value))
@@ -826,6 +837,56 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
             fxClicked(popUpButton)
         }
         return view
+    }
+
+    /// Populates the FX popup button with scenes, optionally filtered by category.
+    private func populateFXPopUp(_ popUpButton: NSPopUpButton, fxs: [NeewerLightFX], category: String?) {
+        let menu = NSMenu()
+        let filtered = category != nil ? fxs.filter { $0.category == category } : fxs
+        for scene in filtered {
+            let menuItem = NSMenuItem(title: "\(scene.id) - \(scene.name)", action: nil, keyEquivalent: "")
+            if let imageURL = scene.imageURL, !imageURL.isEmpty {
+                if let cached = ContentManager.shared.fetchCachedSceneImage(urlString: imageURL) {
+                    let size = NSSize(width: 16, height: 16)
+                    cached.size = size
+                    menuItem.image = cached
+                } else {
+                    if !scene.iconName.isEmpty {
+                        menuItem.image = NSImage(systemSymbolName: scene.iconName, accessibilityDescription: "")
+                    }
+                    Task {
+                        let _ = await ContentManager.shared.fetchSceneImage(urlString: imageURL)
+                    }
+                }
+            } else if !scene.iconName.isEmpty {
+                menuItem.image = NSImage(systemSymbolName: scene.iconName, accessibilityDescription: "")
+            }
+            menuItem.tag = Int(scene.id)
+            menuItem.target = self
+            menu.addItem(menuItem)
+        }
+        popUpButton.menu = menu
+    }
+
+    /// Called when the user selects a different category sub-tab in the FX panel.
+    @objc func fxCategoryChanged(_ sender: NSSegmentedControl) {
+        guard let dev = device else { return }
+        guard let theView = sender.superview else { return }
+        guard let popUpButton = theView.subviews.first(where: { $0 is NSPopUpButton }) as? NSPopUpButton else { return }
+
+        let fxs = dev.supportedFX
+        let categoryOrder = NSOrderedSet(array: fxs.compactMap { $0.category }).array as! [String]
+        let idx = sender.selectedSegment
+        guard idx >= 0, idx < categoryOrder.count else { return }
+        let category = categoryOrder[idx]
+
+        populateFXPopUp(popUpButton, fxs: fxs, category: category)
+
+        // Auto-select and trigger the first item in the new category
+        if let first = popUpButton.itemArray.first {
+            popUpButton.select(first)
+            fxClicked(popUpButton)
+        }
     }
 
     func buildLightSourceView(device dev: NeewerLight) -> NSView {
@@ -1094,7 +1155,9 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
             }
         }
 
-        let fxsubview = FXView(frame: NSRect(x: 0, y: 0, width: theView.bounds.width, height: theView.bounds.height - 35))
+        // Position FXView below the popup button (accounts for optional category segmented control)
+        let fxTop = sender.frame.minY - 6
+        let fxsubview = FXView(frame: NSRect(x: 0, y: 0, width: theView.bounds.width, height: fxTop))
         fxsubview.autoresizingMask = [.width, .height]
         //fxsubview.wantsLayer = true
         //fxsubview.layer?.backgroundColor = NSColor.green.cgColor
@@ -1663,6 +1726,20 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
 
     func updateFX(_ fxx: Int) {
         if let btn = getFXListButtonFromView() {
+            // If the FX isn't in the current category's popup, switch categories first.
+            if btn.menu?.item(withTag: fxx) == nil, let dev = device {
+                let fxs = dev.supportedFX
+                if let targetFx = fxs.first(where: { $0.id == fxx }),
+                   let targetCat = targetFx.category,
+                   let view = btn.superview,
+                   let seg = view.subviews.first(where: { $0.tag == CollectionViewItem.fxCategorySegmentTag }) as? NSSegmentedControl {
+                    let categoryOrder = NSOrderedSet(array: fxs.compactMap { $0.category }).array as! [String]
+                    if let catIdx = categoryOrder.firstIndex(of: targetCat) {
+                        seg.selectedSegment = catIdx
+                        populateFXPopUp(btn, fxs: fxs, category: targetCat)
+                    }
+                }
+            }
             btn.selectItem(withTag: fxx)
             fxClicked(btn)
         }

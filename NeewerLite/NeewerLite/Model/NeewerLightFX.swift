@@ -24,6 +24,8 @@ class NeewerLightFX: NSObject, Codable {
         return name.lowercased().replacingOccurrences(of: "\\s+", with: "", options: .regularExpression)
     }
     var iconName: String
+    var imageURL: String?
+    var category: String?
     var cmdPattern: String?
     
     var needBRR: Bool = false
@@ -153,6 +155,8 @@ extension NeewerLightFX {
         if let icon = item.icon {
             scene.iconName = icon
         }
+        scene.imageURL = item.image
+        scene.category = item.category
         let fields = parseFields(item.cmd)
         let flagMappings: [(String, ReferenceWritableKeyPath<NeewerLightFX, Bool>)] = [
             ("brr", \.needBRR),

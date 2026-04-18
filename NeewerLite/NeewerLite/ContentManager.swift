@@ -52,6 +52,8 @@ struct NamedPattern: Decodable {
     let cmd: String
     let defaultCmd: String?
     let icon: String?
+    let image: String?
+    let category: String?
     let color: [String]?
 }
 
@@ -378,6 +380,48 @@ class ContentManager {
     func clearFailedURLs() {
         failedURLs.removeAll()
     }
+
+    // MARK: - Scene Image Fetching and Caching
+
+    func fetchCachedSceneImage(urlString: String) -> NSImage? {
+        guard let url = URL(string: urlString) else { return nil }
+        let cached = cachedURL(for: url)
+        if fileManager.fileExists(atPath: cached.path),
+           let image = NSImage(contentsOf: cached)
+        {
+            return image
+        }
+        return nil
+    }
+
+    func fetchSceneImage(urlString: String) async -> NSImage? {
+        guard let url = URL(string: urlString) else { return nil }
+        if failedURLs.contains(url) { return nil }
+
+        let cached = cachedURL(for: url)
+        if fileManager.fileExists(atPath: cached.path),
+           let image = NSImage(contentsOf: cached)
+        {
+            return image
+        }
+
+        do {
+            let (data, response) = try await session.data(from: url)
+            guard let httpResponse = response as? HTTPURLResponse,
+                  httpResponse.statusCode == 200 else {
+                return nil
+            }
+            if let img = NSImage(data: data) {
+                saveImageToCache(data, url: url)
+                return img
+            }
+        } catch {
+            failedURLs.insert(url)
+        }
+        return nil
+    }
+
+    // MARK: - Light Image Fetching and Caching
 
     func fetchCachedLightImage(lightType: UInt8) -> NSImage? {
         if isImageCached(lightType: lightType),
