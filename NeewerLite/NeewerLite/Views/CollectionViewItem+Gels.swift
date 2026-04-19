@@ -94,7 +94,7 @@ extension CollectionViewItem: NSCollectionViewDelegate, NSCollectionViewDataSour
         gelState.resultSwatch = resultSwatch
         container.addSubview(resultSwatch)
 
-        let resultLabel = NSTextField(labelWithString: "No gel applied")
+        let resultLabel = NSTextField(labelWithString: "No gel applied".localized)
         resultLabel.frame = NSRect(x: padX + 28, y: bottomY + 6, width: viewWidth - padX * 2 - 110, height: 18)
         resultLabel.font = NSFont.systemFont(ofSize: 10)
         resultLabel.textColor = NSColor.secondaryLabelColor
@@ -102,10 +102,11 @@ extension CollectionViewItem: NSCollectionViewDelegate, NSCollectionViewDataSour
         gelState.resultLabel = resultLabel
         container.addSubview(resultLabel)
 
-        let clearButton = NSButton(title: "Clear Gel", target: self, action: #selector(clearGelTapped(_:)))
+        let clearButton = NSButton(title: "Clear Gel".localized, target: self, action: #selector(clearGelTapped(_:)))
         clearButton.bezelStyle = .rounded
         clearButton.font = NSFont.systemFont(ofSize: 10)
-        clearButton.frame = NSRect(x: viewWidth - padX - 90, y: bottomY + 2, width: 90, height: 24)
+        clearButton.sizeToFit()
+        clearButton.frame.origin = NSPoint(x: viewWidth - padX - clearButton.frame.width, y: bottomY + 2)
         clearButton.autoresizingMask = [.minXMargin]
         container.addSubview(clearButton)
 
@@ -113,7 +114,7 @@ extension CollectionViewItem: NSCollectionViewDelegate, NSCollectionViewDataSour
         let sliderAreaY = bottomStripHeight + padY * 2
         let sliderLabelW: CGFloat = 55
 
-        let intensityLabel = NSTextField(labelWithString: "Intensity")
+        let intensityLabel = NSTextField(labelWithString: "Intensity".localized)
         intensityLabel.font = NSFont.systemFont(ofSize: 11)
         intensityLabel.alignment = .right
         intensityLabel.frame = NSRect(x: padX, y: sliderAreaY, width: sliderLabelW, height: 20)
@@ -155,26 +156,28 @@ extension CollectionViewItem: NSCollectionViewDelegate, NSCollectionViewDataSour
         // ── Tint Mode radio buttons ────────────────────────────────────────
         let radioY = sliderAreaY + 28
 
-        let radioLabel = NSTextField(labelWithString: "Mode")
+        let radioLabel = NSTextField(labelWithString: "Mode".localized)
         radioLabel.font = NSFont.systemFont(ofSize: 11)
         radioLabel.alignment = .right
         radioLabel.frame = NSRect(x: padX, y: radioY, width: sliderLabelW, height: 18)
         container.addSubview(radioLabel)
 
-        let radioFull = NSButton(radioButtonWithTitle: "Full Colour", target: self,
+        let radioFull = NSButton(radioButtonWithTitle: "Full Colour".localized, target: self,
                                  action: #selector(gelModeChanged(_:)))
         radioFull.controlSize = .small
         radioFull.font = NSFont.systemFont(ofSize: 11)
-        radioFull.frame = NSRect(x: padX + sliderLabelW + 8, y: radioY, width: 100, height: 18)
+        radioFull.sizeToFit()
+        radioFull.frame.origin = NSPoint(x: padX + sliderLabelW + 8, y: radioY)
         radioFull.tag = ControlTag.gelMode.rawValue
         radioFull.state = .on
         container.addSubview(radioFull)
 
-        let radioTint = NSButton(radioButtonWithTitle: "Tint over CCT", target: self,
+        let radioTint = NSButton(radioButtonWithTitle: "Tint over CCT".localized, target: self,
                                  action: #selector(gelModeChanged(_:)))
         radioTint.controlSize = .small
         radioTint.font = NSFont.systemFont(ofSize: 11)
-        radioTint.frame = NSRect(x: padX + sliderLabelW + 118, y: radioY, width: 120, height: 18)
+        radioTint.sizeToFit()
+        radioTint.frame.origin = NSPoint(x: radioFull.frame.maxX + 10, y: radioY)
         radioTint.tag = ControlTag.gelMode.rawValue + 1
         radioTint.state = .off
         container.addSubview(radioTint)
@@ -387,7 +390,7 @@ extension CollectionViewItem: NSCollectionViewDelegate, NSCollectionViewDataSour
             label.textColor = NSColor.labelColor
         } else {
             swatch.layer?.backgroundColor = NSColor.secondaryLabelColor.withAlphaComponent(0.2).cgColor
-            label.stringValue = "No gel applied"
+            label.stringValue = "No gel applied".localized
             label.textColor = NSColor.secondaryLabelColor
         }
     }

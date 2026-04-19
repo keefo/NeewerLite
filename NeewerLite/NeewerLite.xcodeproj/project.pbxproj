@@ -7,10 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		A708F5822E32FAC900564DCF /* lights.json in Resources */ = {isa = PBXBuildFile; fileRef = A708F5812E32FAC900564DCF /* lights.json */; };
 		A708F58A2E33006E00564DCF /* CommandParserTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A708F5892E33006E00564DCF /* CommandParserTests.swift */; };
 		A708F58C2E3300A300564DCF /* CommandPatternParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = A708F58B2E3300A300564DCF /* CommandPatternParser.swift */; };
 		A708F5902E333E8E00564DCF /* PatternEditorPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A708F58F2E333E8E00564DCF /* PatternEditorPanel.swift */; };
+		A76C38702E00000000000001 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A76C38712E00000000000001 /* SettingsView.swift */; };
 		A71B39BA275726800005E271 /* Atomics in Frameworks */ = {isa = PBXBuildFile; productRef = A71B39B9275726800005E271 /* Atomics */; };
 		A730F7FE2AE79173009CA529 /* NeewerLightConstant.swift in Sources */ = {isa = PBXBuildFile; fileRef = A730F7FD2AE79173009CA529 /* NeewerLightConstant.swift */; };
 		A730F8002AE7B8C0009CA529 /* digital-7-mono.ttf in Resources */ = {isa = PBXBuildFile; fileRef = A730F7FF2AE7B8C0009CA529 /* digital-7-mono.ttf */; };
@@ -21,6 +21,7 @@
 		A731DD6C25A5891E00302E25 /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = A731DD6B25A5891E00302E25 /* Logger.swift */; };
 		A731DD7425A5896B00302E25 /* NeewerLight.swift in Sources */ = {isa = PBXBuildFile; fileRef = A731DD7325A5896B00302E25 /* NeewerLight.swift */; };
 		A731DD8125A5922A00302E25 /* CollectionViewItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = A731DD8025A5922A00302E25 /* CollectionViewItem.swift */; };
+		A7CF01012F00000000000001 /* CenteredFlowLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7CF01022F00000000000002 /* CenteredFlowLayout.swift */; };
 		A731DD8F25A592CC00302E25 /* CollectionViewItem.xib in Resources */ = {isa = PBXBuildFile; fileRef = A731DD8E25A592CC00302E25 /* CollectionViewItem.xib */; };
 		A731DD9D25A5A01300302E25 /* DeviceViewObject.swift in Sources */ = {isa = PBXBuildFile; fileRef = A731DD9C25A5A01300302E25 /* DeviceViewObject.swift */; };
 		A733AE47292DF05F00F37DDD /* SpectrogramViewObject.swift in Sources */ = {isa = PBXBuildFile; fileRef = A733AE46292DF05F00F37DDD /* SpectrogramViewObject.swift */; };
@@ -61,10 +62,14 @@
 		8B2C3D4E5F6A7B8C9D0E1F2A /* SpectrumVisualization.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A1B2C3D4E5F6A7B8C9D0E1F /* SpectrumVisualization.swift */; };
 		5D4E5F6A7B8C9D0E1F2A3B4C /* SpectrogramVisualization.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C3D4E5F6A7B8C9D0E1F2A3B /* SpectrogramVisualization.swift */; };
 		CCF4C298B8A837A3ED2D4DDB /* GelsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5D83B6A59A5B72CDFC3ED5E /* GelsTests.swift */; };
+		F4A5B6C7D8E9F0A1B2C3D4E5 /* StringLocalizedTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5D4C3B2A1F0E9D8C7B6A5F4 /* StringLocalizedTests.swift */; };
 		F1A2B3C4D5E6F7A8B9C0D1E2 /* AudioAnalysisEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2D1C0B9A8F7E6D5C4B3A2F1 /* AudioAnalysisEngine.swift */; };
 		A1B2C3D4E5F6A7B8C9D0E1F3 /* AudioAnalysisEngineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2C3D4E5F6A7B8C9D0E1F3A1 /* AudioAnalysisEngineTests.swift */; };
 		D1E2F3A4B5C6D7E8F9A0B1C2 /* SoundToLightMode.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0D1E2F3A4B5C6D7E8F9A0B1 /* SoundToLightMode.swift */; };
 		E2F3A4B5C6D7E8F9A0B1C2D3 /* SoundToLightModeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3E4F5A6B7C8D9E0F1A2B3C4 /* SoundToLightModeTests.swift */; };
+		A7FACE032F00000000000003 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = A7FACE012F00000000000001 /* Localizable.xcstrings */; };
+		A7FACE042F00000000000004 /* InfoPlist.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = A7FACE022F00000000000002 /* InfoPlist.xcstrings */; };
+		A7FACE052F00000000000005 /* String+Localized.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7FACE062F00000000000006 /* String+Localized.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -78,10 +83,10 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		A708F5812E32FAC900564DCF /* lights.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; name = lights.json; path = ../Database/lights.json; sourceTree = SOURCE_ROOT; };
 		A708F5892E33006E00564DCF /* CommandParserTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommandParserTests.swift; sourceTree = "<group>"; };
 		A708F58B2E3300A300564DCF /* CommandPatternParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommandPatternParser.swift; sourceTree = "<group>"; };
 		A708F58F2E333E8E00564DCF /* PatternEditorPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PatternEditorPanel.swift; sourceTree = "<group>"; };
+		A76C38712E00000000000001 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		A730F7FD2AE79173009CA529 /* NeewerLightConstant.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NeewerLightConstant.swift; sourceTree = "<group>"; };
 		A730F7FF2AE7B8C0009CA529 /* digital-7-mono.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "digital-7-mono.ttf"; sourceTree = "<group>"; };
 		A7311C4529A0BD5E009C03D8 /* Command.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Command.swift; sourceTree = "<group>"; };
@@ -97,6 +102,7 @@
 		A731DD6B25A5891E00302E25 /* Logger.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Logger.swift; sourceTree = "<group>"; };
 		A731DD7325A5896B00302E25 /* NeewerLight.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NeewerLight.swift; sourceTree = "<group>"; };
 		A731DD8025A5922A00302E25 /* CollectionViewItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CollectionViewItem.swift; sourceTree = "<group>"; };
+		A7CF01022F00000000000002 /* CenteredFlowLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CenteredFlowLayout.swift; sourceTree = "<group>"; };
 		A731DD8E25A592CC00302E25 /* CollectionViewItem.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = CollectionViewItem.xib; sourceTree = "<group>"; };
 		A731DD9C25A5A01300302E25 /* DeviceViewObject.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceViewObject.swift; sourceTree = "<group>"; };
 		A733AE46292DF05F00F37DDD /* SpectrogramViewObject.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpectrogramViewObject.swift; sourceTree = "<group>"; };
@@ -121,7 +127,6 @@
 		A76E1F2226649F2A00E5788B /* Credits.rtf */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.rtf; path = Credits.rtf; sourceTree = "<group>"; };
 		A77414D12AEA2C8D0085F149 /* BlockingOverlayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlockingOverlayView.swift; sourceTree = "<group>"; };
 		A77414D32AEA43A90085F149 /* NeewerLightFX.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NeewerLightFX.swift; sourceTree = "<group>"; };
-		A77414D52AEA4B2F0085F149 /* lights_db.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = lights_db.json; sourceTree = "<group>"; };
 		A77414D62AEB637D0085F149 /* NLSlider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NLSlider.swift; sourceTree = "<group>"; };
 		A77414F72AF0E7890085F149 /* FXView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FXView.swift; sourceTree = "<group>"; };
 		A7770BF12AF6EEB30046E571 /* RenameViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RenameViewController.swift; sourceTree = "<group>"; };
@@ -137,6 +142,10 @@
 		C0D1E2F3A4B5C6D7E8F9A0B1 /* SoundToLightMode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SoundToLightMode.swift; sourceTree = "<group>"; };
 		D3E4F5A6B7C8D9E0F1A2B3C4 /* SoundToLightModeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SoundToLightModeTests.swift; sourceTree = "<group>"; };
 		B5D83B6A59A5B72CDFC3ED5E /* GelsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GelsTests.swift; sourceTree = "<group>"; };
+		E5D4C3B2A1F0E9D8C7B6A5F4 /* StringLocalizedTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StringLocalizedTests.swift; sourceTree = "<group>"; };
+		A7FACE012F00000000000001 /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
+		A7FACE022F00000000000002 /* InfoPlist.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = InfoPlist.xcstrings; sourceTree = "<group>"; };
+		A7FACE062F00000000000006 /* String+Localized.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "String+Localized.swift"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -220,6 +229,7 @@
 				B5D83B6A59A5B72CDFC3ED5E /* GelsTests.swift */,
 				B2C3D4E5F6A7B8C9D0E1F3A1 /* AudioAnalysisEngineTests.swift */,
 				D3E4F5A6B7C8D9E0F1A2B3C4 /* SoundToLightModeTests.swift */,
+				E5D4C3B2A1F0E9D8C7B6A5F4 /* StringLocalizedTests.swift */,
 				A731DD4425A57D0B00302E25 /* NeewerLiteTests.swift */,
 				A731DD4625A57D0B00302E25 /* Info.plist */,
 			);
@@ -230,6 +240,7 @@
 			isa = PBXGroup;
 			children = (
 				A708F58F2E333E8E00564DCF /* PatternEditorPanel.swift */,
+				A7CF01022F00000000000002 /* CenteredFlowLayout.swift */,
 				A731DD8025A5922A00302E25 /* CollectionViewItem.swift */,
 				2A5C8AFF6A48E1F0A848AD60 /* CollectionViewItem+Gels.swift */,
 				682EAD3AD534B0BFCA45DCA2 /* GelSwatchCell.swift */,
@@ -240,6 +251,7 @@
 				A744CD422AF36BA1007E919A /* MyLightTableCellView.swift */,
 				A7770BF12AF6EEB30046E571 /* RenameViewController.swift */,
 				A7770BF32AF6F7190046E571 /* RoundedScrollView.swift */,
+				A76C38712E00000000000001 /* SettingsView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -270,6 +282,7 @@
 				A731DD6B25A5891E00302E25 /* Logger.swift */,
 				A7FF36702AF84A690068022C /* CodableValue.swift */,
 				A753109C2AFC996F009F533C /* StorageManager.swift */,
+				A7FACE062F00000000000006 /* String+Localized.swift */,
 			);
 			path = Common;
 			sourceTree = "<group>";
@@ -287,14 +300,14 @@
 		A731DDAC25A5A13000302E25 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
-				A708F5812E32FAC900564DCF /* lights.json */,
 				A730F7FF2AE7B8C0009CA529 /* digital-7-mono.ttf */,
 				A731DD3525A57D0B00302E25 /* Assets.xcassets */,
 				A731DD8E25A592CC00302E25 /* CollectionViewItem.xib */,
 				A731DD3725A57D0B00302E25 /* MainMenu.xib */,
 				A76E1F2226649F2A00E5788B /* Credits.rtf */,
 				A731DD3A25A57D0B00302E25 /* Info.plist */,
-				A77414D52AEA4B2F0085F149 /* lights_db.json */,
+				A7FACE012F00000000000001 /* Localizable.xcstrings */,
+				A7FACE022F00000000000002 /* InfoPlist.xcstrings */,
 			);
 			path = Resources;
 			sourceTree = "<group>";
@@ -385,6 +398,12 @@
 			knownRegions = (
 				en,
 				Base,
+				"zh-Hans",
+				ja,
+				de,
+				fr,
+				es,
+				ko,
 			);
 			mainGroup = A731DD2725A57D0B00302E25;
 			packageReferences = (
@@ -407,12 +426,13 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				A708F5822E32FAC900564DCF /* lights.json in Resources */,
 				A731DD3625A57D0B00302E25 /* Assets.xcassets in Resources */,
 				A730F8002AE7B8C0009CA529 /* digital-7-mono.ttf in Resources */,
 				A731DD3925A57D0B00302E25 /* MainMenu.xib in Resources */,
 				A731DD8F25A592CC00302E25 /* CollectionViewItem.xib in Resources */,
 				A76E1F2326649F2A00E5788B /* Credits.rtf in Resources */,
+				A7FACE032F00000000000003 /* Localizable.xcstrings in Resources */,
+				A7FACE042F00000000000004 /* InfoPlist.xcstrings in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -469,6 +489,7 @@
 				A7770BF22AF6EEB30046E571 /* RenameViewController.swift in Sources */,
 				A7311C4629A0BD5E009C03D8 /* Command.swift in Sources */,
 				A77414D72AEB637D0085F149 /* NLSlider.swift in Sources */,
+				A7CF01012F00000000000001 /* CenteredFlowLayout.swift in Sources */,
 				A731DD8125A5922A00302E25 /* CollectionViewItem.swift in Sources */,
 				A731DD7425A5896B00302E25 /* NeewerLight.swift in Sources */,
 				A77414D42AEA43A90085F149 /* NeewerLightFX.swift in Sources */,
@@ -491,6 +512,8 @@
 				F1A2B3C4D5E6F7A8B9C0D1E2 /* AudioAnalysisEngine.swift in Sources */,
 				D1E2F3A4B5C6D7E8F9A0B1C2 /* SoundToLightMode.swift in Sources */,
 				A753109D2AFC996F009F533C /* StorageManager.swift in Sources */,
+				A76C38702E00000000000001 /* SettingsView.swift in Sources */,
+				A7FACE052F00000000000005 /* String+Localized.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -502,6 +525,7 @@
 				CCF4C298B8A837A3ED2D4DDB /* GelsTests.swift in Sources */,
 				A1B2C3D4E5F6A7B8C9D0E1F3 /* AudioAnalysisEngineTests.swift in Sources */,
 				E2F3A4B5C6D7E8F9A0B1C2D3 /* SoundToLightModeTests.swift in Sources */,
+				F4A5B6C7D8E9F0A1B2C3D4E5 /* StringLocalizedTests.swift in Sources */,
 				A731DD4525A57D0B00302E25 /* NeewerLiteTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

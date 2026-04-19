@@ -153,11 +153,16 @@ class NeewerLiteTests: XCTestCase {
     }
 
     func test_fxCommand() throws {
-        let fxx = NeewerLightFX.lightingScene()
-        let light = NeewerLight([:])
-        light.supportedFX.append(fxx)
-        let cmd = light.getSceneCommand("DF:24:3A:B4:46:5D", fxx)
-        print("cmd: \(cmd)")
+        ContentManager.shared.loadDatabaseFromDisk()
+        let fxList = NeewerLightConstant.getLightFX(lightType: 8)
+        XCTAssertEqual(fxList.count, 17)
+        let fxx = fxList[0] // Lighting
+        XCTAssertNotNil(fxx.cmdPattern)
+        let values: [String: Any] = ["mac": "DF:24:3A:B4:46:5D", "brr": 50, "cct": 37, "speed": 7]
+        let cmd = CommandPatternParser.buildCommand(from: fxx.cmdPattern!, values: values)
+        XCTAssertFalse(cmd.isEmpty)
+        XCTAssertEqual(cmd[0], 0x78)
+        XCTAssertEqual(cmd[1], 0x91)
     }
     func testPerformanceExample() throws {
         // This is an example of a performance test case.

@@ -10,7 +10,7 @@ import Cocoa
 class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDelegate {
 
     class func frame() -> CGRect {
-        return CGRect(x: 0, y: 0, width: 520, height: 300)
+        return CGRect(x: 0, y: 0, width: 540, height: 300)
     }
     
     @IBOutlet weak var lightModeTabView: NSTabView!
@@ -164,13 +164,13 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
         let editor = PatternEditorPanel(initialPattern: currentPattern) { [weak self] newPattern in
             guard let self = self else { return }
             // Save newPattern as needed
-            if newPattern != nil {
+            if let newPattern = newPattern {
                 Logger.debug(newPattern)
                 if newPattern == "reset"
                 {
                     safeDev.temporaryCommandPatterns = nil
                 }
-                else if let patterns = self.parseCommandPatterns(from: newPattern!) {
+                else if let patterns = self.parseCommandPatterns(from: newPattern) {
                     // You can assign it to commandPatterns
                     safeDev.temporaryCommandPatterns = patterns
                 }
@@ -407,8 +407,8 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
         else{
             finalString.append(NSAttributedString(string: "\(dev.userLightName.value)\n", attributes: firstLineAttributes))
         }
-        finalString.append(NSAttributedString(string: "name: \(dev.nickName)\n", attributes: secondLineAttributes))
-        finalString.append(NSAttributedString(string: "type: \(dev.lightType)", attributes: secondLineAttributes))
+        finalString.append(NSAttributedString(string: "\("name:".localized) \(dev.nickName)\n", attributes: secondLineAttributes))
+        finalString.append(NSAttributedString(string: "\("type:".localized) \(dev.lightType)", attributes: secondLineAttributes))
 
         // Set the attributed string to the NSTextField
         self.nameField.attributedStringValue = finalString
@@ -463,12 +463,13 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
             removeTabItem(TabId.hsi.rawValue)
             removeTabItem(TabId.gel.rawValue)
             removeTabItem(TabId.scene.rawValue)
+            removeTabItem(TabId.music.rawValue)
             
             if true {
                 let view = buildCCTView(device: dev)
                 let tab = NSTabViewItem(identifier: TabId.cct.rawValue )
                 tab.view = view
-                tab.label = "CCT"
+                tab.label = "CCT".localized
                 self.lightModeTabView.addTabViewItem(tab)
             }
             
@@ -476,7 +477,7 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
                 let view = buildHSIView(device: dev)
                 let tab = NSTabViewItem(identifier: TabId.hsi.rawValue)
                 tab.view = view
-                tab.label = "HSI"
+                tab.label = "HSI".localized
                 self.lightModeTabView.addTabViewItem(tab)
             }
 
@@ -484,7 +485,7 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
                 let view = buildGelsView(device: dev)
                 let tab = NSTabViewItem(identifier: TabId.gel.rawValue)
                 tab.view = view
-                tab.label = "Gels"
+                tab.label = "Gels".localized
                 self.lightModeTabView.addTabViewItem(tab)
             }
             
@@ -492,7 +493,7 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
                 let view = buildLightSourceView(device: dev)
                 let tab = NSTabViewItem(identifier: TabId.source.rawValue)
                 tab.view = view
-                tab.label = "Light Source"
+                tab.label = "Light Source".localized
                 self.lightModeTabView.addTabViewItem(tab)
             }
             
@@ -500,7 +501,7 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
                 let view = buildFXView(device: dev)
                 let tab = NSTabViewItem(identifier: TabId.scene.rawValue)
                 tab.view = view
-                tab.label = "FX"
+                tab.label = "FX".localized
                 self.lightModeTabView.addTabViewItem(tab)
             }
             else {
@@ -510,9 +511,17 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
                     let view = buildFXView(device: dev)
                     let tab = NSTabViewItem(identifier: TabId.scene.rawValue)
                     tab.view = view
-                    tab.label = "FX"
+                    tab.label = "FX".localized
                     self.lightModeTabView.addTabViewItem(tab)
                 }
+            }
+
+            if !dev.supportedMusicFX.isEmpty {
+                let view = buildMusicView(device: dev)
+                let tab = NSTabViewItem(identifier: TabId.music.rawValue)
+                tab.view = view
+                tab.label = "Music".localized
+                self.lightModeTabView.addTabViewItem(tab)
             }
 
             buildingView = false
@@ -601,7 +610,7 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
         }
 
         offsetY = 10.0
-        view.addSubview(createLabel("BRR"))
+        view.addSubview(createLabel("BRR".localized))
         let brrSlide = NLSlider(frame: NSRect(x: offsetX, y: offsetY, width: self.sliderWidth(), height: 20))
         brrSlide.autoresizingMask = [.width, .maxYMargin]
         brrSlide.tag = ControlTag.brr.rawValue
@@ -622,16 +631,16 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
         }
         view.addSubview(brrSlide)
 
-        view.addSubview(createValueLabel("Brightness"))
+        view.addSubview(createValueLabel("Brightness".localized))
         view.addSubview(createValueField(ControlTag.brr, formatBrrValue("\(dev.brrValue.value)", .center)))
 
         topX = wheelX - valueWidth
         topY = 120
-        view.addSubview(createValueLabel("HUE"))
+        view.addSubview(createValueLabel("HUE".localized))
         view.addSubview(createValueField(ControlTag.hue, formatHUEValue("\(dev.hueValue.value)", .center)))
 
         topX = wheel.frame.maxX - 20.0
-        view.addSubview(createValueLabel("Saturation"))
+        view.addSubview(createValueLabel("Saturation".localized))
         view.addSubview(createValueField(ControlTag.sat, formatSATValue("\(dev.satValue.value)", .center)))
 
         return view
@@ -706,7 +715,7 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
             return label
         }
         
-        view.addSubview(createLabel("BRR"))
+        view.addSubview(createLabel("BRR".localized))
         let brrSlide = NLSlider(frame: NSRect(x: offsetX, y: offsetY, width: self.sliderWidth(), height: 20))
         brrSlide.autoresizingMask = [.width, .maxYMargin]
         brrSlide.tag = ControlTag.brr.rawValue
@@ -723,12 +732,12 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
             }
         }
         view.addSubview(brrSlide)
-        view.addSubview(createValueLabel("Brightness"))
+        view.addSubview(createValueLabel("Brightness".localized))
         view.addSubview(createValueField(ControlTag.brr, formatBrrValue("\(dev.brrValue.value)", .center)))
 
         offsetY -= 30
 
-        view.addSubview(createLabel("CCT"))
+        view.addSubview(createLabel("CCT".localized))
         let cctSlide = NLSlider(frame: NSRect(x: offsetX, y: offsetY, width: self.sliderWidth(), height: 20))
         cctSlide.autoresizingMask = [.width, .maxYMargin]
         cctSlide.tag = ControlTag.cct.rawValue
@@ -745,7 +754,7 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
             dev.setCCTLightValues(brr: CGFloat(dev.brrValue.value), cct: CGFloat(val), gmm: CGFloat(dev.gmmValue.value))
         }
         view.addSubview(cctSlide)
-        view.addSubview(createValueLabel("CCT"))
+        view.addSubview(createValueLabel("CCT".localized))
         view.addSubview(createValueField(ControlTag.cct, formatCCTValue("\(dev.cctValue.value)", .center)))
 
         offsetY -= 30
@@ -753,7 +762,7 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
         Logger.debug("offsetY=\(offsetY)")
 
         if dev.supportCCTGM {
-            view.addSubview(createLabel("GM"))
+            view.addSubview(createLabel("GM".localized))
             let gmmSlide = NLSlider(frame: NSRect(x: offsetX, y: offsetY, width: self.sliderWidth(), height: 20))
             gmmSlide.autoresizingMask = [.width, .maxYMargin]
             gmmSlide.tag = ControlTag.gmm.rawValue
@@ -770,55 +779,213 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
                 }
             }
             view.addSubview(gmmSlide)
-            view.addSubview(createValueLabel("GM"))
+            view.addSubview(createValueLabel("GM".localized))
             view.addSubview(createValueField(ControlTag.gmm, formatGMMValue("\(dev.gmmValue.value)", .center)))
         }
         return view
     }
+
+    // MARK: - Music Mode
+
+    func buildMusicView(device dev: NeewerLight) -> NSView {
+        let viewWidth = self.lightModeTabView.bounds.width
+        let viewHeight = self.lightModeTabView.bounds.height - 46
+        let view = NSView(frame: NSRect(x: 0, y: 0, width: viewWidth, height: viewHeight))
+        view.autoresizingMask = [.width, .height]
+
+        let fxs = dev.supportedMusicFX
+        let popUpTopY = viewHeight - 28
+
+        let popUpButton = NSPopUpButton(frame: NSRect(x: 60, y: popUpTopY, width: viewWidth - 120, height: 20), pullsDown: false)
+        popUpButton.autoresizingMask = [.minYMargin, .width]
+        popUpButton.controlSize = .small
+        popUpButton.target = self
+        popUpButton.action = #selector(musicModeClicked(_:))
+
+        let menu = NSMenu()
+        for scene in fxs {
+            let menuItem = NSMenuItem(title: "\(scene.id) - \(scene.name.localized)", action: nil, keyEquivalent: "")
+            if !scene.iconName.isEmpty {
+                menuItem.image = NSImage(systemSymbolName: scene.iconName, accessibilityDescription: "")
+            }
+            menuItem.tag = Int(scene.id)
+            menu.addItem(menuItem)
+        }
+        popUpButton.menu = menu
+        view.addSubview(popUpButton)
+
+        let savedTag = Int(dev.musicChannel)
+        if !popUpButton.selectItem(withTag: savedTag), let first = popUpButton.itemArray.first {
+            popUpButton.select(first)
+        }
+        musicModeClicked(popUpButton)
+        return view
+    }
+
+    @objc func musicModeClicked(_ sender: NSPopUpButton) {
+        guard let dev = device else { return }
+        guard let selectedItem = sender.selectedItem else { return }
+
+        let fxid = selectedItem.tag
+        let fxs = dev.supportedMusicFX
+        guard let safeFx = fxs.first(where: { $0.id == fxid }) else { return }
+        guard let theView = sender.superview else { return }
+
+        dev.musicChannel = UInt8(fxid)
+
+        for subview in theView.subviews {
+            if subview is FXView {
+                subview.removeFromSuperview()
+            }
+        }
+
+        let fxTop = sender.frame.minY - 6
+        let fxsubview = FXView(frame: NSRect(x: 0, y: 0, width: theView.bounds.width, height: fxTop))
+        fxsubview.autoresizingMask = [.width, .height]
+        theView.addSubview(fxsubview)
+
+        let offsetX = 55.0
+        var offsetY = fxsubview.bounds.height - 26
+        let slideW = fxsubview.bounds.width - 98
+
+        let createLabel: (CGFloat, String) -> NSTextField = { offsetY, stringValue in
+            let label = NSTextField(frame: NSRect(x: 15, y: offsetY, width: 35, height: 20))
+            label.autoresizingMask = [.minYMargin, .maxXMargin]
+            label.stringValue = stringValue
+            label.alignment = .right
+            label.isEditable = false
+            label.isSelectable = false
+            label.isBordered = false
+            label.drawsBackground = false
+            label.font = NSFont.labelFont(ofSize: 9)
+            return label
+        }
+
+        let createValueLabel: (CGFloat, String, Int) -> NSTextField = { offsetY, stringValue, tag in
+            let label = NSTextField(frame: NSRect(x: offsetX + slideW + 5, y: offsetY + 4, width: 50, height: 18))
+            label.autoresizingMask = [.maxYMargin, .minXMargin]
+            label.stringValue = stringValue
+            label.alignment = .left
+            label.isEditable = false
+            label.isSelectable = false
+            label.isBordered = false
+            label.drawsBackground = false
+            label.font = NSFont.monospacedSystemFont(ofSize: 9, weight: .medium)
+            label.tag = tag
+            return label
+        }
+
+        if safeFx.needSpeed {
+            fxsubview.addSubview(createLabel(offsetY - 4, "Speed"))
+            let slide = NLSlider(frame: NSRect(x: offsetX, y: offsetY, width: slideW, height: 20))
+            slide.autoresizingMask = [.width, .maxYMargin]
+            slide.tag = ControlTag.speed.rawValue
+            slide.type = .speed
+            slide.minValue = 1.0
+            slide.maxValue = 100.0
+            slide.currentValue = CGFloat(safeFx.speedValue)
+            if CGFloat(safeFx.speedValue) < slide.minValue { safeFx.speedValue = Int(slide.minValue) }
+            if CGFloat(safeFx.speedValue) > slide.maxValue { safeFx.speedValue = Int(slide.maxValue) }
+            slide.customBarDrawing = NLSlider.speedBar()
+            let valueField = createValueLabel(offsetY - 4, "", slide.tag)
+            slide.callback = { [weak self] val in
+                guard self != nil else { return }
+                if let safeDev = self?.device {
+                    valueField.stringValue = "\(Int(val))"
+                    safeFx.speedValue = Int(val)
+                    safeDev.sendMusicCommand(safeFx)
+                }
+            }
+            fxsubview.addSubview(slide)
+            fxsubview.addSubview(valueField)
+            offsetY -= 30
+        }
+
+        if safeFx.needSens {
+            fxsubview.addSubview(createLabel(offsetY - 4, "Sens"))
+            let slide = NLSlider(frame: NSRect(x: offsetX, y: offsetY, width: slideW, height: 20))
+            slide.autoresizingMask = [.width, .maxYMargin]
+            slide.tag = ControlTag.sens.rawValue
+            slide.type = .speed
+            slide.minValue = 1.0
+            slide.maxValue = 100.0
+            slide.currentValue = CGFloat(safeFx.sensValue)
+            if CGFloat(safeFx.sensValue) < slide.minValue { safeFx.sensValue = Int(slide.minValue) }
+            if CGFloat(safeFx.sensValue) > slide.maxValue { safeFx.sensValue = Int(slide.maxValue) }
+            slide.customBarDrawing = NLSlider.sensBar()
+            let valueField = createValueLabel(offsetY - 4, "", slide.tag)
+            slide.callback = { [weak self] val in
+                guard self != nil else { return }
+                if let safeDev = self?.device {
+                    valueField.stringValue = "\(Int(val))"
+                    safeFx.sensValue = Int(val)
+                    safeDev.sendMusicCommand(safeFx)
+                }
+            }
+            fxsubview.addSubview(slide)
+            fxsubview.addSubview(valueField)
+            offsetY -= 30
+        }
+
+        if !buildingView {
+            dev.sendMusicCommand(safeFx)
+        }
+    }
+
+    /// Tag used to find the category segmented control inside the FX view.
+    private static let fxCategorySegmentTag = 9001
 
     func buildFXView(device dev: NeewerLight) -> NSView {
         let viewWidth = self.lightModeTabView.bounds.width
         let viewHeight = self.lightModeTabView.bounds.height - 46
         let view = NSView(frame: NSRect(x: 0, y: 0, width: viewWidth, height: viewHeight))
         view.autoresizingMask = [.width, .height]
-        //view.wantsLayer = true
-        //view.layer?.backgroundColor = NSColor.yellow.cgColor
 
         let fxs = dev.supportedFX
-        //let cctrange = dev.CCTRange()
 
-//        let createLabel: (CGFloat, String) -> NSTextField = { offsetY, stringValue in
-//            let label = NSTextField(frame: NSRect(x: 15, y: offsetY, width: 35, height: 20))
-//            label.autoresizingMask = [.minYMargin, .maxXMargin]
-//            label.stringValue = stringValue
-//            label.alignment = .right
-//            label.isEditable = false
-//            label.isSelectable = false
-//            label.isBordered = false
-//            label.drawsBackground = false
-//            label.font = NSFont.labelFont(ofSize: 9)
-//            return label
-//        }
-        //view.addSubview(createLabel(viewHeight - 30, "Scene"))
+        // Detect categories: ordered list of unique non-nil categories
+        let categoryOrder = NSOrderedSet(array: fxs.compactMap { $0.category }).array as! [String]
+        let hasCategories = categoryOrder.count > 1
 
-        // Create an NSPopUpButton and set its frame
-        let popUpButton = NSPopUpButton(frame: NSRect(x: 60, y: viewHeight - 28, width: viewWidth - 120, height: 20), pullsDown: false)
+        var popUpTopY = viewHeight - 28
+
+        if hasCategories {
+            // Build segmented control for category sub-tabs
+            let segmentHeight: CGFloat = 22
+            let segmentY = viewHeight - segmentHeight - 10
+            let seg = NSSegmentedControl(frame: NSRect(x: 10, y: segmentY, width: viewWidth - 20, height: segmentHeight))
+            seg.autoresizingMask = [.minYMargin, .width]
+            seg.segmentCount = categoryOrder.count
+            seg.segmentStyle = .texturedRounded
+            seg.controlSize = .small
+            (seg.cell as? NSSegmentedCell)?.trackingMode = .selectOne
+            for (i, cat) in categoryOrder.enumerated() {
+                seg.setLabel(cat.localized, forSegment: i)
+                seg.setWidth(0, forSegment: i) // auto width
+            }
+            seg.selectedSegment = 0
+            seg.tag = CollectionViewItem.fxCategorySegmentTag
+            seg.target = self
+            seg.action = #selector(fxCategoryChanged(_:))
+            view.addSubview(seg)
+
+            popUpTopY = segmentY - 30
+        }
+
+        // Create the FX popup button
+        let popUpButton = NSPopUpButton(frame: NSRect(x: 60, y: popUpTopY, width: viewWidth - 120, height: 20), pullsDown: false)
         popUpButton.autoresizingMask = [.minYMargin, .width]
         popUpButton.controlSize = .small
         popUpButton.target = self
         popUpButton.action = #selector(fxClicked(_:))
-        let menu = NSMenu()
-        // Populate the menu with menu items
-        for scene in fxs {
-            let menuItem = NSMenuItem(title: "\(scene.id) - \(scene.name)", action: nil, keyEquivalent: "")
-            if !scene.iconName.isEmpty {
-                menuItem.image = NSImage(systemSymbolName: scene.iconName, accessibilityDescription: "")
-            }
-            menuItem.tag = Int(scene.id)
-            menuItem.target = self // Set the target to your desired target
-            menu.addItem(menuItem)
+
+        if hasCategories {
+            // Initially populate with the first category
+            populateFXPopUp(popUpButton, fxs: fxs, category: categoryOrder[0])
+        } else {
+            populateFXPopUp(popUpButton, fxs: fxs, category: nil)
         }
-        popUpButton.menu = menu
+
         view.addSubview(popUpButton)
 
         popUpButton.selectItem(withTag: Int(dev.channel.value))
@@ -826,6 +993,56 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
             fxClicked(popUpButton)
         }
         return view
+    }
+
+    /// Populates the FX popup button with scenes, optionally filtered by category.
+    private func populateFXPopUp(_ popUpButton: NSPopUpButton, fxs: [NeewerLightFX], category: String?) {
+        let menu = NSMenu()
+        let filtered = category != nil ? fxs.filter { $0.category == category } : fxs
+        for scene in filtered {
+            let menuItem = NSMenuItem(title: "\(scene.id) - \(scene.name.localized)", action: nil, keyEquivalent: "")
+            if let imageURL = scene.imageURL, !imageURL.isEmpty {
+                if let cached = ContentManager.shared.fetchCachedSceneImage(urlString: imageURL) {
+                    let size = NSSize(width: 16, height: 16)
+                    cached.size = size
+                    menuItem.image = cached
+                } else {
+                    if !scene.iconName.isEmpty {
+                        menuItem.image = NSImage(systemSymbolName: scene.iconName, accessibilityDescription: "")
+                    }
+                    Task {
+                        let _ = await ContentManager.shared.fetchSceneImage(urlString: imageURL)
+                    }
+                }
+            } else if !scene.iconName.isEmpty {
+                menuItem.image = NSImage(systemSymbolName: scene.iconName, accessibilityDescription: "")
+            }
+            menuItem.tag = Int(scene.id)
+            menuItem.target = self
+            menu.addItem(menuItem)
+        }
+        popUpButton.menu = menu
+    }
+
+    /// Called when the user selects a different category sub-tab in the FX panel.
+    @objc func fxCategoryChanged(_ sender: NSSegmentedControl) {
+        guard let dev = device else { return }
+        guard let theView = sender.superview else { return }
+        guard let popUpButton = theView.subviews.first(where: { $0 is NSPopUpButton }) as? NSPopUpButton else { return }
+
+        let fxs = dev.supportedFX
+        let categoryOrder = NSOrderedSet(array: fxs.compactMap { $0.category }).array as! [String]
+        let idx = sender.selectedSegment
+        guard idx >= 0, idx < categoryOrder.count else { return }
+        let category = categoryOrder[idx]
+
+        populateFXPopUp(popUpButton, fxs: fxs, category: category)
+
+        // Auto-select and trigger the first item in the new category
+        if let first = popUpButton.itemArray.first {
+            popUpButton.select(first)
+            fxClicked(popUpButton)
+        }
     }
 
     func buildLightSourceView(device dev: NeewerLight) -> NSView {
@@ -862,7 +1079,7 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
         let menu = NSMenu()
         // Populate the menu with menu items
         for scene in fxs {
-            let menuItem = NSMenuItem(title: "\(scene.id) - \(scene.name)", action: nil, keyEquivalent: "")
+            let menuItem = NSMenuItem(title: "\(scene.id) - \(scene.name.localized)", action: nil, keyEquivalent: "")
             menuItem.tag = Int(scene.id)
             menuItem.target = self // Set the target to your desired target
             menu.addItem(menuItem)
@@ -980,10 +1197,10 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
         offsetY = 70
         
         if safeFx.needBRR {
-            fxsubview.addSubview(createBigValueLabel("Brightness"))
+            fxsubview.addSubview(createBigValueLabel("Brightness".localized))
             fxsubview.addSubview(createBigValueField(ControlTag.brr, formatBrrValue("\(dev.brrValue.value)", .center)))
 
-            fxsubview.addSubview(createLabel(offsetY-4, "BRR"))
+            fxsubview.addSubview(createLabel(offsetY-4, "BRR".localized))
             let slide = NLSlider(frame: NSRect(x: offsetX, y: offsetY, width: sliderWidth, height: 20))
             slide.autoresizingMask = [.width, .maxYMargin]
             slide.tag = ControlTag.brr.rawValue
@@ -1005,10 +1222,10 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
         }
 
         if safeFx.needCCT {
-            fxsubview.addSubview(createBigValueLabel("CCT"))
+            fxsubview.addSubview(createBigValueLabel("CCT".localized))
             fxsubview.addSubview(createBigValueField(ControlTag.cct, formatCCTValue("\(dev.cctValue.value)", .center)))
 
-            fxsubview.addSubview(createLabel(offsetY-4, "CCT"))
+            fxsubview.addSubview(createLabel(offsetY-4, "CCT".localized))
             let slide = NLSlider(frame: NSRect(x: offsetX, y: offsetY, width: sliderWidth, height: 20))
             slide.autoresizingMask = [.width, .maxYMargin]
             slide.tag = ControlTag.cct.rawValue
@@ -1030,10 +1247,10 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
         }
 
         if safeFx.needGM  && dev.supportCCTGM {
-            fxsubview.addSubview(createBigValueLabel("GM"))
+            fxsubview.addSubview(createBigValueLabel("GM".localized))
             fxsubview.addSubview(createBigValueField(ControlTag.gmm, formatCCTValue("\(dev.gmmValue.value)", .center)))
 
-            fxsubview.addSubview(createLabel(offsetY-4, "GM"))
+            fxsubview.addSubview(createLabel(offsetY-4, "GM".localized))
             let slide = NLSlider(frame: NSRect(x: offsetX, y: offsetY, width: sliderWidth, height: 20))
             slide.autoresizingMask = [.width, .maxYMargin]
             slide.tag = ControlTag.gmm.rawValue
@@ -1094,7 +1311,9 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
             }
         }
 
-        let fxsubview = FXView(frame: NSRect(x: 0, y: 0, width: theView.bounds.width, height: theView.bounds.height - 35))
+        // Position FXView below the popup button (accounts for optional category segmented control)
+        let fxTop = sender.frame.minY - 6
+        let fxsubview = FXView(frame: NSRect(x: 0, y: 0, width: theView.bounds.width, height: fxTop))
         fxsubview.autoresizingMask = [.width, .height]
         //fxsubview.wantsLayer = true
         //fxsubview.layer?.backgroundColor = NSColor.green.cgColor
@@ -1132,7 +1351,7 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
         }
 
         if safeFx.needBRR {
-            fxsubview.addSubview(createLabel(offsetY-4, "BRR"))
+            fxsubview.addSubview(createLabel(offsetY-4, "BRR".localized))
             let slide = NLSlider(frame: NSRect(x: offsetX, y: offsetY, width: slideW, height: 20))
             slide.autoresizingMask = [.width, .maxYMargin]
             slide.tag = ControlTag.brr.rawValue
@@ -1195,7 +1414,7 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
         }
 
         if safeFx.needCCT {
-            fxsubview.addSubview(createLabel(offsetY-4, "CCT"))
+            fxsubview.addSubview(createLabel(offsetY-4, "CCT".localized))
             let slide = NLSlider(frame: NSRect(x: offsetX, y: offsetY, width: slideW, height: 20))
             slide.autoresizingMask = [.width, .maxYMargin]
             slide.tag = ControlTag.cct.rawValue
@@ -1235,7 +1454,7 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
         }
 
         if safeFx.needGM {
-            fxsubview.addSubview(createLabel(offsetY-4, "GM"))
+            fxsubview.addSubview(createLabel(offsetY-4, "GM".localized))
             let slide = NLSlider(frame: NSRect(x: offsetX, y: offsetY, width: slideW, height: 20))
             slide.autoresizingMask = [.width, .maxYMargin]
             slide.tag = ControlTag.gmm.rawValue
@@ -1266,7 +1485,7 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
         }
 
         if safeFx.needHUE {
-            fxsubview.addSubview(createLabel(offsetY-4, "HUE"))
+            fxsubview.addSubview(createLabel(offsetY-4, "HUE".localized))
             let slide = NLSlider(frame: NSRect(x: offsetX, y: offsetY, width: slideW, height: 20))
             slide.autoresizingMask = [.width, .maxYMargin]
             slide.tag = ControlTag.hue.rawValue
@@ -1306,7 +1525,7 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
         }
 
         if safeFx.needSAT {
-            fxsubview.addSubview(createLabel(offsetY-4, "SAT"))
+            fxsubview.addSubview(createLabel(offsetY-4, "SAT".localized))
             let slide = NLSlider(frame: NSRect(x: offsetX, y: offsetY, width: slideW, height: 20))
             slide.autoresizingMask = [.width, .maxYMargin]
             slide.tag = ControlTag.sat.rawValue
@@ -1478,10 +1697,11 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
         device = viewObj.device
         if let dev = device {
             self.image = ContentManager.shared.fetchCachedLightImage(lightType: dev.lightType)
+                ?? (dev.productId.flatMap { ContentManager.shared.fetchCachedLightImage(productId: $0) })
             updateDeviceName()
             self.nameField.toolTip = "\(dev.rawName)\n\(viewObj.deviceIdentifier)"
             imageFetchOperation?.cancel() // Cancel any ongoing operation
-            let operation = ImageFetchOperation(lightType: dev.lightType) { [weak self] image in
+            let operation = ImageFetchOperation(lightType: dev.lightType, productId: dev.productId) { [weak self] image in
                 self?.image = image
             }
             ContentManager.shared.operationQueue.addOperation(operation)
@@ -1512,7 +1732,7 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
             overlay?.bypassRect = moreactionButton.frame
         
             // Label setup
-            let label = NSTextField(labelWithString: "Light is not connected")
+            let label = NSTextField(labelWithString: "Light is not connected".localized)
             label.frame = NSRect(x: 0, y: 5, width: self.view.bounds.width, height: 20)
             label.isEditable = false
             label.isSelectable = false
@@ -1662,6 +1882,20 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
 
     func updateFX(_ fxx: Int) {
         if let btn = getFXListButtonFromView() {
+            // If the FX isn't in the current category's popup, switch categories first.
+            if btn.menu?.item(withTag: fxx) == nil, let dev = device {
+                let fxs = dev.supportedFX
+                if let targetFx = fxs.first(where: { $0.id == fxx }),
+                   let targetCat = targetFx.category,
+                   let view = btn.superview,
+                   let seg = view.subviews.first(where: { $0.tag == CollectionViewItem.fxCategorySegmentTag }) as? NSSegmentedControl {
+                    let categoryOrder = NSOrderedSet(array: fxs.compactMap { $0.category }).array as! [String]
+                    if let catIdx = categoryOrder.firstIndex(of: targetCat) {
+                        seg.selectedSegment = catIdx
+                        populateFXPopUp(btn, fxs: fxs, category: targetCat)
+                    }
+                }
+            }
             btn.selectItem(withTag: fxx)
             fxClicked(btn)
         }
