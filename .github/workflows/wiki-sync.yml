@@ -1,0 +1,48 @@
+name: Sync Docs to Wiki
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'Docs/**.md'
+
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  sync-wiki:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Sync Docs to Wiki
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+          # Clone the wiki repo
+          git clone "https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.wiki.git" wiki
+
+          # Copy all markdown files from Docs/ to wiki root
+          cp Docs/*.md wiki/
+
+          # Rename files: replace spaces with hyphens (GitHub Wiki convention)
+          cd wiki
+          for f in *" "*; do
+            [ -e "$f" ] || continue
+            mv "$f" "$(echo "$f" | tr ' ' '-')"
+          done
+
+          # Commit and push if there are changes
+          git add -A
+          if git diff --cached --quiet; then
+            echo "No wiki changes to commit."
+          else
+            git commit -m "Sync docs from main @ $(echo ${GITHUB_SHA} | cut -c1-7)"
+            git push
+          fi

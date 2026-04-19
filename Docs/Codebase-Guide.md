@@ -62,7 +62,7 @@ NeewerLite/                         ← Root
 ├── Docs/                           ← Documentation & shell script examples
 │   ├── Codebase-Guide.md           ← This file
 │   ├── Sound-to-Light-Engine.md    ← STL engine design, modes, noise gate, architecture
-│   ├── Gels-Feature-Plan.md
+│   ├── Gels.md
 │   ├── Integrate-with-shortcut.md
 │   ├── Integrate-with-streamdeck.md
 │   └── *.sh                        ← Example automation scripts
