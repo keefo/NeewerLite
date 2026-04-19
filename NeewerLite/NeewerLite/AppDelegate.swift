@@ -31,13 +31,14 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuDele
     @IBOutlet weak var viewsButton: NSSegmentedControl!
     @IBOutlet weak var audioDriveSwitch: NSSwitch!
     @IBOutlet weak var gainValueField: NSTextField!
-    @IBOutlet weak var screenImageView: NSImageView!
+
     @IBOutlet weak var scanButton: NSButton!
 
     @IBOutlet var view0: NSView!
     @IBOutlet var view1: NSView!
     @IBOutlet var view2: NSView!
-    @IBOutlet var view3: NSView!
+
+    private lazy var view4: SettingsView = SettingsView()
     var audioSpectrogramViewVisible: Bool = false
 
     private var statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
@@ -751,13 +752,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuDele
         ContentManager.shared.downloadDatabase(force: true)
     }
 
-    @IBAction func toggleScreenDriver(_ sender: NSSwitch) {
-        if sender.state == .on {
 
-        } else {
-
-        }
-    }
 
     @IBAction func changeGainAction(_ sender: NSSlider) {
         if let safe = audioSpectrogram {
@@ -1252,6 +1247,12 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuDele
         self.window.orderFrontRegardless()
     }
 
+    @IBAction func showSettingsAction(_ sender: AnyObject) {
+        showWindowAction(sender)
+        viewsButton.selectSegment(withTag: 3)
+        switchViewAction(viewsButton)
+    }
+
     @IBAction func switchViewAction(_ sender: NSSegmentedControl) {
         guard let contentView = self.window.contentView else {
             return
@@ -1259,7 +1260,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuDele
         for subview in contentView.subviews {
             subview.removeFromSuperview()
         }
-        let views = [self.view0, self.view1, self.view2, self.view3]
+        let views: [NSView?] = [self.view0, self.view1, self.view2, self.view4]
         if sender.selectedSegment >= 0 && sender.selectedSegment < views.count {
 
             UserDefaults.standard.setValue(sender.selectedSegment, forKey: "viewIdx")
@@ -1281,11 +1282,12 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuDele
                     if !launching {
                         Logger.info(LogTag.click, "Music View")
                     }
-                } else if selectedView == self.view3 {
-                    window.title = "NeewerLite - Screen View"
+                } else if selectedView == self.view4 {
+                    window.title = "NeewerLite - Settings"
                     if !launching {
-                        Logger.info(LogTag.click, "Screen View")
+                        Logger.info(LogTag.click, "Settings View")
                     }
+                    refreshSettingsView()
                 }
                 selectedView.frame = contentView.bounds
                 selectedView.autoresizingMask = [.width, .height]
@@ -1545,6 +1547,12 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuDele
                 self.updateUI()
             }
         }
+    }
+
+    // MARK: - Settings View
+
+    func refreshSettingsView() {
+        view4.refresh()
     }
 
 }

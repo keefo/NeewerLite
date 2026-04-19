@@ -7,10 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		A708F5822E32FAC900564DCF /* lights.json in Resources */ = {isa = PBXBuildFile; fileRef = A708F5812E32FAC900564DCF /* lights.json */; };
 		A708F58A2E33006E00564DCF /* CommandParserTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A708F5892E33006E00564DCF /* CommandParserTests.swift */; };
 		A708F58C2E3300A300564DCF /* CommandPatternParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = A708F58B2E3300A300564DCF /* CommandPatternParser.swift */; };
 		A708F5902E333E8E00564DCF /* PatternEditorPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A708F58F2E333E8E00564DCF /* PatternEditorPanel.swift */; };
+		A76C38702E00000000000001 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A76C38712E00000000000001 /* SettingsView.swift */; };
 		A71B39BA275726800005E271 /* Atomics in Frameworks */ = {isa = PBXBuildFile; productRef = A71B39B9275726800005E271 /* Atomics */; };
 		A730F7FE2AE79173009CA529 /* NeewerLightConstant.swift in Sources */ = {isa = PBXBuildFile; fileRef = A730F7FD2AE79173009CA529 /* NeewerLightConstant.swift */; };
 		A730F8002AE7B8C0009CA529 /* digital-7-mono.ttf in Resources */ = {isa = PBXBuildFile; fileRef = A730F7FF2AE7B8C0009CA529 /* digital-7-mono.ttf */; };
@@ -78,10 +78,10 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		A708F5812E32FAC900564DCF /* lights.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; name = lights.json; path = ../Database/lights.json; sourceTree = SOURCE_ROOT; };
 		A708F5892E33006E00564DCF /* CommandParserTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommandParserTests.swift; sourceTree = "<group>"; };
 		A708F58B2E3300A300564DCF /* CommandPatternParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommandPatternParser.swift; sourceTree = "<group>"; };
 		A708F58F2E333E8E00564DCF /* PatternEditorPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PatternEditorPanel.swift; sourceTree = "<group>"; };
+		A76C38712E00000000000001 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		A730F7FD2AE79173009CA529 /* NeewerLightConstant.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NeewerLightConstant.swift; sourceTree = "<group>"; };
 		A730F7FF2AE7B8C0009CA529 /* digital-7-mono.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "digital-7-mono.ttf"; sourceTree = "<group>"; };
 		A7311C4529A0BD5E009C03D8 /* Command.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Command.swift; sourceTree = "<group>"; };
@@ -239,6 +239,7 @@
 				A744CD422AF36BA1007E919A /* MyLightTableCellView.swift */,
 				A7770BF12AF6EEB30046E571 /* RenameViewController.swift */,
 				A7770BF32AF6F7190046E571 /* RoundedScrollView.swift */,
+				A76C38712E00000000000001 /* SettingsView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -286,7 +287,6 @@
 		A731DDAC25A5A13000302E25 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
-				A708F5812E32FAC900564DCF /* lights.json */,
 				A730F7FF2AE7B8C0009CA529 /* digital-7-mono.ttf */,
 				A731DD3525A57D0B00302E25 /* Assets.xcassets */,
 				A731DD8E25A592CC00302E25 /* CollectionViewItem.xib */,
@@ -405,7 +405,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				A708F5822E32FAC900564DCF /* lights.json in Resources */,
 				A731DD3625A57D0B00302E25 /* Assets.xcassets in Resources */,
 				A730F8002AE7B8C0009CA529 /* digital-7-mono.ttf in Resources */,
 				A731DD3925A57D0B00302E25 /* MainMenu.xib in Resources */,
@@ -489,6 +488,7 @@
 				F1A2B3C4D5E6F7A8B9C0D1E2 /* AudioAnalysisEngine.swift in Sources */,
 				D1E2F3A4B5C6D7E8F9A0B1C2 /* SoundToLightMode.swift in Sources */,
 				A753109D2AFC996F009F533C /* StorageManager.swift in Sources */,
+				A76C38702E00000000000001 /* SettingsView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

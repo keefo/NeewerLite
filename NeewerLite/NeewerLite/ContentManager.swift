@@ -164,10 +164,17 @@ class ContentManager {
     }()
 
     // JSON Database URL
-    private let jsonDatabaseURL = URL(
+    #if DEBUG
+    let jsonDatabaseURL = URL(
+        string: "https://raw.githubusercontent.com/keefo/NeewerLite/user/keefo/add-neewer-home-support/Database/lights.json")!
+    private let imageBaseURL = URL(
+        string: "https://raw.githubusercontent.com/keefo/NeewerLite/user/keefo/add-neewer-home-support/Database/")!
+    #else
+    let jsonDatabaseURL = URL(
         string: "https://raw.githubusercontent.com/keefo/NeewerLite/main/Database/lights.json")!
     private let imageBaseURL = URL(
         string: "https://raw.githubusercontent.com/keefo/NeewerLite/main/Database/")!
+    #endif
 
     /// Resolves image references from the database.
     /// Accepts either a full URL (legacy) or a bare filename resolved against imageBaseURL.
@@ -177,11 +184,19 @@ class ContentManager {
         }
         return imageBaseURL.appendingPathComponent(subdirectory).appendingPathComponent(ref)
     }
-    private var localDatabaseURL: URL {
+    var localDatabaseURL: URL {
         let appSupportURL = fileManager.urls(for: .applicationSupportDirectory, in: .userDomainMask)
             .first!
         let cacheURL = appSupportURL.appendingPathComponent("NeewerLite/database.json")
         return cacheURL
+    }
+
+    var localDatabaseExists: Bool {
+        fileManager.fileExists(atPath: localDatabaseURL.path)
+    }
+
+    func deleteLocalDatabase() {
+        try? fileManager.removeItem(atPath: localDatabaseURL.path)
     }
     private var ttlTimer: Timer?
     private let ttlInterval: TimeInterval = 28800  // 8 hours
@@ -224,18 +239,7 @@ class ContentManager {
     public func loadDatabaseFromDisk(reload: Bool = false) {
         if databaseCache == nil || reload {
             do {
-                #if DEBUG
-                    // Try to load from resources in debug build
-                    if let resourceURL = Bundle.main.url(
-                        forResource: "lights", withExtension: "json")
-                    {
-                        let data = try Data(contentsOf: resourceURL)
-                        databaseCache = try JSONDecoder().decode(Database.self, from: data)
-                        GelLibrary.shared.reload()
-                        return
-                    }
-                #endif
-                // Fallback to local cache file
+                // Load from local cache file
                 if fileManager.fileExists(atPath: localDatabaseURL.path) {
                     let data = try Data(contentsOf: localDatabaseURL)
                     databaseCache = try JSONDecoder().decode(Database.self, from: data)
@@ -265,14 +269,14 @@ class ContentManager {
         }
     }
 
-    public func downloadDatabase(force: Bool) {
+    public func downloadDatabase(force: Bool, silent: Bool = false) {
         if !force && !self.shouldDownloadDatabase() {
             return
         }
         Task.detached(priority: .background) {
             do {
                 try await self.downloadDatabaseNow()
-                if force {
+                if force && !silent {
                     Task { @MainActor in
                         let alert = NSAlert()
                         alert.messageText = "Finish"
@@ -293,7 +297,10 @@ class ContentManager {
         lastCheckedDate = Date()
         do {
             Logger.info("Download database...")
-            let (data, _) = try await session.data(from: jsonDatabaseURL)
+            var request = URLRequest(url: jsonDatabaseURL)
+            request.cachePolicy = .reloadIgnoringLocalCacheData
+            let (data, _) = try await session.data(for: request)
+            try await Task.sleep(nanoseconds: 1_000_000_000)
             Logger.info("Download content: \(String(data: data, encoding: .utf8) ?? "<binary>")")
             try data.write(to: localDatabaseURL)
             loadDatabaseFromDisk(reload: true)
@@ -313,6 +320,9 @@ class ContentManager {
     }
 
     private func shouldDownloadDatabase() -> Bool {
+        #if DEBUG
+        return true
+        #endif
         // Check if the local file exists and is valid
         if !fileManager.fileExists(atPath: localDatabaseURL.path) {
             return true
@@ -532,6 +542,26 @@ class ContentManager {
 
     func fetchGels() -> [NeewerGel] {
         return databaseCache?.gels ?? []
+    }
+
+    var databaseVersion: Double {
+        return databaseCache?.version ?? 0
+    }
+
+    var databaseLightCount: Int {
+        return databaseCache?.lights.count ?? 0
+    }
+
+    var databaseHomeDeviceCount: Int {
+        return databaseCache?.homeDevices.count ?? 0
+    }
+
+    var databaseFxPresetCount: Int {
+        return databaseCache?.fxPresets.count ?? 0
+    }
+
+    var databaseGelCount: Int {
+        return databaseCache?.gels.count ?? 0
     }
 
     func fetchLightImage(lightType: UInt8) async throws -> NSImage? {
