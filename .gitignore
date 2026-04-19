@@ -8,5 +8,7 @@ xcuserdata/
 *.log
 *.apk
 *.xapk
+*.app
 Docs/xapk_decompiled
+Docs/xapk_extract
 Docs/PacketLogger.app
