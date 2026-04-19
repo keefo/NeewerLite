@@ -122,6 +122,12 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuDele
 
         Logger.info(LogTag.app, "App launch")
 
+        // Early exit for unit tests — skip all UI, Metal, audio, BLE, and network setup.
+        if ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil {
+            ContentManager.shared.loadDatabaseFromDisk()
+            return
+        }
+
         scanningStatus?.stringValue = ""
         let idx = UserDefaults.standard.value(forKey: "viewIdx") as? Int
         self.viewsButton.selectSegment(withTag: idx ?? 0)
@@ -174,11 +180,6 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuDele
         loadLightsFromDisk()
         restoreFollowMusicSelections()
         self.updateUI()
-
-        // Skip BLE and network services when running under unit tests
-        if ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil {
-            return
-        }
 
         cbCentralManager = CBCentralManager(delegate: self, queue: nil)
         keepLightConnectionAlive()
