@@ -489,15 +489,18 @@ validate_lights_database() {
             fi
         fi
         
-        # Validate image URL if present
+        # Validate image reference if present
         local image_url=$(echo "$light" | jq -r '.image' 2>/dev/null)
         if [ -n "$image_url" ] && [ "$image_url" != "null" ] && [ "$image_url" != "" ]; then
-            if [[ "$image_url" =~ ^https://github\.com/keefo/NeewerLite/blob/main/Database/light_images/.+\.png\?raw=true$ ]]; then
+            # Accept both relative filenames (new schema) and full GitHub URLs (legacy)
+            if [[ "$image_url" =~ ^[a-zA-Z0-9_-]+\.(png|jpg|jpeg|webp)$ ]] || \
+               [[ "$image_url" =~ ^light_images/[a-zA-Z0-9_-]+\.(png|jpg|jpeg|webp)$ ]] || \
+               [[ "$image_url" =~ ^https://github\.com/keefo/NeewerLite/blob/main/Database/light_images/.+\.(png|jpg|jpeg|webp)\?raw=true$ ]]; then
                 if [ "$VERBOSE" = true ]; then
-                    print_success "  Light #$light_index: Valid image URL format"
+                    print_success "  Light #$light_index: Valid image reference: $image_url"
                 fi
             else
-                print_error "  Light #$light_index: Invalid image URL format: $image_url"
+                print_error "  Light #$light_index: Invalid image reference: $image_url"
                 validation_errors=$((validation_errors + 1))
             fi
         fi
