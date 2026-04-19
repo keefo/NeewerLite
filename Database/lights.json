@@ -899,6 +899,44 @@
                 "image": "las_vegas_hockey.png",
                 "category": "Sport"
             }
+        ],
+        "nh_music": [
+            {
+                "id": 0,
+                "name": "Energy",
+                "icon": "bolt.fill",
+                "cmd": "0x7A 0x0E {size} 0x01 0x00 0x64 0x00 {speed:uint8:range(1,100)} {sens:uint8:range(1,100)} 0x01 0x06 0x00 0x00 0x64 0x00 0x1E 0x64 0x00 0x3C 0x64 0x00 0x82 0x64 0x00 0xD2 0x64 0x01 0x2C 0x64 0x00 {checksum}"
+            },
+            {
+                "id": 1,
+                "name": "Breathing",
+                "icon": "wind",
+                "cmd": "0x7A 0x0E {size} 0x01 0x00 0x64 0x01 {speed:uint8:range(1,100)} {sens:uint8:range(1,100)} 0x01 0x06 0x00 0x00 0x64 0x00 0x1E 0x64 0x00 0x3C 0x64 0x00 0x82 0x64 0x00 0xD2 0x64 0x01 0x2C 0x64 0x00 {checksum}"
+            },
+            {
+                "id": 2,
+                "name": "Beat",
+                "icon": "waveform.path.ecg",
+                "cmd": "0x7A 0x0E {size} 0x01 0x00 0x64 0x02 {speed:uint8:range(1,100)} {sens:uint8:range(1,100)} 0x01 0x06 0x00 0x00 0x64 0x00 0x1E 0x64 0x00 0x3C 0x64 0x00 0x82 0x64 0x00 0xD2 0x64 0x01 0x2C 0x64 0x00 {checksum}"
+            },
+            {
+                "id": 3,
+                "name": "Meteor",
+                "icon": "sparkles",
+                "cmd": "0x7A 0x0E {size} 0x01 0x00 0x64 0x03 {speed:uint8:range(1,100)} {sens:uint8:range(1,100)} 0x01 0x06 0x00 0x00 0x64 0x00 0x1E 0x64 0x00 0x3C 0x64 0x00 0x82 0x64 0x00 0xD2 0x64 0x01 0x2C 0x64 0x00 {checksum}"
+            },
+            {
+                "id": 4,
+                "name": "Starry Sky",
+                "icon": "star.fill",
+                "cmd": "0x7A 0x0E {size} 0x01 0x00 0x64 0x04 {speed:uint8:range(1,100)} {sens:uint8:range(1,100)} 0x01 0x06 0x00 0x00 0x64 0x00 0x1E 0x64 0x00 0x3C 0x64 0x00 0x82 0x64 0x00 0xD2 0x64 0x01 0x2C 0x64 0x00 {checksum}"
+            },
+            {
+                "id": 5,
+                "name": "Neon",
+                "icon": "lightbulb.fill",
+                "cmd": "0x7A 0x0E {size} 0x01 0x00 0x64 0x05 0x32 {sens:uint8:range(1,100)} 0x01 0x06 0x00 0x00 0x64 0x00 0x1E 0x64 0x00 0x3C 0x64 0x00 0x82 0x64 0x00 0xD2 0x64 0x01 0x2C 0x64 0x00 {checksum}"
+            }
         ]
     },
     "lights": [
@@ -2342,7 +2380,8 @@
                 "query_all": "0x7A 0x08 {size} 0x00 {checksum}",
                 "query_current": "0x7A 0x08 {size} 0x01 {checksum}",
                 "hsi": "0x7A 0x0D {size16} {brr_hi:uint8} {brr_lo:uint8} 0x01 0x64 {hue:uint16_be:range(0,360)} {sat:uint8:range(0,100)} 0x00 0x01 0x00 {checksum}"
-            }
+            },
+            "musicPreset": "nh_music"
         },
         {
             "productId": "PD20240081",
@@ -2359,7 +2398,8 @@
                 "query_all": "0x7A 0x08 {size} 0x00 {checksum}",
                 "query_current": "0x7A 0x08 {size} 0x01 {checksum}",
                 "hsi": "0x7A 0x0D {size16} {brr_hi:uint8} {brr_lo:uint8} 0x01 0x64 {hue:uint16_be:range(0,360)} {sat:uint8:range(0,100)} 0x00 0x01 0x00 {checksum}"
-            }
+            },
+            "musicPreset": "nh_music"
         },
         {
             "productId": "PD20250092",
@@ -2376,7 +2416,8 @@
                 "query_all": "0x7A 0x08 {size} 0x00 {checksum}",
                 "query_current": "0x7A 0x08 {size} 0x01 {checksum}",
                 "hsi": "0x7A 0x0D {size16} {brr_hi:uint8} {brr_lo:uint8} 0x01 0x64 {hue:uint16_be:range(0,360)} {sat:uint8:range(0,100)} 0x00 0x01 0x00 {checksum}"
-            }
+            },
+            "musicPreset": "nh_music"
         },
         {
             "productId": "PD20250151",
@@ -2393,7 +2434,8 @@
                 "query_all": "0x7A 0x08 {size} 0x00 {checksum}",
                 "query_current": "0x7A 0x08 {size} 0x01 {checksum}",
                 "hsi": "0x7A 0x0D {size16} {brr_hi:uint8} {brr_lo:uint8} 0x01 0x64 {hue:uint16_be:range(0,360)} {sat:uint8:range(0,100)} 0x00 0x01 0x00 {checksum}"
-            }
+            },
+            "musicPreset": "nh_music"
         },
         {
             "productId": "PD20250133",
@@ -2410,7 +2452,8 @@
                 "query_all": "0x7A 0x08 {size} 0x00 {checksum}",
                 "query_current": "0x7A 0x08 {size} 0x01 {checksum}",
                 "hsi": "0x7A 0x0D {size16} {brr_hi:uint8} {brr_lo:uint8} 0x01 0x64 {hue:uint16_be:range(0,360)} {sat:uint8:range(0,100)} 0x00 0x01 0x00 {checksum}"
-            }
+            },
+            "musicPreset": "nh_music"
         },
         {
             "productId": "PD20250051",
@@ -2427,7 +2470,8 @@
                 "query_all": "0x7A 0x08 {size} 0x00 {checksum}",
                 "query_current": "0x7A 0x08 {size} 0x01 {checksum}",
                 "hsi": "0x7A 0x0D {size16} {brr_hi:uint8} {brr_lo:uint8} 0x01 0x64 {hue:uint16_be:range(0,360)} {sat:uint8:range(0,100)} 0x00 0x01 0x00 {checksum}"
-            }
+            },
+            "musicPreset": "nh_music"
         },
         {
             "productId": "PD20250087",
@@ -2445,7 +2489,8 @@
                 "query_all": "0x7A 0x08 {size} 0x00 {checksum}",
                 "query_current": "0x7A 0x08 {size} 0x01 {checksum}",
                 "hsi": "0x7A 0x0D {size16} {brr_hi:uint8} {brr_lo:uint8} 0x01 0x64 {hue:uint16_be:range(0,360)} {sat:uint8:range(0,100)} 0x00 0x01 0x00 {checksum}"
-            }
+            },
+            "musicPreset": "nh_music"
         },
         {
             "productId": "PD20250004",
@@ -2463,7 +2508,8 @@
                 "query_all": "0x7A 0x08 {size} 0x00 {checksum}",
                 "query_current": "0x7A 0x08 {size} 0x01 {checksum}",
                 "hsi": "0x7A 0x0D {size16} {brr_hi:uint8} {brr_lo:uint8} 0x01 0x64 {hue:uint16_be:range(0,360)} {sat:uint8:range(0,100)} 0x00 0x01 0x00 {checksum}"
-            }
+            },
+            "musicPreset": "nh_music"
         },
         {
             "productId": "PD20250007",
@@ -2481,7 +2527,8 @@
                 "query_all": "0x7A 0x08 {size} 0x00 {checksum}",
                 "query_current": "0x7A 0x08 {size} 0x01 {checksum}",
                 "hsi": "0x7A 0x0D {size16} {brr_hi:uint8} {brr_lo:uint8} 0x01 0x64 {hue:uint16_be:range(0,360)} {sat:uint8:range(0,100)} 0x00 0x01 0x00 {checksum}"
-            }
+            },
+            "musicPreset": "nh_music"
         },
         {
             "productId": "PD20250005",
@@ -2499,7 +2546,8 @@
                 "query_all": "0x7A 0x08 {size} 0x00 {checksum}",
                 "query_current": "0x7A 0x08 {size} 0x01 {checksum}",
                 "hsi": "0x7A 0x0D {size16} {brr_hi:uint8} {brr_lo:uint8} 0x01 0x64 {hue:uint16_be:range(0,360)} {sat:uint8:range(0,100)} 0x00 0x01 0x00 {checksum}"
-            }
+            },
+            "musicPreset": "nh_music"
         },
         {
             "productId": "PD20250029",
@@ -2517,7 +2565,8 @@
                 "query_all": "0x7A 0x08 {size} 0x00 {checksum}",
                 "query_current": "0x7A 0x08 {size} 0x01 {checksum}",
                 "hsi": "0x7A 0x0D {size16} {brr_hi:uint8} {brr_lo:uint8} 0x01 0x64 {hue:uint16_be:range(0,360)} {sat:uint8:range(0,100)} 0x00 0x01 0x00 {checksum}"
-            }
+            },
+            "musicPreset": "nh_music"
         },
         {
             "productId": "PD20250006",
@@ -2536,7 +2585,8 @@
                 "query_all": "0x7A 0x08 {size} 0x00 {checksum}",
                 "query_current": "0x7A 0x08 {size} 0x01 {checksum}",
                 "hsi": "0x7A 0x0D {size16} {brr_hi:uint8} {brr_lo:uint8} 0x01 0x64 {hue:uint16_be:range(0,360)} {sat:uint8:range(0,100)} 0x00 0x01 0x00 {checksum}"
-            }
+            },
+            "musicPreset": "nh_music"
         },
         {
             "productId": "PD20250030",
@@ -2555,7 +2605,8 @@
                 "query_all": "0x7A 0x08 {size} 0x00 {checksum}",
                 "query_current": "0x7A 0x08 {size} 0x01 {checksum}",
                 "hsi": "0x7A 0x0D {size16} {brr_hi:uint8} {brr_lo:uint8} 0x01 0x64 {hue:uint16_be:range(0,360)} {sat:uint8:range(0,100)} 0x00 0x01 0x00 {checksum}"
-            }
+            },
+            "musicPreset": "nh_music"
         },
         {
             "productId": "PD20250039",
@@ -2574,7 +2625,8 @@
                 "query_all": "0x7A 0x08 {size} 0x00 {checksum}",
                 "query_current": "0x7A 0x08 {size} 0x01 {checksum}",
                 "hsi": "0x7A 0x0D {size16} {brr_hi:uint8} {brr_lo:uint8} 0x01 0x64 {hue:uint16_be:range(0,360)} {sat:uint8:range(0,100)} 0x00 0x01 0x00 {checksum}"
-            }
+            },
+            "musicPreset": "nh_music"
         },
         {
             "productId": "PD20250008",
@@ -2592,7 +2644,8 @@
                 "query_all": "0x7A 0x08 {size} 0x00 {checksum}",
                 "query_current": "0x7A 0x08 {size} 0x01 {checksum}",
                 "hsi": "0x7A 0x0D {size16} {brr_hi:uint8} {brr_lo:uint8} 0x01 0x64 {hue:uint16_be:range(0,360)} {sat:uint8:range(0,100)} 0x00 0x01 0x00 {checksum}"
-            }
+            },
+            "musicPreset": "nh_music"
         },
         {
             "productId": "PD20250052",
@@ -2611,7 +2664,8 @@
                 "query_all": "0x7A 0x08 {size} 0x00 {checksum}",
                 "query_current": "0x7A 0x08 {size} 0x01 {checksum}",
                 "hsi": "0x7A 0x0D {size16} {brr_hi:uint8} {brr_lo:uint8} 0x01 0x64 {hue:uint16_be:range(0,360)} {sat:uint8:range(0,100)} 0x00 0x01 0x00 {checksum}"
-            }
+            },
+            "musicPreset": "nh_music"
         },
         {
             "productId": "PD20250128",
@@ -2631,7 +2685,8 @@
                 "query_all": "0x7A 0x08 {size} 0x00 {checksum}",
                 "query_current": "0x7A 0x08 {size} 0x01 {checksum}",
                 "hsi": "0x7A 0x0D {size16} {brr_hi:uint8} {brr_lo:uint8} 0x01 0x64 {hue:uint16_be:range(0,360)} {sat:uint8:range(0,100)} 0x00 0x01 0x00 {checksum}"
-            }
+            },
+            "musicPreset": "nh_music"
         },
         {
             "productId": "PD20250058",
@@ -2648,7 +2703,8 @@
                 "query_all": "0x7A 0x08 {size} 0x00 {checksum}",
                 "query_current": "0x7A 0x08 {size} 0x01 {checksum}",
                 "hsi": "0x7A 0x0D {size16} {brr_hi:uint8} {brr_lo:uint8} 0x01 0x64 {hue:uint16_be:range(0,360)} {sat:uint8:range(0,100)} 0x00 0x01 0x00 {checksum}"
-            }
+            },
+            "musicPreset": "nh_music"
         },
         {
             "productId": "PD20250150",
@@ -2665,7 +2721,8 @@
                 "query_all": "0x7A 0x08 {size} 0x00 {checksum}",
                 "query_current": "0x7A 0x08 {size} 0x01 {checksum}",
                 "hsi": "0x7A 0x0D {size16} {brr_hi:uint8} {brr_lo:uint8} 0x01 0x64 {hue:uint16_be:range(0,360)} {sat:uint8:range(0,100)} 0x00 0x01 0x00 {checksum}"
-            }
+            },
+            "musicPreset": "nh_music"
         },
         {
             "productId": "PD20250103",
@@ -2713,7 +2770,8 @@
                 "query_all": "0x7A 0x08 {size} 0x00 {checksum}",
                 "query_current": "0x7A 0x08 {size} 0x01 {checksum}",
                 "hsi": "0x7A 0x0D {size16} {brr_hi:uint8} {brr_lo:uint8} 0x01 0x64 {hue:uint16_be:range(0,360)} {sat:uint8:range(0,100)} 0x00 0x01 0x00 {checksum}"
-            }
+            },
+            "musicPreset": "nh_music"
         },
         {
             "productId": "PD20250123",
@@ -2729,7 +2787,8 @@
                 "query_all": "0x7A 0x08 {size} 0x00 {checksum}",
                 "query_current": "0x7A 0x08 {size} 0x01 {checksum}",
                 "hsi": "0x7A 0x0D {size16} {brr_hi:uint8} {brr_lo:uint8} 0x01 0x64 {hue:uint16_be:range(0,360)} {sat:uint8:range(0,100)} 0x00 0x01 0x00 {checksum}"
-            }
+            },
+            "musicPreset": "nh_music"
         },
         {
             "productId": "PD20250050",
@@ -2748,7 +2807,8 @@
                 "query_all": "0x7A 0x08 {size} 0x00 {checksum}",
                 "query_current": "0x7A 0x08 {size} 0x01 {checksum}",
                 "hsi": "0x7A 0x0D {size16} {brr_hi:uint8} {brr_lo:uint8} 0x01 0x64 {hue:uint16_be:range(0,360)} {sat:uint8:range(0,100)} 0x00 0x01 0x00 {checksum}"
-            }
+            },
+            "musicPreset": "nh_music"
         },
         {
             "productId": "PD20250130",
@@ -2781,7 +2841,8 @@
                 "query_all": "0x7A 0x08 {size} 0x00 {checksum}",
                 "query_current": "0x7A 0x08 {size} 0x01 {checksum}",
                 "hsi": "0x7A 0x0D {size16} {brr_hi:uint8} {brr_lo:uint8} 0x01 0x64 {hue:uint16_be:range(0,360)} {sat:uint8:range(0,100)} 0x00 0x01 0x00 {checksum}"
-            }
+            },
+            "musicPreset": "nh_music"
         },
         {
             "productId": "PD20250134",
@@ -2799,7 +2860,8 @@
                 "query_all": "0x7A 0x08 {size} 0x00 {checksum}",
                 "query_current": "0x7A 0x08 {size} 0x01 {checksum}",
                 "hsi": "0x7A 0x0D {size16} {brr_hi:uint8} {brr_lo:uint8} 0x01 0x64 {hue:uint16_be:range(0,360)} {sat:uint8:range(0,100)} 0x00 0x01 0x00 {checksum}"
-            }
+            },
+            "musicPreset": "nh_music"
         },
         {
             "productId": "PD20250129",
@@ -2832,7 +2894,8 @@
                 "query_all": "0x7A 0x08 {size} 0x00 {checksum}",
                 "query_current": "0x7A 0x08 {size} 0x01 {checksum}",
                 "hsi": "0x7A 0x0D {size16} {brr_hi:uint8} {brr_lo:uint8} 0x01 0x64 {hue:uint16_be:range(0,360)} {sat:uint8:range(0,100)} 0x00 0x01 0x00 {checksum}"
-            }
+            },
+            "musicPreset": "nh_music"
         },
         {
             "productId": "PD20250139",
@@ -2851,7 +2914,8 @@
                 "query_all": "0x7A 0x08 {size} 0x00 {checksum}",
                 "query_current": "0x7A 0x08 {size} 0x01 {checksum}",
                 "hsi": "0x7A 0x0D {size16} {brr_hi:uint8} {brr_lo:uint8} 0x01 0x64 {hue:uint16_be:range(0,360)} {sat:uint8:range(0,100)} 0x00 0x01 0x00 {checksum}"
-            }
+            },
+            "musicPreset": "nh_music"
         },
         {
             "productId": "PD20250140",
@@ -2869,7 +2933,8 @@
                 "query_all": "0x7A 0x08 {size} 0x00 {checksum}",
                 "query_current": "0x7A 0x08 {size} 0x01 {checksum}",
                 "hsi": "0x7A 0x0D {size16} {brr_hi:uint8} {brr_lo:uint8} 0x01 0x64 {hue:uint16_be:range(0,360)} {sat:uint8:range(0,100)} 0x00 0x01 0x00 {checksum}"
-            }
+            },
+            "musicPreset": "nh_music"
         },
         {
             "productId": "PD20250141",
@@ -2887,7 +2952,8 @@
                 "query_all": "0x7A 0x08 {size} 0x00 {checksum}",
                 "query_current": "0x7A 0x08 {size} 0x01 {checksum}",
                 "hsi": "0x7A 0x0D {size16} {brr_hi:uint8} {brr_lo:uint8} 0x01 0x64 {hue:uint16_be:range(0,360)} {sat:uint8:range(0,100)} 0x00 0x01 0x00 {checksum}"
-            }
+            },
+            "musicPreset": "nh_music"
         }
     ]
 }
