@@ -283,6 +283,8 @@ CBPeripheral notification (GATT characteristic)
 
 ## BLE Protocol & Light Communication
 
+> **See also:** [Neewer-Light-Protocol.md](Neewer-Light-Protocol.md) (raw packet captures & reverse-engineering notes) · [Neewer-Home-Protocol.md](Neewer-Home-Protocol.md) (Neewer Home app protocol)
+
 ### Service & Characteristics
 
 All Neewer lights use a single BLE service with two characteristics:
@@ -293,74 +295,15 @@ All Neewer lights use a single BLE service with two characteristics:
 | `69400002-B5A3-F393-E0A9-E50E24DCCA99` | Control | App → Light (write) |
 | `69400003-B5A3-F393-E0A9-E50E24DCCA99` | GATT | Light → App (notify) |
 
-### Command Packet Format
+### Command Protocol
 
-Every command follows the same structure:
-```
-[0x78] [tag] [payload_size] [payload...] [checksum]
-  │      │        │              │            │
-  │      │        │              │            └─ XOR of all preceding bytes
-  │      │        │              └─ Variable-length payload
-  │      │        └─ Number of payload bytes (uint8)
-  │      └─ Command tag (power=0x81, cct=0x83, hsi=0x89, etc.)
-  └─ Fixed prefix (always 0x78 = 120)
-```
-
-**Example — Power On:**
-```
-0x78  0x81  0x01  0x01  0xFB
- │     │     │     │     └─ checksum: 0x78 ^ 0x81 ^ 0x01 ^ 0x01 = 0xFB
- │     │     │     └─ state: 1 = ON
- │     │     └─ payload size: 1 byte
- │     └─ power tag
- └─ prefix
-```
-
-**Example — Set HSI (hue=120°, sat=80%, brr=50%):**
-```
-0x78  0x89  0x04  0x78 0x00  0x50  0x32  [checksum]
- │     │     │     │         │     │
- │     │     │     │         │     └─ brightness: 50 (0x32)
- │     │     │     │         └─ saturation: 80 (0x50)
- │     │     │     └─ hue: 120 as uint16_le (0x0078)
- │     │     └─ payload: 4 bytes
- │     └─ HSI tag
- └─ prefix
-```
-
-### Command Tags
-
-| Tag | Hex | Purpose |
-|-----|-----|---------|
-| Power | `0x81` | On/Off |
-| CCT Long Brr | `0x82` | Extended CCT brightness |
-| CCT Long CCT | `0x83` | Extended CCT temperature |
-| RGB (legacy) | `0x86` | Old RGB format |
-| CCT | `0x87` | Standard CCT |
-| Scene | `0x88` | Scene effects |
-| HSI | `0x89` | HSI mode (hue/sat/brr) |
-| CCT Data | `0x90` | Continuous CCT data |
-| RGB (new) | `0x8F` | New RGB format |
+Every command is a `[0x78] [tag] [payload...] [checksum]` packet. Tags include power (`0x81`), CCT (`0x87`), HSI (`0x89`), scene (`0x88`), and others. Checksum is XOR of all preceding bytes. See [Neewer-Light-Protocol.md](Neewer-Light-Protocol.md) for packet format details, worked examples, and the full tag reference.
 
 ### Command Pattern Templates
 
-Instead of hardcoding commands per light model, the database defines templates:
+Instead of hardcoding commands per light model, the database defines templates like `"{cmdtag} {powertag} {size} {state:uint8:enum(1=on,2=off)} {checksum}"`. Tokens include variables with types and constraints (`{var:type:constraint}`), auto-calculated `{size}`, and literal hex values. `CommandPatternParser.buildCommand(from:values:)` takes a template + a dictionary of values and returns the raw `Data` packet.
 
-```
-"{cmdtag} {powertag} {size} {state:uint8:enum(1=on,2=off)} {checksum}"
-"{cmdtag} {ccttag} {size} {brr:uint8:range(0,100)} {cct:uint8:range(32,56)} 0x32 0x00 0x00 {checksum}"
-"{cmdtag} {hsitag} {size} {hue:uint16_le:range(0,360)} {sat:uint8:range(0,100)} {brr:uint8:range(0,100)} {checksum}"
-```
-
-**Token types:**
-- `{cmdtag}` → always `0x78`
-- `{powertag}`, `{ccttag}`, `{hsitag}` → resolved from database
-- `{size}` → auto-calculated payload length
-- `{var:type:constraint}` — variable with type (`uint8`, `uint16_le`, `uint16_be`, `hex`) and constraint (`range(min,max)`, `enum(...)`, `bits(...)`)
-- `{checksum}` → XOR of all preceding bytes
-- Literal hex like `0x32` → inserted as-is
-
-`CommandPatternParser.buildCommand(from:values:)` takes a template + a dictionary of values and returns the raw `Data` packet.
+See [Command-Patterns.md](Command-Patterns.md) for the full template grammar, token types, and worked examples.
 
 ### Discovery
 
@@ -531,6 +474,8 @@ The Music View (view2) layout at 639×424:
 
 ## Sound-to-Light System
 
+> **See also:** [Sound-to-Light-Engine.md](Sound-to-Light-Engine.md) (design & architecture) · [Sound-to-Light-Technical-Report.md](Sound-to-Light-Technical-Report.md) (algorithm details & benchmarks)
+
 The Sound-to-Light system turns live audio into real-time lighting commands. The pipeline:
 
 ```
@@ -540,131 +485,33 @@ Microphone → AudioSpectrogram → AudioAnalysisEngine → SoundToLightMode →
 
 ### AudioSpectrogram (`Spectrogram/AudioSpectrogram.swift`)
 
-Captures system audio via AVFoundation and produces a 60-bin mel-spectrogram at ~46 Hz.
-
-**Pipeline:**
-1. **AVCaptureSession** captures audio at 44.1 kHz
-2. **1024-point FFT** via vDSP (Accelerate framework)
-3. **60 triangular mel filters** spanning 20 Hz – 20 kHz
-4. **Log-scale power** with 50 dB floor
-5. Fires `frequencyUpdateCallback([Float])` ~46 times/second
-
-Also provides:
-- `volumeUpdateCallback` — system volume level
-- `amplitudeUpdateCallback` — microphone RMS
-- `audioSpectrogramImageUpdateCallback` — waterfall CGImage (expensive, togglable)
+Captures system audio via AVFoundation and produces a 60-bin mel-spectrogram at ~46 Hz (44.1 kHz → 1024-point FFT → 60 mel filters → log-scale power).
 
 ### AudioAnalysisEngine (`Spectrogram/AudioAnalysisEngine.swift`)
 
-Extracts musical features from the raw mel spectrum. Input: 60-bin array × ~46 Hz. Output: `AudioFeatures` struct.
-
-**AudioFeatures:**
-
-| Field | Range | Description |
-|-------|-------|-------------|
-| `bassEnergy` | 0–1 | Bins 0–7 (~20–250 Hz) |
-| `midEnergy` | 0–1 | Bins 8–25 (~250–2 kHz) |
-| `highEnergy` | 0–1 | Bins 26–59 (~2–20 kHz) |
-| `bassFlux`, `midFlux`, `highFlux` | 0+ | Spectral flux (onset detection per band) |
-| `isBeat` | bool | Onset detected this frame |
-| `beatIntensity` | 0–1 | Strength of current beat |
-| `bpm` | 0–300 | Estimated BPM (0 if not locked) |
-| `beatPhase` | 0–1 | Position in beat cycle |
-| `overallEnergy` | 0–1 | Weighted mix of all bands |
-
-**Key processing:**
-- **AGC**: Per-band peak tracking with slow decay (0.997 per frame ≈ 7.5s half-life)
-- **Spectral Flux**: L1 difference with half-wave rectification (only increases count)
-- **Beat Detection**: Flux peaks exceeding threshold × sensitivity, min 200ms between beats
-- **BPM Estimation**: From last 16 beat timestamps
+Extracts musical features from the raw mel spectrum. Output: `AudioFeatures` struct with per-band energy (bass/mid/high), spectral flux, beat detection (`isBeat`, `beatIntensity`), BPM estimation, and `overallEnergy`. Uses AGC with slow decay, half-wave rectified spectral flux, and adaptive beat thresholding.
 
 ### SoundToLightMode (`Spectrogram/SoundToLightMode.swift`)
 
 Protocol for mapping `AudioFeatures` → `LightCommand`. Three built-in modes:
 
-**PulseMode** — Beat-driven brightness pulsing
-- On beat: brightness spikes proportional to `beatIntensity × reactivity.sensitivity`
-- Between beats: exponential decay (rate scaled by `reactivity.decayScale`)
-- Works with both HSI and CCT lights
-- Fixed warm amber hue (30°, sat 0.7)
+- **PulseMode** — Beat-driven brightness pulsing (HSI or CCT)
+- **ColorFlowMode** — Frequency-to-hue mapping via `ColorPalette` warm/cool endpoints (HSI only)
+- **BassCannonMode** — Bass-driven intensity spikes with beat overlays (HSI only)
 
-**ColorFlowMode** — Frequency-to-hue mapping
-- Bass-dominant → warm hue (e.g. red at 20°)
-- Highs-dominant → cool hue (e.g. blue at 260°)
-- Hue range customizable via `ColorPalette` (warmHue/coolHue)
-- HSI only (needs color control)
-
-**BassCannonMode** — Bass-driven intensity spikes
-- Bass energy drives brightness with heavy smoothing
-- Beat events trigger spike overlays
-- Tight hue range (warm red/orange)
-- HSI only
-
-**LightCommand output:**
-
-| Field | Range | Mode |
-|-------|-------|------|
-| `hue` | 0–360° | HSI |
-| `saturation` | 0–1 | HSI |
-| `brightness` | 0–1 | All |
-| `cct` | 32–85 (Neewer units) | CCT |
-| `gm` | -50–50 | CCT+GM |
-| `isHSI` | bool | Mode flag |
-
-### Reactivity
-
-Four levels that scale how modes respond to audio:
-
-| Level | Sensitivity | Decay Scale | Floor Scale | Smoothing |
-|-------|-------------|-------------|-------------|-----------|
-| Subtle | 0.3 | 0.5 | 2.0 | 0.95 |
-| Moderate | 1.0 | 1.0 | 1.0 | 0.85 |
-| Intense | 1.5 | 1.5 | 0.6 | 0.7 |
-| Extreme | 2.0 | 2.0 | 0.3 | 0.5 |
-
-### ColorPalette
-
-Defines warm/cool hue endpoints for ColorFlowMode:
-
-| Palette | Warm Hue | Cool Hue |
-|---------|----------|----------|
-| Sunset | 0° | 320° |
-| Ocean | 180° | 260° |
-| Neon | 300° | 180° |
-| Fire | 0° | 50° |
-| Forest | 80° | 160° |
-
-### Presets
-
-Pre-configured combinations of mode + reactivity + palette:
-
-| Preset | Mode | Reactivity | Palette |
-|--------|------|------------|---------|
-| DJ Booth | Pulse | Intense | Neon |
-| Film Score | ColorFlow | Subtle | Sunset |
-| Rock Concert | BassCannon | Extreme | Fire |
-| Worship | ColorFlow | Moderate | Ocean |
-| Party | ColorFlow | Intense | Neon |
-| Podcast | Pulse | Subtle | Default |
+Each mode is configured with a `Reactivity` level (Subtle → Extreme) that scales sensitivity, decay, and smoothing. Six presets combine mode + reactivity + palette for common scenarios (DJ Booth, Film Score, Rock Concert, etc.).
 
 ### BLESmartThrottle
 
-Rate-limits BLE writes to prevent saturating the radio. Per-device tracking:
+Rate-limits BLE writes to prevent saturating the radio. Skips sends under 67ms apart; forces send after 200ms heartbeat; otherwise only sends if perceptual change (brightness, hue, saturation, CCT) exceeds thresholds.
 
-| Parameter | Value | Purpose |
-|-----------|-------|---------|
-| `minSendInterval` | 67ms (~15 Hz) | Hard rate limit |
-| `heartbeatInterval` | 200ms | Always send if this long since last send |
-| `brightnessThreshold` | 0.03 | Min brightness Δ to trigger send |
-| `hueThreshold` | 5° | Min hue Δ |
-| `satThreshold` | 0.05 | Min saturation Δ |
-| `cctThreshold` | 2 units | Min CCT Δ |
-
-Logic: skip if under `minSendInterval`. Force send if past `heartbeatInterval`. Otherwise, only send if perceptual change exceeds thresholds.
+For full details on the audio pipeline, feature extraction, per-mode algorithms, noise gate design, and reactivity/palette/preset tables, see [Sound-to-Light-Engine.md](Sound-to-Light-Engine.md). For industry comparison and competitive positioning, see [Sound-to-Light-Technical-Report.md](Sound-to-Light-Technical-Report.md).
 
 ---
 
 ## External Integration
+
+> **See also:** [Integrate-with-shortcut.md](Integrate-with-shortcut.md) (macOS Shortcuts walkthrough)
 
 ### URL Scheme (`neewerlite://`)
 
@@ -714,6 +561,8 @@ For Stream Deck plugin and programmatic control:
 
 ## Stream Deck Plugin
 
+> **See also:** [Integrate-with-streamdeck.md](Integrate-with-streamdeck.md) (setup & usage guide)
+
 Located in `NeewerLiteStreamDeck/`. TypeScript-based Elgato Stream Deck plugin.
 
 **Stack:** TypeScript 5.8 + Rollup + Terser → `com.beyondcow.neewerlite.sdPlugin` bundle
@@ -741,6 +590,8 @@ Located in `NeewerLiteStreamDeck/`. TypeScript-based Elgato Stream Deck plugin.
 ---
 
 ## Light Database
+
+> **See also:** [Gels.md](Gels.md) (gel filter system design & subtractive color mixing)
 
 ### Schema (`Database/lights.json`, version 3.0)
 
