@@ -131,6 +131,7 @@ NeewerLite works with a wide range of Neewer Bluetooth-enabled LED lights, inclu
 - **Key Lights** — GL1, GL1 Pro, GL1C
 - **Tube Lights** — BH-30S, TL60 RGB, TL40
 - **Studio Lights** — CB60 RGB, CB60B, CB100C, CB120B
+- **Neewer Home** — NS02 Rope Light
 
 And many more. The full light database is [updated on GitHub](Database/lights.json) — the app downloads it automatically, so new lights get supported without an app update.
 
