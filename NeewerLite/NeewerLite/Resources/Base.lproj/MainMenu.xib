@@ -795,7 +795,6 @@
                 <outlet property="delegate" destination="Voe-Tx-rLC" id="SFf-II-Oxk"/>
             </connections>
         </customObject>
-        <viewController id="vKd-6S-GXf" customClass="SpectrogramViewController" customModule="NeewerLite" customModuleProvider="target"/>
         <scrollView wantsLayer="YES" autohidesScrollers="YES" horizontalLineScroll="10" horizontalPageScroll="10" verticalLineScroll="10" verticalPageScroll="10" hasHorizontalScroller="NO" usesPredominantAxisScrolling="NO" id="SPf-4G-nTF" userLabel="view1">
             <rect key="frame" x="0.0" y="0.0" width="859" height="477"/>
             <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>

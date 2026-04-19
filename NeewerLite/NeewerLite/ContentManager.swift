@@ -167,9 +167,9 @@ class ContentManager {
     // JSON Database URL
     #if DEBUG
     let jsonDatabaseURL = URL(
-        string: "https://raw.githubusercontent.com/keefo/NeewerLite/user/keefo/add-neewer-home-support/Database/lights.json")!
+        string: "https://raw.githubusercontent.com/keefo/NeewerLite/main/Database/lights.json")!
     private let imageBaseURL = URL(
-        string: "https://raw.githubusercontent.com/keefo/NeewerLite/user/keefo/add-neewer-home-support/Database/")!
+        string: "https://raw.githubusercontent.com/keefo/NeewerLite/main/Database/")!
     #else
     let jsonDatabaseURL = URL(
         string: "https://raw.githubusercontent.com/keefo/NeewerLite/main/Database/lights.json")!
@@ -300,9 +300,14 @@ class ContentManager {
             Logger.info("Download database...")
             var request = URLRequest(url: jsonDatabaseURL)
             request.cachePolicy = .reloadIgnoringLocalCacheData
-            let (data, _) = try await session.data(for: request)
+            let (data, response) = try await session.data(for: request)
             try await Task.sleep(nanoseconds: 1_000_000_000)
             Logger.info("Download content: \(String(data: data, encoding: .utf8) ?? "<binary>")")
+            if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode != 200 {
+                let error = NSError(domain: "ContentManager", code: httpResponse.statusCode,
+                    userInfo: [NSLocalizedDescriptionKey: "HTTP \(httpResponse.statusCode)"])
+                throw error
+            }
             try data.write(to: localDatabaseURL)
             loadDatabaseFromDisk(reload: true)
             NotificationCenter.default.post(
