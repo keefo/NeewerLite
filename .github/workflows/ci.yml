@@ -40,6 +40,11 @@ jobs:
         working-directory: NeewerLite
         run: xcodebuild -scheme NeewerLite build -configuration Debug clean;
 
+      - name: Seed light database for tests
+        run: |
+          mkdir -p ~/Library/Application\ Support/NeewerLite
+          cp Database/lights.json ~/Library/Application\ Support/NeewerLite/database.json
+
       - name: Run unit tests
         working-directory: NeewerLite
         run: |
