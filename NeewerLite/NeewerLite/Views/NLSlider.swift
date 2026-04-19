@@ -260,13 +260,24 @@ class NLSlider: NSView {
                     col += 0.1
                 }
             } else {
-                let startColor = NSColor(calibratedRed: 0.88, green: 0.6, blue: 0.6, alpha: 1.0) // Light yellow
-                let middleColor = NSColor.white
-                let endColor = NSColor(calibratedRed: 0.4, green: 0.6, blue: 0.4, alpha: 1.0) // Light blue
+                let startColor = NSColor(calibratedHue: 0.62, saturation: 0.8, brightness: 0.35, alpha: 1.0) // Dark navy
+                let middleColor = NSColor(calibratedHue: 0.60, saturation: 0.7, brightness: 0.65, alpha: 1.0) // Medium blue
+                let endColor = NSColor(calibratedHue: 0.52, saturation: 0.9, brightness: 0.95, alpha: 1.0) // Bright cyan
 
                 let gradient = NSGradient(colors: [startColor, middleColor, endColor])
                 gradient?.draw(in: bounds, angle: 0)
             }
+        }
+    }
+
+    class func sensBar() -> ((NSRect, Int) -> Void) {
+        return { bounds, _ in
+            let startColor = NSColor(calibratedHue: 0.08, saturation: 0.4, brightness: 0.55, alpha: 1.0)
+            let middleColor = NSColor(calibratedHue: 0.08, saturation: 0.7, brightness: 0.85, alpha: 1.0)
+            let endColor = NSColor(calibratedHue: 0.06, saturation: 0.9, brightness: 1.0, alpha: 1.0)
+
+            let gradient = NSGradient(colors: [startColor, middleColor, endColor])
+            gradient?.draw(in: bounds, angle: 0)
         }
     }
 

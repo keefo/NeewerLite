@@ -35,8 +35,9 @@ final class PatternEditorPanel: NSWindowController, NSTextViewDelegate {
         self.onSave = onSave
 
         panel = NSPanel(contentRect: NSRect(x: 0, y: 0, width: 500, height: 400),
-                        styleMask: [.titled, .closable], backing: .buffered, defer: false)
-        panel.title = "Edit Command Patterns"
+                        styleMask: [.titled, .closable, .resizable], backing: .buffered, defer: false)
+        panel.title = "Edit Command Patterns".localized
+        panel.minSize = NSSize(width: 400, height: 300)
 
         textView = NSTextView(frame: NSRect(x: 20, y: 60, width: 460, height: 320))
         textView.font = NSFont.monospacedSystemFont(ofSize: 13, weight: .light)
@@ -44,49 +45,51 @@ final class PatternEditorPanel: NSWindowController, NSTextViewDelegate {
         textView.isAutomaticDashSubstitutionEnabled = false
         textView.isAutomaticSpellingCorrectionEnabled = false
         textView.isAutomaticTextReplacementEnabled = false
+        textView.autoresizingMask = [.width, .height]
         textView.string = initialPattern
         textView.delegate = self
         panel.contentView?.addSubview(textView)
 
-        var x = 400
-        saveButton = NSButton(frame: NSRect(x: x, y: 20, width: 80, height: 30))
-        saveButton.title = "Save"
+        saveButton = NSButton(title: "Save".localized, target: self, action: #selector(saveAction))
         saveButton.bezelStyle = .rounded
-        saveButton.action = #selector(saveAction)
-        saveButton.target = self
+        saveButton.sizeToFit()
         panel.contentView?.addSubview(saveButton)
-        x -= 85
 
-        validButton = NSButton(frame: NSRect(x: x, y: 20, width: 80, height: 30))
-        validButton.title = "Valid"
+        validButton = NSButton(title: "Valid".localized, target: self, action: #selector(validAction))
         validButton.bezelStyle = .rounded
-        validButton.action = #selector(validAction)
-        validButton.target = self
+        validButton.sizeToFit()
         panel.contentView?.addSubview(validButton)
-        x -= 85
-        
-        resetButton = NSButton(frame: NSRect(x: x, y: 20, width: 80, height: 30))
-        resetButton.title = "Discard"
-        resetButton.bezelStyle = .rounded
-        resetButton.action = #selector(resetAction)
-        resetButton.target = self
-        panel.contentView?.addSubview(resetButton)
-        x -= 85
 
-        
-        cancelButton = NSButton(frame: NSRect(x: 15, y: 20, width: 80, height: 30))
-        cancelButton.title = "Cancel"
+        resetButton = NSButton(title: "Discard".localized, target: self, action: #selector(resetAction))
+        resetButton.bezelStyle = .rounded
+        resetButton.sizeToFit()
+        panel.contentView?.addSubview(resetButton)
+
+        cancelButton = NSButton(title: "Cancel".localized, target: self, action: #selector(cancelAction))
         cancelButton.bezelStyle = .rounded
-        cancelButton.action = #selector(cancelAction)
-        cancelButton.target = self
+        cancelButton.sizeToFit()
         panel.contentView?.addSubview(cancelButton)
-        
-        helpButton = NSButton(frame: NSRect(x: cancelButton.frame.maxX + 5, y: 20, width: 80, height: 30))
-        helpButton.title = "Help"
+
+        helpButton = NSButton(title: "Help".localized, target: self, action: #selector(helpAction))
         helpButton.bezelStyle = .rounded
-        helpButton.action = #selector(helpAction)
-        helpButton.target = self
+        helpButton.sizeToFit()
         panel.contentView?.addSubview(helpButton)
+
+        // Layout buttons: right-aligned group (Save, Valid, Discard) and left-aligned group (Cancel, Help)
+        let btnY: CGFloat = 20
+        let btnSpacing: CGFloat = 5
+        var rightX = 500 - 20 - saveButton.frame.width
+        saveButton.frame.origin = NSPoint(x: rightX, y: btnY)
+        saveButton.autoresizingMask = [.minXMargin]
+        rightX -= (validButton.frame.width + btnSpacing)
+        validButton.frame.origin = NSPoint(x: rightX, y: btnY)
+        validButton.autoresizingMask = [.minXMargin]
+        rightX -= (resetButton.frame.width + btnSpacing)
+        resetButton.frame.origin = NSPoint(x: rightX, y: btnY)
+        resetButton.autoresizingMask = [.minXMargin]
+
+        cancelButton.frame.origin = NSPoint(x: 15, y: btnY)
+        helpButton.frame.origin = NSPoint(x: cancelButton.frame.maxX + btnSpacing, y: btnY)
         
         self.window = panel
         highlightJSON()
@@ -127,11 +130,11 @@ final class PatternEditorPanel: NSWindowController, NSTextViewDelegate {
         }
         else {
             let alert = NSAlert()
-            alert.messageText = "Some patterns are INVALID!"
+            alert.messageText = "Some patterns are INVALID!".localized
             if invalidKeys.isEmpty {
-                alert.informativeText = "❌ JSON is invalid or not a dictionary."
+                alert.informativeText = "❌ JSON is invalid or not a dictionary.".localized
             } else {
-                alert.informativeText = "❌ Invalid patterns: " + invalidKeys.map { "\($0): \($1)" }.joined(separator: ", ")
+                alert.informativeText = "❌ Invalid patterns: %@".localized(invalidKeys.map { "\($0): \($1)" }.joined(separator: ", "))
             }
             alert.alertStyle = .warning
             alert.beginSheetModal(for: panel, completionHandler: nil)
@@ -169,15 +172,15 @@ final class PatternEditorPanel: NSWindowController, NSTextViewDelegate {
 
         let alert = NSAlert()
         if allValid {
-            alert.messageText = "All patterns are valid!"
-            alert.informativeText = "✅ Valid."
+            alert.messageText = "All patterns are valid!".localized
+            alert.informativeText = "✅ Valid.".localized
             alert.alertStyle = .informational
         } else {
-            alert.messageText = "Some patterns are INVALID!"
+            alert.messageText = "Some patterns are INVALID!".localized
             if invalidKeys.isEmpty {
-                alert.informativeText = "❌ JSON is invalid or not a dictionary."
+                alert.informativeText = "❌ JSON is invalid or not a dictionary.".localized
             } else {
-                alert.informativeText = "❌ Invalid patterns: " + invalidKeys.map { "\($0): \($1)" }.joined(separator: ", ")
+                alert.informativeText = "❌ Invalid patterns: %@".localized(invalidKeys.map { "\($0): \($1)" }.joined(separator: ", "))
             }
             alert.alertStyle = .warning
         }
@@ -246,12 +249,12 @@ final class PatternEditorPanel: NSWindowController, NSTextViewDelegate {
         do {
             let data = text.data(using: .utf8) ?? Data()
             _ = try JSONSerialization.jsonObject(with: data)
-            panel.title = "Edit Command Patterns"
+            panel.title = "Edit Command Patterns".localized
         } catch let error as NSError {
             if let errorRange = error.userInfo["NSJSONSerializationErrorIndex"] as? Int {
                 jsonErrorRange = NSRange(location: errorRange, length: min(1, attributed.length - errorRange))
             }
-            panel.title = "Edit Command Patterns (Invalid JSON)"
+            panel.title = "Edit Command Patterns (Invalid JSON)".localized
         }
         if let errorRange = jsonErrorRange, errorRange.location < attributed.length {
             attributed.addAttribute(.backgroundColor, value: NSColor.systemRed.withAlphaComponent(0.3), range: errorRange)

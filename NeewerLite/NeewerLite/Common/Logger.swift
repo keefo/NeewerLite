@@ -6,10 +6,9 @@
 //
 
 import Foundation
-import Network
-import Cocoa
+import os.log
 
-public enum LogTag: Int, Codable {
+public enum LogTag: Int {
     case none = 0
     case app = 1
     case click = 2
@@ -19,407 +18,309 @@ public enum LogTag: Int, Codable {
     case server = 6
 }
 
-struct LogEntry: Codable {
-    var tag: LogTag
-    var timestamp: String
-    var level: String
-    var filename: String
-    var line: Int
-    var message: String
+// MARK: - Logger
 
-    enum CodingKeys: String, CodingKey {
-        case tag = "g"
-        case timestamp = "t"
-        case level = "v"
-        case filename = "f"
-        case line = "n"
-        case message = "m"
-    }
-}
+/// A lightweight, file-backed logger optimized for a long-running menu-bar app.
+///
+/// Performance optimizations (informed by CocoaLumberjack, SwiftyBeaver, swift-log):
+///
+/// - **`@autoclosure` messages** — string interpolation is not evaluated unless
+///   the message will actually be logged. `debug()` calls compile away entirely
+///   in Release builds, so their arguments have zero cost.
+///
+/// - **`os_log` replaces `print()`** — integrates with Console.app and
+///   Instruments, is async-signal-safe, and avoids stdout buffering. Messages
+///   use `%{public}@` so they remain readable in Console.
+///
+/// - **`#fileID` over `#file`** — produces `"Module/File.swift"` instead of
+///   the full filesystem path. Extracts the filename with `Substring` slicing
+///   instead of allocating a `URL` + calling `lastPathComponent`.
+///
+/// - **Buffered file I/O** — writes go through a serial `DispatchQueue` at
+///   `.utility` QoS so logging never competes with UI or BLE dispatch.
+///   `fsync` is deferred until 4 KB accumulates or a 5-second timer fires,
+///   whichever comes first. This batches many small writes into fewer disk
+///   flushes — important when BLE callbacks log at high frequency.
+///
+/// - **`DispatchSourceTimer` over `Timer`** — no run-loop dependency, so the
+///   flush timer works correctly regardless of which thread logs are emitted from.
+///
+/// - **Single static `ISO8601DateFormatter`** — `DateFormatter` allocation
+///   costs ~80 µs. One shared instance, accessed only on the serial log queue,
+///   avoids both the cost and thread-safety concerns.
+///
+/// - **`@inline(__always)` on `extractFileName`** — the hot path (every log
+///   call) avoids a function-call frame for a trivial string slice.
+public final class Logger {
 
-struct LogBuffer: Codable {
-    var version: String
-    var osversion: String
-    var logs: [LogEntry]
-}
+    // MARK: - Configuration
 
-private extension Date {
-    func formattedLogFileDate() -> String {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "yyyy_MM_dd_HH_mm_ss"
-        return formatter.string(from: self)
-    }
-}
+    private static let maxFileSize: UInt64 = 5 * 1024 * 1024       // 5 MB per log file
+    private static let cleanupAgeDays = 7                           // delete logs older than this
+    private static let cleanupCheckInterval: TimeInterval = 2 * 3600 // re-check every 2 hours
+    private static let flushInterval: TimeInterval = 5.0            // periodic fsync interval
+    private static let flushThreshold: UInt64 = 4096                // fsync after 4 KB of writes
+    private static let cleanupDefaultsKey = "LoggerLastCleanupDate"
 
-public class Logger {
+    // MARK: - Internal state (all mutable state accessed only on logQueue)
 
-    static let logUrl = URL(string: "https://beyondcow.com/neewerlite/log")!
-    static let bundleVersion = (Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String) ?? ""
-    static let monitor: NWPathMonitor = NWPathMonitor()
-    static let osVersionString = "\(ProcessInfo.processInfo.operatingSystemVersionString)"
+    /// Serial queue for all file I/O. `.utility` QoS keeps logging out of
+    /// the way of UI rendering and BLE command dispatch.
+    private static let logQueue = DispatchQueue(label: "com.neewerlite.logger", qos: .utility)
 
-    private static var logBuffer: LogBuffer = LogBuffer(version: bundleVersion, osversion: osVersionString, logs: [])
-    private static let logThreshold = 50 // Number of logs to collect before sending
-    private static let batchingInterval = 60.0 // Time interval in seconds
-    private static var timer: Timer?
-    private static var networkDown: Bool = false
-    private static var logFileURL: URL? {
-        let appSupportURL = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
-        let logsDirectory = appSupportURL.appendingPathComponent("NeewerLite/Logs")
-        try? FileManager.default.createDirectory(at: logsDirectory, withIntermediateDirectories: true)
-        let filename = "neewerlite_log_\(Date().formattedLogFileDate()).log"
-        return logsDirectory.appendingPathComponent(filename)
-    }
-    private static let logQueue = DispatchQueue(label: "com.neewerlite.logger.queue")
-    private static let maxLogFileSize: UInt64 = 5 * 1024 * 1024 // 5 MB
-    public static var currentLogFileURL: URL?
-    private static let lastCleanupKey = "LoggerLastCleanupDate"
-    private static let cleanupInterval: TimeInterval = 2 * 60 * 60 // 2 hours
-    private static var fileHandle: FileHandle? = {
-        guard let url = logFileURL else { return nil }
-        FileManager.default.createFile(atPath: url.path, contents: nil)
-        do {
-            let handle = try FileHandle(forUpdating: url)
-            handle.seekToEndOfFile()
-            currentLogFileURL = url
-            return handle
-        } catch {
-            print("Logger init error:", error)
-            return nil
-        }
+    private static let osLog = OSLog(
+        subsystem: Bundle.main.bundleIdentifier ?? "com.beyondcow.NeewerLite",
+        category: "general"
+    )
+
+    /// Reused across all writes — created once, used only on `logQueue`.
+    /// ISO8601DateFormatter is not thread-safe; single-queue access is required.
+    private static let dateFormatter: ISO8601DateFormatter = {
+        let fmt = ISO8601DateFormatter()
+        fmt.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        return fmt
     }()
-    
+
+    private static var fileHandle: FileHandle?
+    private static var unflushedBytes: UInt64 = 0
+    private static var flushTimer: DispatchSourceTimer?
+    public static private(set) var currentLogFileURL: URL?
+
+    // MARK: - Lifecycle
+
+    /// Call once at app launch to open the log file and start the flush timer.
     static func initialize() {
-        initializeTimer()
-        cleanupOldLogs()
-    }
-    
-    private static func initializeTimer() {
-        monitor.pathUpdateHandler = { path in
-            if path.status == .satisfied {
-                networkDown = false
-            } else {
-                networkDown = true
-            }
-        }
-
-        monitor.start(queue: DispatchQueue.global(qos: .background))
-        timer = Timer.scheduledTimer(withTimeInterval: batchingInterval, repeats: true) { _ in
-            sendBatchedLogs()
-            maybeCleanupOldLogs()
-        }
-    }
-    
-    private static func maybeCleanupOldLogs() {
-        let now = Date()
-        let defaults = UserDefaults.standard
-        if let lastCleanup = defaults.object(forKey: lastCleanupKey) as? Date {
-            if now.timeIntervalSince(lastCleanup) < cleanupInterval {
-                return // Not time yet
-            }
+        logQueue.async {
+            openLogFile()
+            startFlushTimer()
         }
         cleanupOldLogs()
-        defaults.set(now, forKey: lastCleanupKey)
-    }
-    
-    public static func cleanupOldLogs(olderThan days: Int = 7) {
-        guard let logsDir = FileManager.default
-                .urls(for: .applicationSupportDirectory, in: .userDomainMask)
-                .first?
-                .appendingPathComponent("NeewerLite/Logs") else {
-            return
-        }
-
-        let calendar = Calendar.current
-        let thresholdDate = calendar.date(byAdding: .day, value: -days, to: Date())!
-
-        do {
-            let logFiles = try FileManager.default.contentsOfDirectory(at: logsDir, includingPropertiesForKeys: [.contentModificationDateKey], options: [.skipsHiddenFiles])
-
-            for fileURL in logFiles {
-                let attributes = try fileURL.resourceValues(forKeys: [.contentModificationDateKey])
-                if let modifiedDate = attributes.contentModificationDate,
-                   modifiedDate < thresholdDate {
-                    try FileManager.default.removeItem(at: fileURL)
-                    print("🧹 Deleted old log: \(fileURL.lastPathComponent)")
-                }
-            }
-        } catch {
-            print("❌ Failed to clean up old logs: \(error)")
-        }
     }
 
-    
-    private static func sendLogEntry(_ logEntry: LogEntry) {
-#if DEBUG
-        return
-#else
-        logBuffer.logs.append(logEntry)
+    // MARK: - Debug (compiled away in Release)
 
-        if logBuffer.logs.count >= logThreshold {
-            sendBatchedLogs()
-        }
-#endif
+    public static func debug(_ tag: LogTag, _ message: @autoclosure () -> String, function: String = #function, file: String = #fileID, line: Int = #line) {
+        #if DEBUG
+        emit(.debug, tag: tag, message(), file, function, line)
+        #endif
     }
 
-    private static func addLogEntry(_ logEntry: LogEntry) {
-#if DEBUG
-        return
-#else
-        logBuffer.logs.append(logEntry)
-        if logBuffer.logs.count >= logThreshold {
-            sendBatchedLogs()
-        }
-#endif
+    public static func debug(_ message: @autoclosure () -> String = "", function: String = #function, file: String = #fileID, line: Int = #line) {
+        #if DEBUG
+        emit(.debug, tag: .none, message(), file, function, line)
+        #endif
     }
 
-    private static func sendBatchedLogs() {
-#if DEBUG
-        return
-#else
-        guard !logBuffer.logs.isEmpty else { return }
-        guard !networkDown else { return }
+    // MARK: - Info
 
-        var request = URLRequest(url: logUrl)
-        request.httpMethod = "POST"
-        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
-        do {
-            let jsonData = try JSONEncoder().encode(logBuffer)
-            request.httpBody = jsonData
-            let task = URLSession.shared.dataTask(with: request) { data, response, error in
-                // Handle response here (e.g., check for success or failure)
-                if let error = error {
-                    print("Error sending log entry: \(error)")
-                    return
-                }
-                if let httpResponse = response as? HTTPURLResponse, !(200...299).contains(httpResponse.statusCode) {
-                    print("Server responded with status code: \(httpResponse.statusCode)")
-                }
-            }
-            task.resume()
-        } catch {
-            print("Error encoding log entry: \(error)")
-        }
-
-        logBuffer.logs.removeAll()
-#endif
+    public static func info(_ tag: LogTag, _ message: @autoclosure () -> String, function: String = #function, file: String = #fileID, line: Int = #line) {
+        emit(.info, tag: tag, message(), file, function, line)
     }
 
+    public static func info(_ message: @autoclosure () -> String = "", function: String = #function, file: String = #fileID, line: Int = #line) {
+        emit(.info, tag: .none, message(), file, function, line)
+    }
+
+    // MARK: - Warn
+
+    public static func warn(_ tag: LogTag, _ message: @autoclosure () -> String, function: String = #function, file: String = #fileID, line: Int = #line) {
+        emit(.warn, tag: tag, message(), file, function, line)
+    }
+
+    public static func warn(_ message: @autoclosure () -> String = "", function: String = #function, file: String = #fileID, line: Int = #line) {
+        emit(.warn, tag: .none, message(), file, function, line)
+    }
+
+    // MARK: - Error
+
+    public static func error(_ tag: LogTag, _ message: @autoclosure () -> String, function: String = #function, file: String = #fileID, line: Int = #line) {
+        emit(.error, tag: tag, message(), file, function, line)
+    }
+
+    public static func error(_ message: @autoclosure () -> String = "", function: String = #function, file: String = #fileID, line: Int = #line) {
+        emit(.error, tag: .none, message(), file, function, line)
+    }
+
+    // MARK: - Flush
+
+    /// Synchronously flush buffered writes to disk.
+    public static func syncToFile() {
+        logQueue.sync {
+            syncFileToDisk()
+        }
+    }
+
+    /// Flush and call completion on the main queue. For app termination.
     public typealias FlushCompletion = () -> Void
 
-    public class func flush(completion: @escaping FlushCompletion) {
-#if DEBUG
-        completion()
-        return
-#else
-#endif
-        if logBuffer.logs.count < 0 {
-            completion()
-            return
-        }
-        var request = URLRequest(url: logUrl)
-        request.httpMethod = "POST"
-        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.timeoutInterval = 3 
-        do {
-            let jsonData = try JSONEncoder().encode(logBuffer)
-            request.httpBody = jsonData
-            let task = URLSession.shared.dataTask(with: request) { data, response, error in
-                // Handle response here (e.g., check for success or failure)
-                if let error = error {
-                    print("Error sending log entry: \(error)")
-                    completion()
-                    return
-                }
-                if let httpResponse = response as? HTTPURLResponse, !(200...299).contains(httpResponse.statusCode) {
-                    print("Server responded with status code: \(httpResponse.statusCode)")
-                }
+    public static func flush(completion: @escaping FlushCompletion) {
+        logQueue.async {
+            syncFileToDisk()
+            DispatchQueue.main.async {
                 completion()
             }
-            task.resume()
-            logBuffer.logs.removeAll()
+        }
+    }
+
+    // MARK: - Cleanup
+
+    public static func cleanupOldLogs(olderThan days: Int = 7) {
+        guard let logsDir = logsDirectory else { return }
+        let threshold = Calendar.current.date(byAdding: .day, value: -days, to: Date())!
+
+        do {
+            let files = try FileManager.default.contentsOfDirectory(
+                at: logsDir,
+                includingPropertiesForKeys: [.contentModificationDateKey],
+                options: .skipsHiddenFiles
+            )
+            for file in files {
+                let attrs = try file.resourceValues(forKeys: [.contentModificationDateKey])
+                if let modified = attrs.contentModificationDate, modified < threshold {
+                    try FileManager.default.removeItem(at: file)
+                }
+            }
         } catch {
-            completion()
+            // Best-effort cleanup — don't log to avoid recursion.
         }
     }
 
-    private static func rotateLogFile() {
+    // MARK: - Core emit (shared by all levels)
+
+    private enum Level: String {
+        case debug = "DEBUG"
+        case info  = "INFO"
+        case warn  = "WARN"
+        case error = "ERRO"
+
+        var osLogType: OSLogType {
+            switch self {
+            case .debug: return .debug
+            case .info:  return .info
+            case .warn:  return .default   // visible in Console without toggling
+            case .error: return .error
+            }
+        }
+    }
+
+    /// Format the message, send to os_log, then queue a file write.
+    private static func emit(_ level: Level, tag: LogTag, _ msg: String,
+                             _ fileID: String, _ function: String, _ line: Int) {
+        let file = extractFileName(fileID)
+        let tagStr = tag == .none ? "" : "[\(tag)]"
+        let formatted = "\(file):\(function):\(line): [\(level.rawValue)]\(tagStr) \(msg)"
+
+        // os_log is thread-safe — safe to call from any queue.
+        os_log("%{public}@", log: osLog, type: level.osLogType, formatted)
+
         logQueue.async {
-            fileHandle?.closeFile()
-            fileHandle = nil
-            // Re-initialize fileHandle
-            if let url = logFileURL {
-                FileManager.default.createFile(atPath: url.path, contents: nil)
-                do {
-                    let handle = try FileHandle(forUpdating: url)
-                    handle.seekToEndOfFile()
-                    currentLogFileURL = url
-                    fileHandle = handle
-                } catch {
-                    print("Logger rotate error:", error)
-                }
+            writeEntry(formatted)
+        }
+    }
+
+    /// Extract `"File.swift"` from `#fileID`'s `"Module/File.swift"` format.
+    /// Uses `Substring` to avoid a heap allocation.
+    @inline(__always)
+    private static func extractFileName(_ fileID: String) -> Substring {
+        if let idx = fileID.lastIndex(of: "/") {
+            return fileID[fileID.index(after: idx)...]
+        }
+        return Substring(fileID)
+    }
+
+    // MARK: - File I/O (must run on logQueue)
+
+    private static var logsDirectory: URL? {
+        guard let appSupport = FileManager.default.urls(
+            for: .applicationSupportDirectory, in: .userDomainMask
+        ).first else { return nil }
+        return appSupport.appendingPathComponent("NeewerLite/Logs")
+    }
+
+    private static func openLogFile() {
+        guard let dir = logsDirectory else { return }
+        try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+
+        let fmt = DateFormatter()
+        fmt.dateFormat = "yyyy_MM_dd_HH_mm_ss"
+        let filename = "neewerlite_log_\(fmt.string(from: Date())).log"
+        let url = dir.appendingPathComponent(filename)
+        FileManager.default.createFile(atPath: url.path, contents: nil)
+
+        do {
+            let handle = try FileHandle(forWritingTo: url)
+            handle.seekToEndOfFile()
+            fileHandle = handle
+            currentLogFileURL = url
+        } catch {
+            // Silently fail — nothing we can safely log here.
+        }
+    }
+
+    /// Append a formatted log line to the current file.
+    /// Syncs to disk when unflushed data exceeds `flushThreshold`,
+    /// and rotates the file when it exceeds `maxFileSize`.
+    private static func writeEntry(_ message: String) {
+        guard let handle = fileHandle else { return }
+
+        let timestamp = dateFormatter.string(from: Date())
+        let entry = "\(timestamp) \(message)\n"
+        guard let data = entry.data(using: .utf8) else { return }
+
+        do {
+            try handle.write(contentsOf: data)
+            unflushedBytes += UInt64(data.count)
+
+            // Flush to bound data loss window on crash.
+            if unflushedBytes >= flushThreshold {
+                try handle.synchronize()
+                unflushedBytes = 0
             }
-        }
-    }
-    
-    public static func syncToFile() {
-        // Avoid deadlock by checking if we're on main thread
-        if Thread.isMainThread {
-            logQueue.async {
-                fileHandle?.synchronizeFile()
+
+            // Rotate when the file grows past the size cap.
+            if let offset = try? handle.offset(), offset >= maxFileSize {
+                rotateFile()
             }
-        } else {
-            logQueue.sync {
-                fileHandle?.synchronizeFile()
-            }
-        }
-    }
-    
-    private static func writeToFile(_ string: String) {
-        logQueue.async {
-            guard let handle = fileHandle else {
-                print("Logger error: fileHandle is nil")
-                return
-            }
-            let timestamp = ISO8601DateFormatter().string(from: Date())
-            let entry = "\(timestamp) - \(string)\n"
-            if let data = entry.data(using: .utf8) {
-                do {
-                    try handle.write(contentsOf: data)
-                    try handle.synchronize()
-                } catch {
-                    print("Logger write error:", error)
-                }
-            }
-            if let size = try? handle.offset(), size >= maxLogFileSize {
-                rotateLogFile()
-            }
+        } catch {
+            // Drop the entry rather than crash.
         }
     }
 
-    public class func debug(_ tag: LogTag, _ message: String? = nil, function: String = #function, file: String = #file, line: Int = #line) {
-#if DEBUG
-        let fileName = URL(fileURLWithPath: file).lastPathComponent
-        if let message = message {
-            print("\(fileName):\(function):\(line): \(message)")
-        } else {
-            print("\(fileName):\(function):\(line)")
+    private static func syncFileToDisk() {
+        do {
+            try fileHandle?.synchronize()
+            unflushedBytes = 0
+        } catch {
+            // Best effort.
         }
-        writeToFile("\(fileName):\(function):\(line): [DEBUG] \(message ?? "")")
-#endif
     }
 
-    public class func debug(_ message: String? = nil, function: String = #function, file: String = #file, line: Int = #line) {
-#if DEBUG
-        let fileName = URL(fileURLWithPath: file).lastPathComponent
-        if let message = message {
-            print("\(fileName):\(function):\(line): \(message)")
-        } else {
-            print("\(fileName):\(function):\(line)")
-        }
-        writeToFile("\(fileName):\(function):\(line): [DEBUG] \(message ?? "")")
-#endif
+    private static func rotateFile() {
+        fileHandle?.closeFile()
+        fileHandle = nil
+        openLogFile()
     }
 
-    public class func info(_ tag: LogTag, _ message: String? = nil, function: String = #function, file: String = #file, line: Int = #line) {
-        let fileName = URL(fileURLWithPath: file).lastPathComponent
-        if let message = message {
-            print("\(fileName):\(function):\(line): \(message)")
-            let logEntry = LogEntry(tag: tag,
-                                    timestamp: ISO8601DateFormatter().string(from: Date()),
-                                    level: "INFO",
-                                    filename: fileName,
-                                    line: line,
-                                    message: message)
-            Logger.addLogEntry(logEntry)
-        } else {
-            print("\(fileName):\(function):\(line)")
+    // MARK: - Timers
+
+    private static func startFlushTimer() {
+        let timer = DispatchSource.makeTimerSource(queue: logQueue)
+        timer.schedule(deadline: .now() + flushInterval, repeating: flushInterval)
+        timer.setEventHandler {
+            syncFileToDisk()
+            maybeCleanupOldLogs()
         }
-        writeToFile("\(fileName):\(function):\(line): [INFO][\(tag)] \(message ?? "")")
+        timer.resume()
+        flushTimer = timer  // prevent deallocation
     }
 
-    public class func info(_ message: String? = nil, function: String = #function, file: String = #file, line: Int = #line) {
-        let fileName = URL(fileURLWithPath: file).lastPathComponent
-        if let message = message {
-            print("\(fileName):\(function):\(line): \(message)")
-            let logEntry = LogEntry(tag: LogTag.none,
-                                    timestamp: ISO8601DateFormatter().string(from: Date()),
-                                    level: "INFO",
-                                    filename: fileName,
-                                    line: line,
-                                    message: message)
-            Logger.addLogEntry(logEntry)
-        } else {
-            print("\(fileName):\(function):\(line)")
+    private static func maybeCleanupOldLogs() {
+        let defaults = UserDefaults.standard
+        if let last = defaults.object(forKey: cleanupDefaultsKey) as? Date,
+           Date().timeIntervalSince(last) < cleanupCheckInterval {
+            return
         }
-        writeToFile("\(fileName):\(function):\(line): [INFO] \(message ?? "")")
-    }
-
-    public class func warn(_ tag: LogTag, _ message: String? = nil, function: String = #function, file: String = #file, line: Int = #line) {
-        let fileName = URL(fileURLWithPath: file).lastPathComponent
-        if let message = message {
-            print("\(fileName):\(function):\(line): \(message)")
-            let logEntry = LogEntry(tag: tag,
-                                    timestamp: ISO8601DateFormatter().string(from: Date()),
-                                    level: "WARN",
-                                    filename: fileName,
-                                    line: line,
-                                    message: message)
-            Logger.addLogEntry(logEntry)
-        } else {
-            print("\(fileName):\(function):\(line)")
-        }
-        writeToFile("\(fileName):\(function):\(line): [WARN][\(tag)] \(message ?? "")")
-    }
-
-    public class func warn(_ message: String? = nil, function: String = #function, file: String = #file, line: Int = #line) {
-        let fileName = URL(fileURLWithPath: file).lastPathComponent
-        if let message = message {
-            print("\(fileName):\(function):\(line): \(message)")
-            let logEntry = LogEntry(tag: LogTag.none,
-                                    timestamp: ISO8601DateFormatter().string(from: Date()),
-                                    level: "WARN",
-                                    filename: fileName,
-                                    line: line,
-                                    message: message)
-            Logger.addLogEntry(logEntry)
-        } else {
-            print("\(fileName):\(function):\(line)")
-        }
-        writeToFile("\(fileName):\(function):\(line): [WARN] \(message ?? "")")
-    }
-
-    public class func error(_ tag: LogTag, _ message: String? = nil, function: String = #function, file: String = #file, line: Int = #line) {
-        let fileName = URL(fileURLWithPath: file).lastPathComponent
-        if let message = message {
-            print("\(fileName):\(function):\(line): \(message)")
-            let logEntry = LogEntry(tag: tag,
-                                    timestamp: ISO8601DateFormatter().string(from: Date()),
-                                    level: "ERR",
-                                    filename: fileName,
-                                    line: line,
-                                    message: message)
-            Logger.addLogEntry(logEntry)
-        } else {
-            print("\(fileName):\(function):\(line)")
-        }
-        writeToFile("\(fileName):\(function):\(line): [ERRO][\(tag)] \(message ?? "")")
-    }
-
-    public class func error(_ message: String? = nil, function: String = #function, file: String = #file, line: Int = #line) {
-        let fileName = URL(fileURLWithPath: file).lastPathComponent
-        if let message = message {
-            print("\(fileName):\(function):\(line): \(message)")
-            let logEntry = LogEntry(tag: LogTag.none,
-                                    timestamp: ISO8601DateFormatter().string(from: Date()),
-                                    level: "ERR",
-                                    filename: fileName,
-                                    line: line,
-                                    message: message)
-            Logger.addLogEntry(logEntry)
-        } else {
-            print("\(fileName):\(function):\(line)")
-        }
-        writeToFile("\(fileName):\(function):\(line): [ERRO] \(message ?? "")")
+        cleanupOldLogs()
+        defaults.set(Date(), forKey: cleanupDefaultsKey)
     }
 }

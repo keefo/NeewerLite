@@ -7,7 +7,7 @@
 import Foundation
 
 fileprivate let knownVars: Set<String> = [
-    "cmdtag", "powertag", "ccttag", "hsitag", "rgbtag", "size", "checksum"
+    "cmdtag", "powertag", "ccttag", "hsitag", "rgbtag", "fxtag", "fxsubtag", "fxdatatag", "mac", "size", "size16", "checksum"
 ]
 fileprivate let validTypes = [
     "uint8", "uint16_le", "uint16_be", "hex"
@@ -113,21 +113,44 @@ struct CommandPatternParser {
                     continue
                 } else if field == "cmdtag" {
                     bytes.append(UInt8(NeewerLightConstant.BleCommand.prefixTag))
+                    if afterSize { payloadLength += 1 }
                 } else if field == "powertag" {
                     bytes.append(UInt8(NeewerLightConstant.BleCommand.powerTag))
+                    if afterSize { payloadLength += 1 }
                 } else if field == "ccttag" {
                     bytes.append(UInt8(NeewerLightConstant.BleCommand.setCCTLightTag))
+                    if afterSize { payloadLength += 1 }
                 } else if field == "hsitag" {
                     bytes.append(UInt8(NeewerLightConstant.BleCommand.setRGBLightTag))
+                    if afterSize { payloadLength += 1 }
                 } else if field == "fxtag" {
                     bytes.append(UInt8(NeewerLightConstant.BleCommand.setSceneTag))
+                    if afterSize { payloadLength += 1 }
                 } else if field == "fxsubtag" {
                     bytes.append(UInt8(NeewerLightConstant.BleCommand.setSCESubTag))
+                    if afterSize { payloadLength += 1 }
                 } else if field == "fxdatatag" {
                     bytes.append(UInt8(NeewerLightConstant.BleCommand.setSCEDataTag))
+                    if afterSize { payloadLength += 1 }
+                } else if field == "mac" {
+                    // Emit 6 MAC address bytes from colon-separated hex string
+                    var macBytes: [UInt8] = [0, 0, 0, 0, 0, 0]
+                    if let macStr = values["mac"] as? String, !macStr.isEmpty {
+                        let octets = macStr.split(separator: ":").compactMap { UInt8($0, radix: 16) }
+                        for i in 0..<min(octets.count, 6) {
+                            macBytes[i] = octets[i]
+                        }
+                    }
+                    bytes.append(contentsOf: macBytes)
+                    if afterSize { payloadLength += 6 }
                 } else if field == "size" {
                     sizeIndex = bytes.count
                     bytes.append(0) // placeholder for size
+                    afterSize = true
+                } else if field == "size16" {
+                    sizeIndex = bytes.count
+                    bytes.append(0) // placeholder for size high byte
+                    bytes.append(0) // placeholder for size low byte
                     afterSize = true
                 } else if let value = values[field] {
                     // --- ENUM SUPPORT ---
@@ -249,9 +272,17 @@ struct CommandPatternParser {
             }
         }
 
-        // Fill in the size byte if needed
+        // Fill in the size byte(s) if needed
         if let sizeIndex = sizeIndex {
-            bytes[sizeIndex] = UInt8(payloadLength)
+            if sizeIndex + 1 < bytes.count && bytes[sizeIndex] == 0 && bytes[sizeIndex + 1] == 0
+                && tokens.contains("{size16}") {
+                // 2-byte big-endian size (LongSizePacket)
+                bytes[sizeIndex] = UInt8((payloadLength >> 8) & 0xFF)
+                bytes[sizeIndex + 1] = UInt8(payloadLength & 0xFF)
+            } else {
+                // 1-byte size (standard packet)
+                bytes[sizeIndex] = UInt8(payloadLength)
+            }
         }
 
         // Handle checksum (must be last in pattern)

@@ -6,3 +6,7 @@ xcuserdata/
 *.xcuserstate
 *.trace
 *.log
+*.apk
+*.xapk
+Docs/xapk_decompiled
+Docs/PacketLogger.app

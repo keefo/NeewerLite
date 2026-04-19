@@ -24,6 +24,8 @@ class NeewerLightFX: NSObject, Codable {
         return name.lowercased().replacingOccurrences(of: "\\s+", with: "", options: .regularExpression)
     }
     var iconName: String
+    var imageURL: String?
+    var category: String?
     var cmdPattern: String?
     
     var needBRR: Bool = false
@@ -40,6 +42,7 @@ class NeewerLightFX: NSObject, Codable {
     var sparkLevel: [UInt8] = []
     var needColor: Bool = false
     var colors: [ColorItem] = []
+    var needSens: Bool = false
 
     var featureValues: [String: CGFloat] = [:]
     
@@ -104,6 +107,11 @@ class NeewerLightFX: NSObject, Codable {
         set { featureValues["speedValue"] = CGFloat(newValue) }
     }
 
+    var sensValue: Int {
+        get { Int(featureValues["sensValue"] ?? 50) }
+        set { featureValues["sensValue"] = CGFloat(newValue) }
+    }
+
     var sparksValue: Int {
         get { Int(featureValues["sparksValue"] ?? 1) }
         set { featureValues["sparksValue"] = CGFloat(newValue) }
@@ -153,6 +161,8 @@ extension NeewerLightFX {
         if let icon = item.icon {
             scene.iconName = icon
         }
+        scene.imageURL = item.image
+        scene.category = item.category
         let fields = parseFields(item.cmd)
         let flagMappings: [(String, ReferenceWritableKeyPath<NeewerLightFX, Bool>)] = [
             ("brr", \.needBRR),
@@ -177,6 +187,9 @@ extension NeewerLightFX {
             scene.needSpeed = true
             scene.speedLevel = UInt8(speed.max)
         }
+        if fields["sens"] != nil {
+            scene.needSens = true
+        }
         if let color = fields["color"] {
             scene.needColor = true
             scene.colors = color.closedRange.map { ColorItem(key: item.color?[$0] ?? "\($0)", value: $0) }
@@ -184,212 +197,4 @@ extension NeewerLightFX {
         return scene
     }
 
-    // Class method to create a "Lighting" scene
-    class func lightingScene() -> NeewerLightFX {
-        let scene = NeewerLightFX(id: 0x01, name: "Lighting")
-        scene.iconName = "bolt.fill"
-        scene.needBRR = true
-        scene.needCCT = true
-        scene.needSpeed = true
-        scene.speedLevel = 10
-        return scene
-    }
-
-    // Class method to create a "Paparazzi" scene
-    class func paparazziScene() -> NeewerLightFX {
-        let scene = NeewerLightFX(id: 0x02, name: "Paparazzi")
-        scene.iconName = "camera.shutter.button"
-        scene.needBRR = true
-        scene.needCCT = true
-        scene.needGM = true
-        scene.needSpeed = true
-        scene.speedLevel = 10
-        return scene
-    }
-
-    // Class method to create a "Defective bulb" scene
-    class func defectiveBulbScene() -> NeewerLightFX {
-        let scene = NeewerLightFX(id: 0x03, name: "Defective bulb")
-        scene.iconName = "lightbulb.min.badge.exclamationmark.fill"
-        scene.needBRR = true
-        scene.needCCT = true
-        scene.needGM = true
-        scene.needSpeed = true
-        scene.speedLevel = 10
-        return scene
-    }
-
-    // Class method to create an "Explosion" scene
-    class func explosionScene() -> NeewerLightFX {
-        let scene = NeewerLightFX(id: 0x04, name: "Explosion")
-        scene.iconName = "timelapse"
-        scene.needBRR = true
-        scene.needCCT = true
-        scene.needGM = true
-        scene.needSpeed = true
-        scene.speedLevel = 10
-        scene.needSparks = true
-        scene.sparkLevel = [0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A]
-        return scene
-    }
-
-    // Class method to create a "Welding" scene
-    class func weldingScene() -> NeewerLightFX {
-        let scene = NeewerLightFX(id: 0x05, name: "Welding")
-        scene.needBRR = true
-        scene.needBRRUpperBound = true
-        scene.needCCT = true
-        scene.needGM = true
-        scene.needSpeed = true
-        scene.speedLevel = 10
-        return scene
-    }
-
-    // Class method to create a "CCT flash" scene
-    class func cctFlashScene() -> NeewerLightFX {
-        let scene = NeewerLightFX(id: 0x06, name: "CCT flash")
-        scene.needBRR = true
-        scene.needCCT = true
-        scene.needGM = true
-        scene.needSpeed = true
-        scene.speedLevel = 10
-        return scene
-    }
-
-    // Class method to create a "HUE flash" scene
-    class func hueFlashScene() -> NeewerLightFX {
-        let scene = NeewerLightFX(id: 0x07, name: "HUE flash")
-        scene.needBRR = true
-        scene.needHUE = true
-        scene.needSAT = true
-        scene.needSpeed = true
-        scene.speedLevel = 10
-        return scene
-    }
-
-    // Class method to create a "CCT pulse" scene
-    class func cctPulseScene() -> NeewerLightFX {
-        let scene = NeewerLightFX(id: 0x08, name: "CCT pulse")
-        scene.needBRR = true
-        scene.needCCT = true
-        scene.needGM = true
-        scene.needSpeed = true
-        scene.speedLevel = 10
-        return scene
-    }
-
-    // Class method to create a "HUE pulse" scene
-    class func huePulseScene() -> NeewerLightFX {
-        let scene = NeewerLightFX(id: 0x09, name: "HUE pulse")
-        scene.needBRR = true
-        scene.needHUE = true
-        scene.needSAT = true
-        scene.needSpeed = true
-        scene.speedLevel = 10
-        return scene
-    }
-
-    // Class method to create a "Cop Car" scene
-    class func copCarScene() -> NeewerLightFX {
-        let scene = NeewerLightFX(id: 0x0A, name: "Cop Car")
-        scene.needBRR = true
-        scene.needColor = true
-        scene.colors = [ColorItem(key: "Red", value: 0x00),
-                        ColorItem(key: "Blue", value: 0x01),
-                        ColorItem(key: "Red and Blue", value: 0x2),
-                        ColorItem(key: "White and Blue", value: 0x3),
-                        ColorItem(key: "Red blue white", value: 0x4)]
-        scene.needSpeed = true
-        scene.speedLevel = 10
-        return scene
-    }
-    
-    // Class method to create a "Candlelight" scene
-    class func candlelightScene() -> NeewerLightFX {
-        let scene = NeewerLightFX(id: 0x0B, name: "Candlelight")
-        scene.needBRR = true
-        scene.needBRRUpperBound = true
-        scene.needCCT = true
-        scene.needGM = true
-        scene.needSpeed = true
-        scene.speedLevel = 10
-        scene.needSparks = true
-        scene.sparkLevel = [0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A]
-        return scene
-    }
-
-    // Class method to create a "HUE Loop" scene
-    class func hueLoopScene() -> NeewerLightFX {
-        let scene = NeewerLightFX(id: 0x0C, name: "HUE Loop")
-        scene.needBRR = true
-        scene.needHUE = true
-        scene.needHUEUpperBound = true
-        scene.needSpeed = true
-        scene.speedLevel = 10
-        return scene
-    }
-
-    // Class method to create a "CCT Loop" scene
-    class func cctLoopScene() -> NeewerLightFX {
-        let scene = NeewerLightFX(id: 0x0D, name: "CCT Loop")
-        scene.needBRR = true
-        scene.needCCT = true
-        scene.needCCTUpperBound = true
-        scene.needSpeed = true
-        scene.speedLevel = 10
-        return scene
-    }
-
-    // Class method to create an "INT loop" scene
-    class func intLoopScene() -> NeewerLightFX {
-        let scene = NeewerLightFX(id: 0x0E, name: "INT loop")
-        scene.needBRR = true
-        scene.needBRRUpperBound = true
-        scene.needHUE = true
-        scene.needSpeed = true
-        scene.speedLevel = 10
-        return scene
-    }
-
-    // Class method to create a "TV Screen" scene
-    class func tvScreenScene() -> NeewerLightFX {
-        let scene = NeewerLightFX(id: 0x0F, name: "TV Screen")
-        scene.iconName = "tv"
-        scene.needBRR = true
-        scene.needCCT = true
-        scene.needGM = true
-        scene.needSpeed = true
-        scene.speedLevel = 10
-        return scene
-    }
-
-    // Class method to create a "Firework" scene
-    class func fireworkScene() -> NeewerLightFX {
-        let scene = NeewerLightFX(id: 0x10, name: "Firework")
-        scene.iconName = "fireworks"
-        scene.needBRR = true
-        scene.needSpeed = true
-        scene.speedLevel = 10
-        scene.needColor = true
-        scene.colors = [ColorItem(key: "Single color", value: 0x00),
-                        ColorItem(key: "Color", value: 0x01),
-                        ColorItem(key: "Combined", value: 0x2)]
-        scene.needSparks = true
-        scene.sparkLevel = [0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A]
-        return scene
-    }
-
-    // Class method to create a "Party" scene
-    class func partyScene() -> NeewerLightFX {
-        let scene = NeewerLightFX(id: 0x11, name: "Party")
-        scene.iconName = "party.popper.fill"
-        scene.needBRR = true
-        scene.needSpeed = true
-        scene.speedLevel = 10
-        scene.needColor = true
-        scene.colors = [ColorItem(key: "Single color", value: 0x00),
-                        ColorItem(key: "Color", value: 0x01),
-                        ColorItem(key: "Combined", value: 0x2)]
-        return scene
-    }
 }

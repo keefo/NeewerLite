@@ -62,7 +62,7 @@
 	<key>NSMainNibFile</key>
 	<string>MainMenu</string>
 	<key>NSMicrophoneUsageDescription</key>
-	<string>Conver Audio to LED light color</string>
+	<string>Convert audio to LED light color</string>
 	<key>NSPrincipalClass</key>
 	<string>NSApplication</string>
 	<key>SDPluginVersion</key>
