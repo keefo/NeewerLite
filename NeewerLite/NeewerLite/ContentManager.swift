@@ -258,11 +258,11 @@ class ContentManager {
                 {
                     Task { @MainActor in
                         let alert = NSAlert()
-                        alert.messageText = "Database Error"
+                        alert.messageText = "Database Error".localized
                         alert.informativeText =
-                            "\(context.debugDescription).\nPlease update to the latest version of the app."
+                            "%@.\nPlease update to the latest version of the app.".localized(context.debugDescription)
                         alert.alertStyle = .critical
-                        alert.addButton(withTitle: "OK")
+                        alert.addButton(withTitle: "OK".localized)
                         alert.runModal()
                     }
                 }
@@ -280,10 +280,10 @@ class ContentManager {
                 if force && !silent {
                     Task { @MainActor in
                         let alert = NSAlert()
-                        alert.messageText = "Finish"
-                        alert.informativeText = "The database is up to date."
+                        alert.messageText = "Finish".localized
+                        alert.informativeText = "The database is up to date.".localized
                         alert.alertStyle = .informational
-                        alert.addButton(withTitle: "OK")
+                        alert.addButton(withTitle: "OK".localized)
                         alert.runModal()
                     }
                 }

@@ -16,6 +16,7 @@ class SettingsView: NSView {
     private var dbStatusIcon: NSTextField!
     private var deleteDBButton: NSButton!
     private var syncDBButton: NSButton!
+    private var languagePopUp: NSPopUpButton!
     private var fileMonitorSource: DispatchSourceFileSystemObject?
     private var dirMonitorSource: DispatchSourceFileSystemObject?
 
@@ -38,25 +39,25 @@ class SettingsView: NSView {
         let appVersion = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "?"
         let buildNumber = Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String ?? "?"
 
-        let appInfoLabel = NSTextField(labelWithString: "NeewerLite v\(appVersion) (\(buildNumber))")
+        let appInfoLabel = NSTextField(labelWithString: "NeewerLite v%@ (%@)".localized(appVersion, buildNumber))
         appInfoLabel.font = NSFont.boldSystemFont(ofSize: 16)
         appInfoLabel.translatesAutoresizingMaskIntoConstraints = false
         addSubview(appInfoLabel)
 
         // --- Check for Updates Button ---
-        let updateButton = NSButton(title: "Check for Updates…", target: self, action: #selector(checkForUpdates))
+        let updateButton = NSButton(title: "Check for Updates…".localized, target: self, action: #selector(checkForUpdates))
         updateButton.bezelStyle = .rounded
         updateButton.translatesAutoresizingMaskIntoConstraints = false
         addSubview(updateButton)
 
         // --- GitHub Button ---
-        let githubButton = NSButton(title: "GitHub Repo", target: self, action: #selector(openGitHub))
+        let githubButton = NSButton(title: "GitHub Repo".localized, target: self, action: #selector(openGitHub))
         githubButton.bezelStyle = .rounded
         githubButton.translatesAutoresizingMaskIntoConstraints = false
         addSubview(githubButton)
 
         // --- Database Section Header + Status Icon ---
-        let dbHeader = NSTextField(labelWithString: "Light Database")
+        let dbHeader = NSTextField(labelWithString: "Light Database".localized)
         dbHeader.font = NSFont.boldSystemFont(ofSize: 14)
         dbHeader.translatesAutoresizingMaskIntoConstraints = false
         addSubview(dbHeader)
@@ -95,24 +96,66 @@ class SettingsView: NSView {
         dbSourceURLField = sourceURLField
 
         // --- Sync Database Button ---
-        let syncButton = NSButton(title: "Sync Database Now", target: self, action: #selector(syncDatabase))
+        let syncButton = NSButton(title: "Sync Database Now".localized, target: self, action: #selector(syncDatabase))
         syncButton.bezelStyle = .rounded
         syncButton.translatesAutoresizingMaskIntoConstraints = false
         addSubview(syncButton)
         syncDBButton = syncButton
 
         // --- Delete Local DB Button ---
-        let deleteButton = NSButton(title: "Delete Local DB", target: self, action: #selector(deleteLocalDB))
+        let deleteButton = NSButton(title: "Delete Local DB".localized, target: self, action: #selector(deleteLocalDB))
         deleteButton.bezelStyle = .rounded
         deleteButton.translatesAutoresizingMaskIntoConstraints = false
         addSubview(deleteButton)
         deleteDBButton = deleteButton
 
         // --- View in Finder Button ---
-        let finderButton = NSButton(title: "View in Finder", target: self, action: #selector(viewInFinder))
+        let finderButton = NSButton(title: "View in Finder".localized, target: self, action: #selector(viewInFinder))
         finderButton.bezelStyle = .rounded
         finderButton.translatesAutoresizingMaskIntoConstraints = false
         addSubview(finderButton)
+
+        // --- Language Section ---
+        let langHeader = NSTextField(labelWithString: "Language".localized)
+        langHeader.font = NSFont.boldSystemFont(ofSize: 14)
+        langHeader.translatesAutoresizingMaskIntoConstraints = false
+        addSubview(langHeader)
+
+        let langPopUp = NSPopUpButton(frame: .zero, pullsDown: false)
+        langPopUp.translatesAutoresizingMaskIntoConstraints = false
+        let supportedLanguages: [(code: String, name: String)] = [
+            ("system", "System Default".localized),
+            ("en", "English"),
+            ("zh-Hans", "简体中文"),
+            ("ja", "日本語"),
+            ("de", "Deutsch"),
+            ("fr", "Français"),
+            ("es", "Español"),
+            ("ko", "한국어")
+        ]
+        for lang in supportedLanguages {
+            langPopUp.addItem(withTitle: lang.name)
+            langPopUp.lastItem?.representedObject = lang.code
+        }
+        // Select current language
+        if let override = UserDefaults.standard.array(forKey: "AppleLanguages") as? [String],
+           let first = override.first {
+            if let idx = supportedLanguages.firstIndex(where: { $0.code == first }) {
+                langPopUp.selectItem(at: idx)
+            }
+        } else {
+            langPopUp.selectItem(at: 0) // System Default
+        }
+        langPopUp.target = self
+        langPopUp.action = #selector(languageChanged(_:))
+        addSubview(langPopUp)
+        languagePopUp = langPopUp
+
+        let langNote = NSTextField(labelWithString: "Restart required".localized)
+        langNote.font = NSFont.systemFont(ofSize: 11)
+        langNote.textColor = .tertiaryLabelColor
+        langNote.translatesAutoresizingMaskIntoConstraints = false
+        addSubview(langNote)
 
         // Layout
         NSLayoutConstraint.activate([
@@ -151,6 +194,16 @@ class SettingsView: NSView {
 
             finderButton.centerYAnchor.constraint(equalTo: syncButton.centerYAnchor),
             finderButton.leadingAnchor.constraint(equalTo: deleteButton.trailingAnchor, constant: 8),
+
+            langHeader.topAnchor.constraint(equalTo: syncButton.bottomAnchor, constant: 24),
+            langHeader.leadingAnchor.constraint(equalTo: leadingAnchor, constant: padding),
+
+            langPopUp.centerYAnchor.constraint(equalTo: langHeader.centerYAnchor),
+            langPopUp.leadingAnchor.constraint(equalTo: langHeader.trailingAnchor, constant: 12),
+            langPopUp.widthAnchor.constraint(greaterThanOrEqualToConstant: 160),
+
+            langNote.topAnchor.constraint(equalTo: langHeader.bottomAnchor, constant: 6),
+            langNote.leadingAnchor.constraint(equalTo: leadingAnchor, constant: padding),
         ])
     }
 
@@ -158,12 +211,13 @@ class SettingsView: NSView {
         let cm = ContentManager.shared
 
         if cm.localDatabaseExists {
-            let info = "Version: \(cm.databaseVersion)  •  Lights: \(cm.databaseLightCount)  •  Neewer Home Lights: \(cm.databaseHomeDeviceCount)  •  FX Presets: \(cm.databaseFxPresetCount)  •  Gels: \(cm.databaseGelCount)"
+            let ver = String(format: "%.1f", cm.databaseVersion)
+            let info = "Version: %@  •  Lights: %d  •  Neewer Home Lights: %d  •  FX Presets: %d  •  Gels: %d".localized(ver, cm.databaseLightCount, cm.databaseHomeDeviceCount, cm.databaseFxPresetCount, cm.databaseGelCount)
             dbInfoLabel.stringValue = info
             dbStatusIcon.stringValue = "✅"
             deleteDBButton.isEnabled = true
         } else {
-            dbInfoLabel.stringValue = "No local database"
+            dbInfoLabel.stringValue = "No local database".localized
             dbStatusIcon.stringValue = "⚠️"
             deleteDBButton.isEnabled = false
         }
@@ -172,9 +226,9 @@ class SettingsView: NSView {
             let minutes = Int(remaining) / 60
             let hours = minutes / 60
             let mins = minutes % 60
-            dbSyncStatusLabel.stringValue = "Next auto-sync in \(hours)h \(mins)m"
+            dbSyncStatusLabel.stringValue = "Next auto-sync in %dh %dm".localized(hours, mins)
         } else {
-            dbSyncStatusLabel.stringValue = "Auto-sync pending…"
+            dbSyncStatusLabel.stringValue = "Auto-sync pending…".localized
         }
 
         dbSourceURLField.stringValue = cm.jsonDatabaseURL.absoluteString
@@ -187,6 +241,30 @@ class SettingsView: NSView {
     @objc private func openGitHub() {
         if let url = URL(string: "https://github.com/keefo/NeewerLite") {
             NSWorkspace.shared.open(url)
+        }
+    }
+
+    @objc private func languageChanged(_ sender: NSPopUpButton) {
+        guard let code = sender.selectedItem?.representedObject as? String else { return }
+        if code == "system" {
+            UserDefaults.standard.removeObject(forKey: "AppleLanguages")
+        } else {
+            UserDefaults.standard.set([code], forKey: "AppleLanguages")
+        }
+        UserDefaults.standard.synchronize()
+
+        let alert = NSAlert()
+        alert.messageText = "Language Changed".localized
+        alert.informativeText = "Please restart NeewerLite for the language change to take effect.".localized
+        alert.addButton(withTitle: "Restart Now".localized)
+        alert.addButton(withTitle: "Later".localized)
+        let response = alert.runModal()
+        if response == .alertFirstButtonReturn {
+            let task = Process()
+            task.launchPath = "/bin/sh"
+            task.arguments = ["-c", "sleep 0.5; open \"\(Bundle.main.bundlePath)\""]
+            task.launch()
+            NSApp.terminate(nil)
         }
     }
 
@@ -276,13 +354,16 @@ class SettingsView: NSView {
     }
 
     @objc private func databaseDidUpdate() {
-        syncDBButton.isEnabled = true
-        refresh()
+        DispatchQueue.main.async { [weak self] in
+            guard let self else { return }
+            self.syncDBButton.isEnabled = true
+            self.refresh()
+        }
     }
 
     @objc private func syncDatabase() {
         syncDBButton.isEnabled = false
-        dbSyncStatusLabel.stringValue = "Syncing…"
+        dbSyncStatusLabel.stringValue = "Syncing…".localized
         ContentManager.shared.downloadDatabase(force: true, silent: true)
     }
 

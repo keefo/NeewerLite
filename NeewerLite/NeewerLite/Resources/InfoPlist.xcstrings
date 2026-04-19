@@ -1,0 +1,45 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "CFBundleName" : {
+      "comment" : "Bundle name",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "NeewerLite" } },
+        "en" : { "stringUnit" : { "state" : "new", "value" : "NeewerLite" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "NeewerLite" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "NeewerLite" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "NeewerLite" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "NeewerLite" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "NeewerLite" } }
+      }
+    },
+    "NSBluetoothAlwaysUsageDescription" : {
+      "comment" : "Permission dialog: Bluetooth access for controlling Neewer LED lights",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Bluetooth verwenden, um Neewer-LED-Lichter zu steuern" } },
+        "en" : { "stringUnit" : { "state" : "new", "value" : "Use Bluetooth to control Neewer LED light" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Usar Bluetooth para controlar luces LED Neewer" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Utiliser le Bluetooth pour contrôler les lumières LED Neewer" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "Bluetoothを使用してNeewer LEDライトを制御します" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "Bluetooth를 사용하여 Neewer LED 조명을 제어합니다" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "使用蓝牙控制Neewer LED灯" } }
+      }
+    },
+    "NSMicrophoneUsageDescription" : {
+      "comment" : "Permission dialog: Microphone access for sound-to-light feature",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Audio in LED-Lichtfarbe umwandeln" } },
+        "en" : { "stringUnit" : { "state" : "new", "value" : "Convert audio to LED light color" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Convertir audio en color de luz LED" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Convertir l'audio en couleur de lumière LED" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "オーディオをLEDライトの色に変換します" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "오디오를 LED 조명 색상으로 변환합니다" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "将音频转换为LED灯颜色" } }
+      }
+    }
+  },
+  "version" : "1.0"
+}

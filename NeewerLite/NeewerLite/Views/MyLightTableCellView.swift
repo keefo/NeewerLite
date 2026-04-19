@@ -16,6 +16,12 @@ class MyLightTableCellView: NSTableCellView {
     @IBOutlet var subtitleLabel: NSTextField!
     @IBOutlet var button: NSButton!
 
+    // Trailing constraints: swap between cell-trailing and button-leading
+    private var titleTrailingToCell: NSLayoutConstraint?
+    private var titleTrailingToButton: NSLayoutConstraint?
+    private var subtitleTrailingToCell: NSLayoutConstraint?
+    private var subtitleTrailingToButton: NSLayoutConstraint?
+
     var light: NeewerLight? {
         didSet {
             if let safeLight = light {
@@ -52,6 +58,29 @@ class MyLightTableCellView: NSTableCellView {
         titleLabel?.isSelectable = true
 
         button?.isHidden = true
+
+        setupTrailingConstraints()
+    }
+
+    private func setupTrailingConstraints() {
+        guard let titleLabel = titleLabel, let subtitleLabel = subtitleLabel, let button = button else { return }
+
+        // Button must not be compressed when shown
+        button.setContentCompressionResistancePriority(.required, for: .horizontal)
+
+        // Find the XIB trailing-to-cell constraints by identifier
+        for constraint in self.constraints {
+            if constraint.identifier == "titleTrailing" {
+                titleTrailingToCell = constraint
+            }
+            if constraint.identifier == "subtitleTrailing" {
+                subtitleTrailingToCell = constraint
+            }
+        }
+
+        // Create alternative trailing constraints: label.trailing = button.leading - 8
+        titleTrailingToButton = titleLabel.trailingAnchor.constraint(equalTo: button.leadingAnchor, constant: -8)
+        subtitleTrailingToButton = subtitleLabel.trailingAnchor.constraint(equalTo: button.leadingAnchor, constant: -8)
     }
 
     override func updateTrackingAreas() {
@@ -83,36 +112,12 @@ class MyLightTableCellView: NSTableCellView {
         }
     }
 
-    private func getButtonMinX() -> CGFloat {
-        var minX = self.bounds.width
-        if let btn = button {
-            if !btn.isHidden {
-                if btn.frame.origin.x < minX {
-                    minX = btn.frame.origin.x
-                }
-            }
-        }
-        return minX
-    }
-
     private func resetLayout() {
-        var showBtn = false
-        if let btn = button {
-            showBtn = !btn.isHidden
-        }
-        var frame1 = titleLabel.frame
-        var frame2 = subtitleLabel.frame
-        if showBtn {
-            frame1.size.width = self.bounds.width - 150
-            frame2.size.width = self.bounds.width - 150
-            titleLabel.frame = frame1
-            subtitleLabel.frame = frame2
-        } else {
-            frame1.size.width = self.bounds.width - 100
-            frame2.size.width = self.bounds.width - 100
-        }
-        titleLabel.frame = frame1
-        subtitleLabel.frame = frame2
+        let showButton = !(button?.isHidden ?? true)
+        titleTrailingToCell?.isActive = !showButton
+        titleTrailingToButton?.isActive = showButton
+        subtitleTrailingToCell?.isActive = !showButton
+        subtitleTrailingToButton?.isActive = showButton
     }
 
     // Mouse entered the tracking area

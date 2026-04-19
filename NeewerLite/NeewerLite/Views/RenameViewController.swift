@@ -15,7 +15,7 @@ class RenameViewController: NSObject {
     private var sheetTextField: NSTextField?
 
     var sheetWindow = NSWindow (
-        contentRect: NSRect(x: 0, y: 0, width: 300, height: 120),
+        contentRect: NSRect(x: 0, y: 0, width: 400, height: 120),
         styleMask: [.titled, .closable],
         backing: .buffered,
         defer: false
@@ -26,33 +26,36 @@ class RenameViewController: NSObject {
     override init() {
         super.init()
 
-        titleTextField = NSTextField(frame: NSRect(x: 20, y: 75, width: 260, height: 24))
-        titleTextField?.stringValue = "Enter a new name for your light"
+        titleTextField = NSTextField(frame: NSRect(x: 20, y: 75, width: 360, height: 24))
+        titleTextField?.stringValue = "Enter a new name for your light".localized
         titleTextField?.isEditable = false
         titleTextField?.isSelectable = false
         titleTextField?.isBordered = false
         titleTextField?.drawsBackground = false
+        titleTextField?.lineBreakMode = .byTruncatingTail
+        titleTextField?.autoresizingMask = [.width]
         sheetWindow.contentView?.addSubview(titleTextField!)
 
         // Set up the text field
-        let textField = NSTextField(frame: NSRect(x: 20, y: 50, width: 260, height: 24))
-        textField.placeholderString = "Enter a new name for your light"
+        let textField = NSTextField(frame: NSRect(x: 20, y: 50, width: 360, height: 24))
+        textField.placeholderString = "Enter a new name for your light".localized
+        textField.autoresizingMask = [.width]
         sheetWindow.contentView?.addSubview(textField)
 
         // Set up the OK button
-        let okButton = NSButton(frame: NSRect(x: 150, y: 10, width: 80, height: 30))
-        okButton.title = "OK"
+        let okButton = NSButton(title: "OK".localized, target: self, action: #selector(okButtonClicked(_:)))
         okButton.bezelStyle = .rounded
-        okButton.action = #selector(okButtonClicked(_:))
-        okButton.target = self
+        okButton.sizeToFit()
+        okButton.frame.origin = NSPoint(x: 400 - 20 - okButton.frame.width, y: 10)
+        okButton.autoresizingMask = [.minXMargin]
         sheetWindow.contentView?.addSubview(okButton)
 
         // Set up the Cancel button
-        let cancelButton = NSButton(frame: NSRect(x: 60, y: 10, width: 80, height: 30))
-        cancelButton.title = "Cancel"
+        let cancelButton = NSButton(title: "Cancel".localized, target: self, action: #selector(cancelButtonClicked(_:)))
         cancelButton.bezelStyle = .rounded
-        cancelButton.action = #selector(cancelButtonClicked(_:))
-        cancelButton.target = self
+        cancelButton.sizeToFit()
+        cancelButton.frame.origin = NSPoint(x: okButton.frame.minX - cancelButton.frame.width - 5, y: 10)
+        cancelButton.autoresizingMask = [.minXMargin]
         sheetWindow.contentView?.addSubview(cancelButton)
 
         // Keep a reference to the text field if needed

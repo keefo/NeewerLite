@@ -80,7 +80,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuDele
         didSet {
             if scanningNewLightMode {
                 scanningTimer?.invalidate()
-                scanningStatus?.stringValue = "Scan New Lights."
+                scanningStatus?.stringValue = "Scan New Lights.".localized
                 scanningTimer = Timer.scheduledTimer(
                     timeInterval: 0.5,
                     target: self,
@@ -125,6 +125,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuDele
         let idx = UserDefaults.standard.value(forKey: "viewIdx") as? Int
         self.viewsButton.selectSegment(withTag: idx ?? 0)
 
+        localizeXIBStrings()
+
         appMenu.delegate = self
         self.statusItem.menu = appMenu
         self.statusItemIcon = .off
@@ -141,6 +143,13 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuDele
 
         collectionView.dataSource = self
         collectionView.delegate = self
+
+        let layout = CenteredFlowLayout()
+        layout.itemSize = CollectionViewItem.frame().size
+        layout.interitemSpacing = 10
+        layout.lineSpacing = 10
+        layout.edgeInsets = NSEdgeInsets(top: 10, left: 10, bottom: 10, right: 10)
+        collectionView.collectionViewLayout = layout
 
         setupMusicLightList()
         setupVisualizationPlugins()
@@ -260,7 +269,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuDele
             Logger.error("❌ Database Update failed: \(error.localizedDescription)")
             Task { @MainActor in
                 let alert = NSAlert()
-                alert.messageText = "Database Update Failed"
+                alert.messageText = "Database Update Failed".localized
                 alert.informativeText = error.localizedDescription
                 alert.alertStyle = .warning
                 alert.runModal()
@@ -316,17 +325,17 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuDele
                         DispatchQueue.main.asyncAfter(deadline: .now() + 5) {
                             let alert = NSAlert()
                             if sp_installed_version.isEmpty {
-                                alert.messageText = "You have Stream Deck"
+                                alert.messageText = "You have Stream Deck".localized
                                 alert.informativeText =
-                                    "Do you want to install the Neewerlite Stream Deck plugin?"
+                                    "Do you want to install the Neewerlite Stream Deck plugin?".localized
                             } else {
-                                alert.messageText = "Found an old Neewerlite Stream Deck plugin"
+                                alert.messageText = "Found an old Neewerlite Stream Deck plugin".localized
                                 alert.informativeText =
-                                    "Do you want to update the Neewerlite Stream Deck plugin from \(sp_installed_version) to \(sp_bundled_version)?"
+                                    "Do you want to update the Neewerlite Stream Deck plugin from %@ to %@?".localized(sp_installed_version, sp_bundled_version)
                             }
                             alert.alertStyle = .informational
-                            alert.addButton(withTitle: "Yes")
-                            alert.addButton(withTitle: "No")
+                            alert.addButton(withTitle: "Yes".localized)
+                            alert.addButton(withTitle: "No".localized)
                             if alert.runModal() == .alertFirstButtonReturn {
                                 NSWorkspace.shared.open(pluginURL)
                             }
@@ -406,6 +415,80 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuDele
                 }
             }
         }
+    }
+
+    // MARK: - XIB String Localization
+
+    /// Overrides hardcoded English strings from MainMenu.xib with localized versions.
+    /// Called once at launch before the window is shown.
+    private func localizeXIBStrings() {
+        // -- Status-bar app menu --
+        for item in appMenu.items {
+            switch item.action {
+            case #selector(showWindowAction(_:)):
+                item.title = "Show Window".localized
+            case #selector(showSettingsAction(_:)):
+                item.title = "Settings".localized
+            case #selector(aboutAction(_:)):
+                item.title = "About".localized
+            case #selector(NSApplication.terminate(_:)):
+                item.title = "Quit".localized
+            default:
+                if item.action == #selector(SUUpdater.checkForUpdates(_:)) {
+                    item.title = "Check for Updates...".localized
+                }
+            }
+        }
+
+        // -- Help menu custom items (find by action, not title — title may be localized) --
+        if let mainMenu = NSApp.mainMenu {
+            for menuItem in mainMenu.items {
+                guard let submenu = menuItem.submenu else { continue }
+                for item in submenu.items {
+                    switch item.action {
+                    case #selector(syncDatabaseAction(_:)):
+                        item.title = "Sync Database".localized
+                    case #selector(checklogAction(_:)):
+                        item.title = "Check Logs".localized
+                    default:
+                        if item.action == #selector(NSApplication.showHelp(_:)) {
+                            item.title = "NeewerLite Help".localized
+                        }
+                    }
+                }
+            }
+        }
+
+        // -- "My Lights" header in view0 --
+        if let label = findTextField(in: view0, withTitle: "My Lights") {
+            label.stringValue = "My Lights".localized
+        }
+
+        // -- "Listen" label in view2 --
+        if let label = findTextField(in: view2, withTitle: "Listen") {
+            label.stringValue = "Listen".localized
+        }
+
+        // -- "Preview Feature (Not working)" label in view2 --
+        if let label = findTextField(in: view2, withTitle: "Preview Feature (Not working)") {
+            label.stringValue = "Preview Feature (Not working)".localized
+        }
+
+        // -- Scan button in view0 --
+        scanButton.title = "Scan".localized
+    }
+
+    /// Recursively finds an NSTextField whose stringValue matches `title`.
+    private func findTextField(in view: NSView, withTitle title: String) -> NSTextField? {
+        for subview in view.subviews {
+            if let textField = subview as? NSTextField, textField.stringValue == title {
+                return textField
+            }
+            if let found = findTextField(in: subview, withTitle: title) {
+                return found
+            }
+        }
+        return nil
     }
 
     func registerCommands() {
@@ -530,10 +613,10 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuDele
                                 if showAlert {
                                     Task { @MainActor in
                                         let alert = NSAlert()
-                                        alert.messageText = "This light does not support RGB"
+                                        alert.messageText = "This light does not support RGB".localized
                                         alert.informativeText = "\(viewObj.device.nickName)"
                                         alert.alertStyle = .informational
-                                        alert.addButton(withTitle: "OK")
+                                        alert.addButton(withTitle: "OK".localized)
                                         alert.runModal()
                                     }
                                 }
@@ -587,10 +670,10 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuDele
                                 if showAlert {
                                     Task { @MainActor in
                                         let alert = NSAlert()
-                                        alert.messageText = "This light does not support RGB"
+                                        alert.messageText = "This light does not support RGB".localized
                                         alert.informativeText = "\(viewObj.device.nickName)"
                                         alert.alertStyle = .informational
-                                        alert.addButton(withTitle: "OK")
+                                        alert.addButton(withTitle: "OK".localized)
                                         alert.runModal()
                                     }
                                 }
@@ -716,8 +799,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuDele
                     if let error = error {
                         Task { @MainActor in
                             let alert = NSAlert()
-                            alert.messageText = "Failed to open log file"
-                            alert.informativeText = "Failed to open log file in Console. \(error)"
+                            alert.messageText = "Failed to open log file".localized
+                            alert.informativeText = "Failed to open log file in Console. %@".localized(String(describing: error))
                             alert.alertStyle = .warning
                             alert.runModal()
                         }
@@ -726,9 +809,9 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuDele
             } else {
                 Task { @MainActor in
                     let alert = NSAlert()
-                    alert.messageText = "Console app not found"
+                    alert.messageText = "Console app not found".localized
                     alert.informativeText =
-                        "Console app not found, unable to open the log file. \(fileURL)"
+                        "Console app not found, unable to open the log file. %@".localized(fileURL.absoluteString)
                     alert.alertStyle = .warning
                     alert.runModal()
                 }
@@ -736,11 +819,11 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuDele
         } else {
             Task { @MainActor in
                 let alert = NSAlert()
-                alert.messageText = "Log file not found"
+                alert.messageText = "Log file not found".localized
                 if let url = Logger.currentLogFileURL {
-                    alert.informativeText = "\(url.path) log file does not exist."
+                    alert.informativeText = "%@ log file does not exist.".localized(url.path)
                 } else {
-                    alert.informativeText = "Log file URL is unavailable."
+                    alert.informativeText = "Log file URL is unavailable.".localized
                 }
                 alert.alertStyle = .warning
                 alert.runModal()
@@ -919,7 +1002,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuDele
 
         // Hide the static "Preview Feature (Not working)" label — replaced by the popup.
         for subview in view2.subviews where subview is NSTextField {
-            if let tf = subview as? NSTextField, tf.stringValue.contains("Preview Feature") {
+            if let tf = subview as? NSTextField,
+               tf.stringValue.contains("Preview Feature") || tf.stringValue.contains("Preview Feature (Not working)".localized) {
                 tf.isHidden = true
                 break
             }
@@ -931,7 +1015,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuDele
         popup.controlSize = .small
         popup.font = NSFont.systemFont(ofSize: NSFont.smallSystemFontSize)
         for name in manager.pluginNames {
-            popup.addItem(withTitle: name)
+            popup.addItem(withTitle: name.localized)
         }
         popup.selectItem(at: 0)
         popup.target = self
@@ -975,7 +1059,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuDele
 
         // Hide the original Listen label and switch (keep switch for state tracking)
         for subview in view2.subviews where subview is NSTextField {
-            if let tf = subview as? NSTextField, tf.stringValue == "Listen" {
+            if let tf = subview as? NSTextField,
+               tf.stringValue == "Listen" || tf.stringValue == "Listen".localized {
                 tf.isHidden = true
                 break
             }
@@ -986,7 +1071,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuDele
         let micBtn = NSButton(frame: NSRect(x: 32, y: rowY - 1, width: 24, height: 24))
         micBtn.bezelStyle = .inline
         micBtn.isBordered = false
-        micBtn.image = NSImage(systemSymbolName: "microphone.fill", accessibilityDescription: "Listen")
+        micBtn.image = NSImage(systemSymbolName: "microphone.fill", accessibilityDescription: "Listen".localized)
         micBtn.contentTintColor = .secondaryLabelColor
         micBtn.target = self
         micBtn.action = #selector(micButtonClicked(_:))
@@ -995,7 +1080,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuDele
 
         // Reposition Spectrum popup (created in setupVisualizationPlugins)
         visualizationPopup?.frame = NSRect(x: 62, y: rowY, width: 96, height: 22)
-        addToolbarLabel("Visualization", x: 62, y: labelY, width: 96, font: miniFont)
+        addToolbarLabel("Visualization".localized, x: 62, y: labelY, width: 96, font: miniFont)
 
         // --- Mode popup ---
         let modePop = NSPopUpButton(frame: NSRect(x: 166, y: rowY, width: 106, height: 22), pullsDown: false)
@@ -1003,14 +1088,14 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuDele
         modePop.font = smallFont
         modePop.autoresizingMask = [.maxXMargin, .minYMargin]
         for mode in SoundToLightModeType.allCases {
-            modePop.addItem(withTitle: mode.rawValue)
+            modePop.addItem(withTitle: mode.rawValue.localized)
         }
-        modePop.selectItem(withTitle: currentModeType.rawValue)
+        modePop.selectItem(withTitle: currentModeType.rawValue.localized)
         modePop.target = self
         modePop.action = #selector(modeSelectionChanged(_:))
         view2.addSubview(modePop)
         modePopup = modePop
-        addToolbarLabel("Mode", x: 166, y: labelY, width: 106, font: miniFont)
+        addToolbarLabel("Mode".localized, x: 166, y: labelY, width: 106, font: miniFont)
 
         // --- Reactivity popup ---
         let reactPop = NSPopUpButton(frame: NSRect(x: 280, y: rowY, width: 96, height: 22), pullsDown: false)
@@ -1018,46 +1103,46 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuDele
         reactPop.font = smallFont
         reactPop.autoresizingMask = [.maxXMargin, .minYMargin]
         for r in Reactivity.allCases {
-            reactPop.addItem(withTitle: r.displayName)
+            reactPop.addItem(withTitle: r.displayName.localized)
         }
         reactPop.selectItem(at: currentReactivity.rawValue)
         reactPop.target = self
         reactPop.action = #selector(reactivitySelectionChanged(_:))
         view2.addSubview(reactPop)
         reactivityPopup = reactPop
-        addToolbarLabel("Reactivity", x: 280, y: labelY, width: 96, font: miniFont)
+        addToolbarLabel("Reactivity".localized, x: 280, y: labelY, width: 96, font: miniFont)
 
         // --- Palette popup ---
         let palPop = NSPopUpButton(frame: NSRect(x: 384, y: rowY, width: 82, height: 22), pullsDown: false)
         palPop.controlSize = .small
         palPop.font = smallFont
         palPop.autoresizingMask = [.maxXMargin, .minYMargin]
-        palPop.addItem(withTitle: "Default")
+        palPop.addItem(withTitle: "Default".localized)
         for p in ColorPalette.palettes {
-            palPop.addItem(withTitle: p.name)
+            palPop.addItem(withTitle: p.name.localized)
         }
         palPop.selectItem(at: currentPaletteIndex + 1) // +1 because index 0 = "Default"
         palPop.target = self
         palPop.action = #selector(paletteSelectionChanged(_:))
         view2.addSubview(palPop)
         palettePopup = palPop
-        addToolbarLabel("Palette", x: 384, y: labelY, width: 82, font: miniFont)
+        addToolbarLabel("Palette".localized, x: 384, y: labelY, width: 82, font: miniFont)
 
         // --- Preset popup ---
         let prePop = NSPopUpButton(frame: NSRect(x: 474, y: rowY, width: 82, height: 22), pullsDown: false)
         prePop.controlSize = .small
         prePop.font = smallFont
         prePop.autoresizingMask = [.maxXMargin, .minYMargin]
-        prePop.addItem(withTitle: "Custom")
+        prePop.addItem(withTitle: "Custom".localized)
         for p in SoundToLightPreset.presets {
-            prePop.addItem(withTitle: p.name)
+            prePop.addItem(withTitle: p.name.localized)
         }
         prePop.selectItem(at: 0)
         prePop.target = self
         prePop.action = #selector(presetSelectionChanged(_:))
         view2.addSubview(prePop)
         presetPopup = prePop
-        addToolbarLabel("Preset", x: 474, y: labelY, width: 82, font: miniFont)
+        addToolbarLabel("Preset".localized, x: 474, y: labelY, width: 82, font: miniFont)
 
         updatePaletteAvailability()
     }
@@ -1224,7 +1309,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuDele
     }
 
     @IBAction func aboutAction(_ sender: AnyObject) {
-        showWindowAction(sender)
+        NSApp.activate(ignoringOtherApps: true)
         NSApp.orderFrontStandardAboutPanel(options: [
             NSApplication.AboutPanelOptionKey(rawValue: "Copyright"):
                 "Copyright © \(Calendar.current.component(.year, from: Date())) Keefo"
@@ -1268,22 +1353,22 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuDele
             if let selectedView = views[sender.selectedSegment] {
                 self.audioSpectrogramViewVisible = false
                 if selectedView == self.view0 {
-                    window.title = "NeewerLite - Scan View"
+                    window.title = "NeewerLite - Scan View".localized
                     if !launching {
                         Logger.info(LogTag.click, "Scan View")
                     }
                 } else if selectedView == self.view1 {
-                    window.title = "NeewerLite - Control View"
+                    window.title = "NeewerLite - Control View".localized
                     if !launching {
                         Logger.info(LogTag.click, "Control View")
                     }
                 } else if selectedView == self.view2 {
-                    window.title = "NeewerLite - Music View"
+                    window.title = "NeewerLite - Music View".localized
                     if !launching {
                         Logger.info(LogTag.click, "Music View")
                     }
                 } else if selectedView == self.view4 {
-                    window.title = "NeewerLite - Settings"
+                    window.title = "NeewerLite - Settings".localized
                     if !launching {
                         Logger.info(LogTag.click, "Settings View")
                     }
@@ -1312,18 +1397,18 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuDele
     }
 
     @IBAction func forceScanAction(_ sender: NSButton) {
-        if sender.title == "Scan" {
+        if sender.title == "Scan".localized {
             scanning = false
             scanningNewLightMode = true
             scanningViewObjects.removeAll()
             scanTableView.reloadData()
             scanAction(sender)
-            sender.title = "Stop"
+            sender.title = "Stop".localized
             Logger.info(LogTag.click, "Scan")
         } else {
             scanningNewLightMode = false
             scanningStatus?.stringValue = ""
-            sender.title = "Scan"
+            sender.title = "Scan".localized
             Logger.info(LogTag.click, "Stop")
         }
     }
@@ -1382,7 +1467,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuDele
             Holder.dotNumber = 0
         }
         let dots = String(repeating: ".", count: Holder.dotNumber)
-        scanningStatus?.stringValue = "Scan New Lights\(dots)"
+        scanningStatus?.stringValue = "Scan New Lights".localized + dots
     }
 
     @objc func handleURLEvent(
@@ -1409,16 +1494,17 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuDele
         appMenu.items = appMenu.items.filter { $0.tag != lightTag }
 
         viewObjects.reversed().forEach {
+            let displayName = $0.device.userLightName.value.isEmpty ? $0.device.nickName : $0.device.userLightName.value
             let name =
                 optKeyPressed
-                ? "\($0.device.userLightName.value) - \($0.device.identifier) - \($0.device.rawName)"
-                : "\($0.device.userLightName.value)"
+                ? "\(displayName) - \($0.device.identifier) - \($0.device.rawName)"
+                : displayName
             let item = NSMenuItem(
                 title: name, action: #selector(self.showWindowAction(_:)), keyEquivalent: "")
             item.target = self
             item.image = NSImage(
                 systemSymbolName: $0.isON ? "lightbulb" : "lightbulb.slash",
-                accessibilityDescription: "Light")
+                accessibilityDescription: "Light".localized)
             item.tag = lightTag
             appMenu.insertItem(item, at: 2)
         }
@@ -1557,7 +1643,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuDele
 
 }
 
-extension AppDelegate: NSCollectionViewDataSource {
+extension AppDelegate: NSCollectionViewDelegate, NSCollectionViewDataSource {
 
     func numberOfSections(in collectionView: NSCollectionView) -> Int {
         return 1
@@ -1585,50 +1671,6 @@ extension AppDelegate: NSCollectionViewDataSource {
         }
 
         return item
-    }
-}
-
-extension AppDelegate: NSCollectionViewDelegateFlowLayout {
-    func collectionView(
-        _ collectionView: NSCollectionView, layout collectionViewLayout: NSCollectionViewLayout,
-        sizeForItemAt indexPath: IndexPath
-    ) -> NSSize {
-        return CollectionViewItem.frame().size
-    }
-
-    func collectionView(
-        _ collectionView: NSCollectionView, layout collectionViewLayout: NSCollectionViewLayout,
-        insetForSectionAt section: Int
-    ) -> NSEdgeInsets {
-        return NSEdgeInsets(top: 10, left: 10, bottom: 10, right: 10)
-    }
-
-    func collectionView(
-        _ collectionView: NSCollectionView, layout collectionViewLayout: NSCollectionViewLayout,
-        minimumLineSpacingForSectionAt section: Int
-    ) -> CGFloat {
-        return 10.0
-    }
-
-    func collectionView(
-        _ collectionView: NSCollectionView, layout collectionViewLayout: NSCollectionViewLayout,
-        minimumInteritemSpacingForSectionAt section: Int
-    ) -> CGFloat {
-        return 10.0
-    }
-
-    func collectionView(
-        _ collectionView: NSCollectionView, layout collectionViewLayout: NSCollectionViewLayout,
-        referenceSizeForHeaderInSection section: Int
-    ) -> NSSize {
-        return NSSize(width: 0, height: 0)
-    }
-
-    func collectionView(
-        _ collectionView: NSCollectionView, layout collectionViewLayout: NSCollectionViewLayout,
-        referenceSizeForFooterInSection section: Int
-    ) -> NSSize {
-        return NSSize(width: 0, height: 0)
     }
 }
 
@@ -1795,6 +1837,7 @@ extension AppDelegate: NSTableViewDataSource, NSTableViewDelegate {
                     ?? (viewObj.device.productId.flatMap { ContentManager.shared.fetchCachedLightImage(productId: $0) })
                     ?? NSImage(named: "defaultLightImage")
                 cellView.button?.tag = row
+                cellView.button?.title = "Forget".localized
                 cellView.button?.action = #selector(forgetAction(_:))
                 cellView.button?.target = self
                 if debugFakeLights {
@@ -1803,7 +1846,7 @@ extension AppDelegate: NSTableViewDataSource, NSTableViewDelegate {
                     cellView.isConnected = viewObj.deviceConnected
                 }
                 if !viewObj.hasMAC {
-                    cellView.titleLabel?.stringValue = "\(viewObj.device.nickName) (missing MAC❗️)"
+                    cellView.titleLabel?.stringValue = "%@ (missing MAC❗️)".localized(viewObj.device.nickName)
                 }
                 cellView.light = viewObj.device
                 return cellView
@@ -1823,6 +1866,7 @@ extension AppDelegate: NSTableViewDataSource, NSTableViewDelegate {
                 cellView.titleLabel?.stringValue = viewObj.device.rawName
                 cellView.subtitleLabel?.stringValue = viewObj.device.nickName
                 cellView.button?.tag = row
+                cellView.button?.title = "Connect".localized
                 cellView.button?.action = #selector(connnectNewLightAction(_:))
                 cellView.button?.target = self
                 cellView.light = viewObj.device
@@ -1851,7 +1895,7 @@ extension AppDelegate: NSTableViewDataSource, NSTableViewDelegate {
                 checkbox.tag = row
                 checkbox.state = viewObj.device.followMusic ? .on : .off
                 checkbox.frame = NSRect(x: 2, y: 0, width: 130, height: 22)
-                checkbox.toolTip = viewObj.deviceConnected ? "Connected" : "Disconnected"
+                checkbox.toolTip = viewObj.deviceConnected ? "Connected".localized : "Disconnected".localized
                 checkbox.isEnabled = viewObj.deviceConnected
             }
             return cellView
@@ -1927,11 +1971,11 @@ extension AppDelegate: NSTableViewDataSource, NSTableViewDelegate {
                 ContentManager.shared.fetchCachedLightImage(lightType: viewObject.device.lightType)
                 ?? (viewObject.device.productId.flatMap { ContentManager.shared.fetchCachedLightImage(productId: $0) })
                 ?? NSImage(named: "defaultLightImage")
-            alert.messageText = "Remove light \"\(viewObject.deviceName)\""
-            alert.informativeText = "Are you sure you want to remove this light from you library?"
+            alert.messageText = "Remove light \"%@\"".localized(viewObject.deviceName)
+            alert.informativeText = "Are you sure you want to remove this light from your library?".localized
             alert.alertStyle = .warning
-            alert.addButton(withTitle: "Yes")
-            alert.addButton(withTitle: "No")
+            alert.addButton(withTitle: "Yes".localized)
+            alert.addButton(withTitle: "No".localized)
 
             let response = alert.runModal()
             switch response {

@@ -10,7 +10,7 @@ import Cocoa
 class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDelegate {
 
     class func frame() -> CGRect {
-        return CGRect(x: 0, y: 0, width: 520, height: 300)
+        return CGRect(x: 0, y: 0, width: 540, height: 300)
     }
     
     @IBOutlet weak var lightModeTabView: NSTabView!
@@ -407,8 +407,8 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
         else{
             finalString.append(NSAttributedString(string: "\(dev.userLightName.value)\n", attributes: firstLineAttributes))
         }
-        finalString.append(NSAttributedString(string: "name: \(dev.nickName)\n", attributes: secondLineAttributes))
-        finalString.append(NSAttributedString(string: "type: \(dev.lightType)", attributes: secondLineAttributes))
+        finalString.append(NSAttributedString(string: "\("name:".localized) \(dev.nickName)\n", attributes: secondLineAttributes))
+        finalString.append(NSAttributedString(string: "\("type:".localized) \(dev.lightType)", attributes: secondLineAttributes))
 
         // Set the attributed string to the NSTextField
         self.nameField.attributedStringValue = finalString
@@ -469,7 +469,7 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
                 let view = buildCCTView(device: dev)
                 let tab = NSTabViewItem(identifier: TabId.cct.rawValue )
                 tab.view = view
-                tab.label = "CCT"
+                tab.label = "CCT".localized
                 self.lightModeTabView.addTabViewItem(tab)
             }
             
@@ -477,7 +477,7 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
                 let view = buildHSIView(device: dev)
                 let tab = NSTabViewItem(identifier: TabId.hsi.rawValue)
                 tab.view = view
-                tab.label = "HSI"
+                tab.label = "HSI".localized
                 self.lightModeTabView.addTabViewItem(tab)
             }
 
@@ -485,7 +485,7 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
                 let view = buildGelsView(device: dev)
                 let tab = NSTabViewItem(identifier: TabId.gel.rawValue)
                 tab.view = view
-                tab.label = "Gels"
+                tab.label = "Gels".localized
                 self.lightModeTabView.addTabViewItem(tab)
             }
             
@@ -493,7 +493,7 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
                 let view = buildLightSourceView(device: dev)
                 let tab = NSTabViewItem(identifier: TabId.source.rawValue)
                 tab.view = view
-                tab.label = "Light Source"
+                tab.label = "Light Source".localized
                 self.lightModeTabView.addTabViewItem(tab)
             }
             
@@ -501,7 +501,7 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
                 let view = buildFXView(device: dev)
                 let tab = NSTabViewItem(identifier: TabId.scene.rawValue)
                 tab.view = view
-                tab.label = "FX"
+                tab.label = "FX".localized
                 self.lightModeTabView.addTabViewItem(tab)
             }
             else {
@@ -511,7 +511,7 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
                     let view = buildFXView(device: dev)
                     let tab = NSTabViewItem(identifier: TabId.scene.rawValue)
                     tab.view = view
-                    tab.label = "FX"
+                    tab.label = "FX".localized
                     self.lightModeTabView.addTabViewItem(tab)
                 }
             }
@@ -520,7 +520,7 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
                 let view = buildMusicView(device: dev)
                 let tab = NSTabViewItem(identifier: TabId.music.rawValue)
                 tab.view = view
-                tab.label = "Music"
+                tab.label = "Music".localized
                 self.lightModeTabView.addTabViewItem(tab)
             }
 
@@ -610,7 +610,7 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
         }
 
         offsetY = 10.0
-        view.addSubview(createLabel("BRR"))
+        view.addSubview(createLabel("BRR".localized))
         let brrSlide = NLSlider(frame: NSRect(x: offsetX, y: offsetY, width: self.sliderWidth(), height: 20))
         brrSlide.autoresizingMask = [.width, .maxYMargin]
         brrSlide.tag = ControlTag.brr.rawValue
@@ -631,16 +631,16 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
         }
         view.addSubview(brrSlide)
 
-        view.addSubview(createValueLabel("Brightness"))
+        view.addSubview(createValueLabel("Brightness".localized))
         view.addSubview(createValueField(ControlTag.brr, formatBrrValue("\(dev.brrValue.value)", .center)))
 
         topX = wheelX - valueWidth
         topY = 120
-        view.addSubview(createValueLabel("HUE"))
+        view.addSubview(createValueLabel("HUE".localized))
         view.addSubview(createValueField(ControlTag.hue, formatHUEValue("\(dev.hueValue.value)", .center)))
 
         topX = wheel.frame.maxX - 20.0
-        view.addSubview(createValueLabel("Saturation"))
+        view.addSubview(createValueLabel("Saturation".localized))
         view.addSubview(createValueField(ControlTag.sat, formatSATValue("\(dev.satValue.value)", .center)))
 
         return view
@@ -715,7 +715,7 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
             return label
         }
         
-        view.addSubview(createLabel("BRR"))
+        view.addSubview(createLabel("BRR".localized))
         let brrSlide = NLSlider(frame: NSRect(x: offsetX, y: offsetY, width: self.sliderWidth(), height: 20))
         brrSlide.autoresizingMask = [.width, .maxYMargin]
         brrSlide.tag = ControlTag.brr.rawValue
@@ -732,12 +732,12 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
             }
         }
         view.addSubview(brrSlide)
-        view.addSubview(createValueLabel("Brightness"))
+        view.addSubview(createValueLabel("Brightness".localized))
         view.addSubview(createValueField(ControlTag.brr, formatBrrValue("\(dev.brrValue.value)", .center)))
 
         offsetY -= 30
 
-        view.addSubview(createLabel("CCT"))
+        view.addSubview(createLabel("CCT".localized))
         let cctSlide = NLSlider(frame: NSRect(x: offsetX, y: offsetY, width: self.sliderWidth(), height: 20))
         cctSlide.autoresizingMask = [.width, .maxYMargin]
         cctSlide.tag = ControlTag.cct.rawValue
@@ -754,7 +754,7 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
             dev.setCCTLightValues(brr: CGFloat(dev.brrValue.value), cct: CGFloat(val), gmm: CGFloat(dev.gmmValue.value))
         }
         view.addSubview(cctSlide)
-        view.addSubview(createValueLabel("CCT"))
+        view.addSubview(createValueLabel("CCT".localized))
         view.addSubview(createValueField(ControlTag.cct, formatCCTValue("\(dev.cctValue.value)", .center)))
 
         offsetY -= 30
@@ -762,7 +762,7 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
         Logger.debug("offsetY=\(offsetY)")
 
         if dev.supportCCTGM {
-            view.addSubview(createLabel("GM"))
+            view.addSubview(createLabel("GM".localized))
             let gmmSlide = NLSlider(frame: NSRect(x: offsetX, y: offsetY, width: self.sliderWidth(), height: 20))
             gmmSlide.autoresizingMask = [.width, .maxYMargin]
             gmmSlide.tag = ControlTag.gmm.rawValue
@@ -779,7 +779,7 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
                 }
             }
             view.addSubview(gmmSlide)
-            view.addSubview(createValueLabel("GM"))
+            view.addSubview(createValueLabel("GM".localized))
             view.addSubview(createValueField(ControlTag.gmm, formatGMMValue("\(dev.gmmValue.value)", .center)))
         }
         return view
@@ -804,7 +804,7 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
 
         let menu = NSMenu()
         for scene in fxs {
-            let menuItem = NSMenuItem(title: "\(scene.id) - \(scene.name)", action: nil, keyEquivalent: "")
+            let menuItem = NSMenuItem(title: "\(scene.id) - \(scene.name.localized)", action: nil, keyEquivalent: "")
             if !scene.iconName.isEmpty {
                 menuItem.image = NSImage(systemSymbolName: scene.iconName, accessibilityDescription: "")
             }
@@ -952,7 +952,7 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
         if hasCategories {
             // Build segmented control for category sub-tabs
             let segmentHeight: CGFloat = 22
-            let segmentY = viewHeight - segmentHeight - 4
+            let segmentY = viewHeight - segmentHeight - 10
             let seg = NSSegmentedControl(frame: NSRect(x: 10, y: segmentY, width: viewWidth - 20, height: segmentHeight))
             seg.autoresizingMask = [.minYMargin, .width]
             seg.segmentCount = categoryOrder.count
@@ -960,7 +960,7 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
             seg.controlSize = .small
             (seg.cell as? NSSegmentedCell)?.trackingMode = .selectOne
             for (i, cat) in categoryOrder.enumerated() {
-                seg.setLabel(cat, forSegment: i)
+                seg.setLabel(cat.localized, forSegment: i)
                 seg.setWidth(0, forSegment: i) // auto width
             }
             seg.selectedSegment = 0
@@ -1000,7 +1000,7 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
         let menu = NSMenu()
         let filtered = category != nil ? fxs.filter { $0.category == category } : fxs
         for scene in filtered {
-            let menuItem = NSMenuItem(title: "\(scene.id) - \(scene.name)", action: nil, keyEquivalent: "")
+            let menuItem = NSMenuItem(title: "\(scene.id) - \(scene.name.localized)", action: nil, keyEquivalent: "")
             if let imageURL = scene.imageURL, !imageURL.isEmpty {
                 if let cached = ContentManager.shared.fetchCachedSceneImage(urlString: imageURL) {
                     let size = NSSize(width: 16, height: 16)
@@ -1079,7 +1079,7 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
         let menu = NSMenu()
         // Populate the menu with menu items
         for scene in fxs {
-            let menuItem = NSMenuItem(title: "\(scene.id) - \(scene.name)", action: nil, keyEquivalent: "")
+            let menuItem = NSMenuItem(title: "\(scene.id) - \(scene.name.localized)", action: nil, keyEquivalent: "")
             menuItem.tag = Int(scene.id)
             menuItem.target = self // Set the target to your desired target
             menu.addItem(menuItem)
@@ -1197,10 +1197,10 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
         offsetY = 70
         
         if safeFx.needBRR {
-            fxsubview.addSubview(createBigValueLabel("Brightness"))
+            fxsubview.addSubview(createBigValueLabel("Brightness".localized))
             fxsubview.addSubview(createBigValueField(ControlTag.brr, formatBrrValue("\(dev.brrValue.value)", .center)))
 
-            fxsubview.addSubview(createLabel(offsetY-4, "BRR"))
+            fxsubview.addSubview(createLabel(offsetY-4, "BRR".localized))
             let slide = NLSlider(frame: NSRect(x: offsetX, y: offsetY, width: sliderWidth, height: 20))
             slide.autoresizingMask = [.width, .maxYMargin]
             slide.tag = ControlTag.brr.rawValue
@@ -1222,10 +1222,10 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
         }
 
         if safeFx.needCCT {
-            fxsubview.addSubview(createBigValueLabel("CCT"))
+            fxsubview.addSubview(createBigValueLabel("CCT".localized))
             fxsubview.addSubview(createBigValueField(ControlTag.cct, formatCCTValue("\(dev.cctValue.value)", .center)))
 
-            fxsubview.addSubview(createLabel(offsetY-4, "CCT"))
+            fxsubview.addSubview(createLabel(offsetY-4, "CCT".localized))
             let slide = NLSlider(frame: NSRect(x: offsetX, y: offsetY, width: sliderWidth, height: 20))
             slide.autoresizingMask = [.width, .maxYMargin]
             slide.tag = ControlTag.cct.rawValue
@@ -1247,10 +1247,10 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
         }
 
         if safeFx.needGM  && dev.supportCCTGM {
-            fxsubview.addSubview(createBigValueLabel("GM"))
+            fxsubview.addSubview(createBigValueLabel("GM".localized))
             fxsubview.addSubview(createBigValueField(ControlTag.gmm, formatCCTValue("\(dev.gmmValue.value)", .center)))
 
-            fxsubview.addSubview(createLabel(offsetY-4, "GM"))
+            fxsubview.addSubview(createLabel(offsetY-4, "GM".localized))
             let slide = NLSlider(frame: NSRect(x: offsetX, y: offsetY, width: sliderWidth, height: 20))
             slide.autoresizingMask = [.width, .maxYMargin]
             slide.tag = ControlTag.gmm.rawValue
@@ -1351,7 +1351,7 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
         }
 
         if safeFx.needBRR {
-            fxsubview.addSubview(createLabel(offsetY-4, "BRR"))
+            fxsubview.addSubview(createLabel(offsetY-4, "BRR".localized))
             let slide = NLSlider(frame: NSRect(x: offsetX, y: offsetY, width: slideW, height: 20))
             slide.autoresizingMask = [.width, .maxYMargin]
             slide.tag = ControlTag.brr.rawValue
@@ -1414,7 +1414,7 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
         }
 
         if safeFx.needCCT {
-            fxsubview.addSubview(createLabel(offsetY-4, "CCT"))
+            fxsubview.addSubview(createLabel(offsetY-4, "CCT".localized))
             let slide = NLSlider(frame: NSRect(x: offsetX, y: offsetY, width: slideW, height: 20))
             slide.autoresizingMask = [.width, .maxYMargin]
             slide.tag = ControlTag.cct.rawValue
@@ -1454,7 +1454,7 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
         }
 
         if safeFx.needGM {
-            fxsubview.addSubview(createLabel(offsetY-4, "GM"))
+            fxsubview.addSubview(createLabel(offsetY-4, "GM".localized))
             let slide = NLSlider(frame: NSRect(x: offsetX, y: offsetY, width: slideW, height: 20))
             slide.autoresizingMask = [.width, .maxYMargin]
             slide.tag = ControlTag.gmm.rawValue
@@ -1485,7 +1485,7 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
         }
 
         if safeFx.needHUE {
-            fxsubview.addSubview(createLabel(offsetY-4, "HUE"))
+            fxsubview.addSubview(createLabel(offsetY-4, "HUE".localized))
             let slide = NLSlider(frame: NSRect(x: offsetX, y: offsetY, width: slideW, height: 20))
             slide.autoresizingMask = [.width, .maxYMargin]
             slide.tag = ControlTag.hue.rawValue
@@ -1525,7 +1525,7 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
         }
 
         if safeFx.needSAT {
-            fxsubview.addSubview(createLabel(offsetY-4, "SAT"))
+            fxsubview.addSubview(createLabel(offsetY-4, "SAT".localized))
             let slide = NLSlider(frame: NSRect(x: offsetX, y: offsetY, width: slideW, height: 20))
             slide.autoresizingMask = [.width, .maxYMargin]
             slide.tag = ControlTag.sat.rawValue
@@ -1732,7 +1732,7 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
             overlay?.bypassRect = moreactionButton.frame
         
             // Label setup
-            let label = NSTextField(labelWithString: "Light is not connected")
+            let label = NSTextField(labelWithString: "Light is not connected".localized)
             label.frame = NSRect(x: 0, y: 5, width: self.view.bounds.width, height: 20)
             label.isEditable = false
             label.isSelectable = false

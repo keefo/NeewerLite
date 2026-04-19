@@ -132,10 +132,10 @@ extension NSColor {
             self.init(hex: rgbValue, alpha: alpha)
         } else {
             let alert = NSAlert()
-            alert.messageText = "Error"
-            alert.informativeText = "Invalid hex color format \(hex)"
+            alert.messageText = "Error".localized
+            alert.informativeText = "Invalid hex color format %@".localized(hex)
             alert.alertStyle = .warning
-            alert.addButton(withTitle: "OK")
+            alert.addButton(withTitle: "OK".localized)
             alert.runModal()
             self.init(hex: 0, alpha: alpha)
         }
