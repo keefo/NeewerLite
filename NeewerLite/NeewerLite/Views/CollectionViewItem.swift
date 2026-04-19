@@ -164,13 +164,13 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
         let editor = PatternEditorPanel(initialPattern: currentPattern) { [weak self] newPattern in
             guard let self = self else { return }
             // Save newPattern as needed
-            if newPattern != nil {
+            if let newPattern = newPattern {
                 Logger.debug(newPattern)
                 if newPattern == "reset"
                 {
                     safeDev.temporaryCommandPatterns = nil
                 }
-                else if let patterns = self.parseCommandPatterns(from: newPattern!) {
+                else if let patterns = self.parseCommandPatterns(from: newPattern) {
                     // You can assign it to commandPatterns
                     safeDev.temporaryCommandPatterns = patterns
                 }

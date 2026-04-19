@@ -87,9 +87,11 @@ private final class WaveformView: NSView {
 
     private func startRenderTimer() {
         guard renderTimer == nil else { return }
-        renderTimer = Timer.scheduledTimer(withTimeInterval: 1.0 / 60.0, repeats: true) { [weak self] _ in
+        let timer = Timer(timeInterval: 1.0 / 60.0, repeats: true) { [weak self] _ in
             self?.tick()
         }
+        RunLoop.current.add(timer, forMode: .common)
+        renderTimer = timer
     }
 
     private func stopRenderTimer() {

@@ -92,9 +92,83 @@ public class AudioSpectrogram: NSObject {
         return kAudioHardwareNoError
     }
 
+    /// Currently selected input device unique ID. `nil` means system default.
+    var selectedInputDeviceUID: String?
+
     override init() {
         super.init()
         configureCaptureSession()
+    }
+
+    /// Creates an AudioSpectrogram that captures from the given input device.
+    /// Pass `nil` to use the system default microphone.
+    init(inputDeviceUID: String?) {
+        selectedInputDeviceUID = inputDeviceUID
+        super.init()
+        configureCaptureSession()
+    }
+
+    /// Returns all available audio input devices (microphones, audio interfaces, etc.).
+    static func availableInputDevices() -> [AVCaptureDevice] {
+        if #available(macOS 10.15, *) {
+            let discovery = AVCaptureDevice.DiscoverySession(
+                deviceTypes: [.builtInMicrophone, .externalUnknown],
+                mediaType: .audio,
+                position: .unspecified)
+            return discovery.devices
+        } else {
+            return AVCaptureDevice.devices(for: .audio)
+        }
+    }
+
+    /// Switches the capture session to the given audio input device.
+    /// Pass `nil` to revert to the system default microphone.
+    func switchInputDevice(uniqueID: String?) {
+        sessionQueue.async { [weak self] in
+            guard let self = self else { return }
+            self.selectedInputDeviceUID = uniqueID
+
+            let wasRunning = self.captureSession.isRunning
+            if wasRunning { self.captureSession.stopRunning() }
+
+            self.captureSession.beginConfiguration()
+
+            // Remove existing inputs
+            for input in self.captureSession.inputs {
+                self.captureSession.removeInput(input)
+            }
+
+            // Find the requested device
+            let device: AVCaptureDevice?
+            if let uid = uniqueID {
+                device = Self.availableInputDevices().first { $0.uniqueID == uid }
+            } else {
+                device = AVCaptureDevice.default(.builtInMicrophone, for: .audio, position: .unspecified)
+            }
+
+            if let dev = device, let input = try? AVCaptureDeviceInput(device: dev) {
+                if self.captureSession.canAddInput(input) {
+                    self.captureSession.addInput(input)
+                    Logger.debug("[AudioSpectrogram] switched to input: \(dev.localizedName)")
+                } else {
+                    Logger.error("[AudioSpectrogram] can't add input for \(dev.localizedName)")
+                }
+            } else {
+                Logger.error("[AudioSpectrogram] device not found for UID: \(uniqueID ?? "nil")")
+            }
+
+            self.captureSession.commitConfiguration()
+            if wasRunning { self.captureSession.startRunning() }
+        }
+    }
+
+    /// Resolves an input device by unique ID, falling back to the system default microphone.
+    private static func resolveInputDevice(preferredUID: String?) -> AVCaptureDevice? {
+        if let uid = preferredUID,
+           let device = availableInputDevices().first(where: { $0.uniqueID == uid }) {
+            return device
+        }
+        return AVCaptureDevice.default(.builtInMicrophone, for: .audio, position: .unspecified)
     }
 
     let forwardDCT = vDSP.DCT(count: sampleCount,
@@ -419,11 +493,9 @@ extension AudioSpectrogram: AVCaptureAudioDataOutputSampleBufferDelegate {
         }
 
         guard
-            let microphone = AVCaptureDevice.default(.builtInMicrophone,
-                                                     for: .audio,
-                                                     position: .unspecified),
+            let microphone = Self.resolveInputDevice(preferredUID: selectedInputDeviceUID),
             let microphoneInput = try? AVCaptureDeviceInput(device: microphone) else {
-                Logger.error("Can't create AVCaptureDeviceInput for builtInMicrophone.")
+                Logger.error("Can't create AVCaptureDeviceInput.")
                 captureSession.commitConfiguration()
                 return
             }

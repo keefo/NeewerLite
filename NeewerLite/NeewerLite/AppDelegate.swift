@@ -51,6 +51,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuDele
     private var renameVC: RenameViewController?
     private var activeVisualization: AudioVisualizerPlugin?
     private var visualizationPopup: NSPopUpButton?
+    private var audioInputPopup: NSPopUpButton?
 
     // Sound-to-Light UI state
     private var currentModeType: SoundToLightModeType = .pulse
@@ -208,7 +209,6 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuDele
                 self.switchViewAction(self.viewsButton)
                 self.audioDriveSwitch.state = .on
                 self.toggleAudioDriver(self.audioDriveSwitch)
-                print("[Baseline] --baseline-audio: window shown, Music View selected, audio driver started")
             }
         }
 #endif
@@ -250,7 +250,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuDele
     @objc func handleDatabaseCountdown(_ notification: Notification) {
         // reload image or refresh UI
         guard let remaining = notification.userInfo?["remaining"] as? TimeInterval else { return }
-        Logger.info("Database sync in \(remaining) seconds.")
+        Logger.debug("Database sync in \(Int(remaining)) seconds.")
     }
 
     @objc func handleDatabaseUpdate(_ notification: Notification) {
@@ -1038,6 +1038,14 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuDele
         }
         currentPaletteIndex = UserDefaults.standard.object(forKey: "stlPalette") as? Int ?? -1
 
+        // Restore sensitivity (noise gate threshold)
+        if let savedSens = UserDefaults.standard.object(forKey: "stlSensitivity") as? Double {
+            let inverted = Float(1.0 - savedSens)
+            audioAnalysisEngine.rmsFloorThreshold = inverted * 0.2
+            audioAnalysisEngine.rmsPassthroughThreshold = max(audioAnalysisEngine.rmsFloorThreshold + 0.11, 0.15)
+            audioAnalysisEngine.rmsCloseThreshold = audioAnalysisEngine.rmsFloorThreshold * 0.5
+        }
+
         rebuildSoundToLightMode()
 
         // Two-row layout: labels above popups
@@ -1078,12 +1086,24 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuDele
         micBtn.autoresizingMask = [.maxXMargin, .minYMargin]
         view2.addSubview(micBtn)
 
+        // --- Audio Input popup ---
+        let inputPop = NSPopUpButton(frame: NSRect(x: 62, y: rowY, width: 100, height: 22), pullsDown: false)
+        inputPop.controlSize = .small
+        inputPop.font = smallFont
+        inputPop.autoresizingMask = [.maxXMargin, .minYMargin]
+        populateAudioInputPopup(inputPop)
+        inputPop.target = self
+        inputPop.action = #selector(audioInputSelectionChanged(_:))
+        view2.addSubview(inputPop)
+        audioInputPopup = inputPop
+        addToolbarLabel("Input".localized, x: 62, y: labelY, width: 100, font: miniFont)
+
         // Reposition Spectrum popup (created in setupVisualizationPlugins)
-        visualizationPopup?.frame = NSRect(x: 62, y: rowY, width: 96, height: 22)
-        addToolbarLabel("Visualization".localized, x: 62, y: labelY, width: 96, font: miniFont)
+        visualizationPopup?.frame = NSRect(x: 170, y: rowY, width: 96, height: 22)
+        addToolbarLabel("Visualization".localized, x: 170, y: labelY, width: 96, font: miniFont)
 
         // --- Mode popup ---
-        let modePop = NSPopUpButton(frame: NSRect(x: 166, y: rowY, width: 106, height: 22), pullsDown: false)
+        let modePop = NSPopUpButton(frame: NSRect(x: 274, y: rowY, width: 96, height: 22), pullsDown: false)
         modePop.controlSize = .small
         modePop.font = smallFont
         modePop.autoresizingMask = [.maxXMargin, .minYMargin]
@@ -1095,10 +1115,10 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuDele
         modePop.action = #selector(modeSelectionChanged(_:))
         view2.addSubview(modePop)
         modePopup = modePop
-        addToolbarLabel("Mode".localized, x: 166, y: labelY, width: 106, font: miniFont)
+        addToolbarLabel("Mode".localized, x: 274, y: labelY, width: 96, font: miniFont)
 
         // --- Reactivity popup ---
-        let reactPop = NSPopUpButton(frame: NSRect(x: 280, y: rowY, width: 96, height: 22), pullsDown: false)
+        let reactPop = NSPopUpButton(frame: NSRect(x: 378, y: rowY, width: 86, height: 22), pullsDown: false)
         reactPop.controlSize = .small
         reactPop.font = smallFont
         reactPop.autoresizingMask = [.maxXMargin, .minYMargin]
@@ -1110,10 +1130,10 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuDele
         reactPop.action = #selector(reactivitySelectionChanged(_:))
         view2.addSubview(reactPop)
         reactivityPopup = reactPop
-        addToolbarLabel("Reactivity".localized, x: 280, y: labelY, width: 96, font: miniFont)
+        addToolbarLabel("Reactivity".localized, x: 378, y: labelY, width: 86, font: miniFont)
 
         // --- Palette popup ---
-        let palPop = NSPopUpButton(frame: NSRect(x: 384, y: rowY, width: 82, height: 22), pullsDown: false)
+        let palPop = NSPopUpButton(frame: NSRect(x: 472, y: rowY, width: 78, height: 22), pullsDown: false)
         palPop.controlSize = .small
         palPop.font = smallFont
         palPop.autoresizingMask = [.maxXMargin, .minYMargin]
@@ -1126,10 +1146,10 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuDele
         palPop.action = #selector(paletteSelectionChanged(_:))
         view2.addSubview(palPop)
         palettePopup = palPop
-        addToolbarLabel("Palette".localized, x: 384, y: labelY, width: 82, font: miniFont)
+        addToolbarLabel("Palette".localized, x: 472, y: labelY, width: 78, font: miniFont)
 
         // --- Preset popup ---
-        let prePop = NSPopUpButton(frame: NSRect(x: 474, y: rowY, width: 82, height: 22), pullsDown: false)
+        let prePop = NSPopUpButton(frame: NSRect(x: 558, y: rowY, width: 78, height: 22), pullsDown: false)
         prePop.controlSize = .small
         prePop.font = smallFont
         prePop.autoresizingMask = [.maxXMargin, .minYMargin]
@@ -1142,7 +1162,22 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuDele
         prePop.action = #selector(presetSelectionChanged(_:))
         view2.addSubview(prePop)
         presetPopup = prePop
-        addToolbarLabel("Preset".localized, x: 474, y: labelY, width: 82, font: miniFont)
+        addToolbarLabel("Preset".localized, x: 558, y: labelY, width: 78, font: miniFont)
+
+        // --- Sensitivity slider (noise gate threshold) ---
+        let savedSensValue = UserDefaults.standard.object(forKey: "stlSensitivity") as? Double
+            ?? Double(audioAnalysisEngine.rmsFloorThreshold) / 0.2
+        let sensSlider = NLSlider(frame: NSRect(x: 644, y: rowY, width: 120, height: 22))
+        sensSlider.minValue = 0.0
+        sensSlider.maxValue = 1.0
+        sensSlider.currentValue = CGFloat(savedSensValue)
+        sensSlider.customBarDrawing = NLSlider.brightnessBar()
+        sensSlider.autoresizingMask = [.maxXMargin, .minYMargin]
+        sensSlider.callback = { [weak self] value in
+            self?.applySensitivity(Double(value))
+        }
+        view2.addSubview(sensSlider)
+        addToolbarLabel("Sensitivity".localized, x: 644, y: labelY, width: 120, font: miniFont)
 
         updatePaletteAvailability()
     }
@@ -1236,6 +1271,42 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuDele
         switchVisualization(to: sender.indexOfSelectedItem)
     }
 
+    private func populateAudioInputPopup(_ popup: NSPopUpButton) {
+        popup.removeAllItems()
+        let devices = AudioSpectrogram.availableInputDevices()
+        if devices.isEmpty {
+            popup.addItem(withTitle: "No Input".localized)
+            popup.isEnabled = false
+            return
+        }
+        let savedUID = UserDefaults.standard.string(forKey: "stlAudioInputUID")
+        var selectedIndex = 0
+        for (idx, device) in devices.enumerated() {
+            popup.addItem(withTitle: device.localizedName)
+            popup.lastItem?.representedObject = device.uniqueID as NSString
+            if device.uniqueID == savedUID {
+                selectedIndex = idx
+            }
+        }
+        popup.selectItem(at: selectedIndex)
+        popup.isEnabled = true
+    }
+
+    @objc private func audioInputSelectionChanged(_ sender: NSPopUpButton) {
+        guard let uid = sender.selectedItem?.representedObject as? String else { return }
+        UserDefaults.standard.set(uid, forKey: "stlAudioInputUID")
+        audioSpectrogram?.switchInputDevice(uniqueID: uid)
+    }
+
+    private func applySensitivity(_ value: Double) {
+        // Invert: left(0)=max filtering, right(1)=no filtering
+        let inverted = Float(1.0 - value)
+        audioAnalysisEngine.rmsFloorThreshold = inverted * 0.2
+        audioAnalysisEngine.rmsPassthroughThreshold = max(audioAnalysisEngine.rmsFloorThreshold + 0.11, 0.15)
+        audioAnalysisEngine.rmsCloseThreshold = audioAnalysisEngine.rmsFloorThreshold * 0.5
+        UserDefaults.standard.set(value, forKey: "stlSensitivity")
+    }
+
     private func switchVisualization(to index: Int) {
         let manager = VisualizationPluginManager.shared
         let frame = activeVisualization?.visualizerView.frame
@@ -1263,7 +1334,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuDele
         if sender.state == .on {
             if audioSpectrogram == nil {
                 Logger.info(LogTag.click, "autio driver start")
-                audioSpectrogram = AudioSpectrogram()
+                let savedInputUID = UserDefaults.standard.string(forKey: "stlAudioInputUID")
+                audioSpectrogram = AudioSpectrogram(inputDeviceUID: savedInputUID)
                 audioSpectrogram!.audioSpectrogramImageUpdateCallback = { [weak self] cgimg in
                     guard let safeSelf = self else { return }
                     if safeSelf.audioSpectrogramViewVisible {
@@ -1273,10 +1345,12 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuDele
                 audioSpectrogram!.waterfallEnabled = activeVisualization?.needsSpectrogramImage ?? false
                 audioSpectrogram!.frequencyUpdateCallback = { [weak self] frequencyData in
                     guard let safeSelf = self else { return }
-                    if safeSelf.audioSpectrogramViewVisible {
-                        safeSelf.activeVisualization?.updateFrequency(frequencyData)
-                    }
                     safeSelf.driveLightFromFrequency(frequencyData)
+                    if safeSelf.audioSpectrogramViewVisible {
+                        let sens = Float(UserDefaults.standard.double(forKey: "stlSensitivity"))
+                        let scaled = frequencyData.map { $0 * sens }
+                        safeSelf.activeVisualization?.updateFrequency(scaled)
+                    }
                 }
                 audioSpectrogram!.volumeUpdateCallback = { [weak self] volume in
                     // Mac output volume — reserved for future use
