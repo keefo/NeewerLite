@@ -1,8 +1,23 @@
-# Neewer Home - NS02 Neon Rope Light — BLE Protocol Reference
+# Neewer Home - BLE Protocol Reference
+
+## Background: New Protocol, New Era
+
+Neewer used to have one app and one BLE protocol. Life was simple.
+
+Then they launched **NEEWER Home** — a whole new app for their smart home lighting line. These are the `NH-*` devices: neon rope lights, ambient panels, wall lights — the kind of stuff that talks to Alexa and Google Home. And with a new product line came a new protocol.
+
+**The old way (`0x78`):** One prefix byte, simple tags (`0x81` = power, `0x87` = CCT, `0x89` = HSI), brightness as a plain 0–100 byte. Covers every classic Neewer panel light (SL-80, 660, CB60, RGB62, etc.). If you've used NeewerLite before, this is what it speaks. See [Neewer-Light-Protocol.md](Neewer-Light-Protocol.md) for that world.
+
+**The new way (`0x7A`):** Different prefix, different tags (`0x0A` = power, `0x0C` = CCT, `0x0D` = HSI), BCD-encoded brightness with 0.1% precision (because apparently 1% steps weren't enough). Plus entirely new capabilities: per-segment colors, gradients, and music-reactive modes baked into firmware.
+
+The funny part? Both protocols use the *exact same* BLE service UUID and checksum algorithm. Neewer kept the plumbing, rewired everything inside.
+
+**This document covers the `0x7A` protocol, using the NS02 Neon Rope Light as the reference device.** The commands and packet structures apply to all `NH-*` devices in the same protocol family.
 
 ## Table of Contents
 
-- [Neewer Home - NS02 Neon Rope Light — BLE Protocol Reference](#neewer-home---ns02-neon-rope-light--ble-protocol-reference)
+- [Neewer Home - BLE Protocol Reference](#neewer-home---ble-protocol-reference)
+  - [Background: New Protocol, New Era](#background-new-protocol-new-era)
   - [Table of Contents](#table-of-contents)
   - [Device Identification](#device-identification)
     - [Related Models (Same Protocol Family)](#related-models-same-protocol-family)

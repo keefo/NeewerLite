@@ -2,6 +2,8 @@
 
 This document outlines the reverse engineering process and findings for Neewer lighting devices, including command protocols and packet structures.
 
+> **Note:** This document covers the original `0x78` protocol (Neewer app). For the newer `0x7A` protocol used by NEEWER Home devices (`NH-*`), see [Neewer-Home-Protocol.md](Neewer-Home-Protocol.md).
+
 ## Table of Contents
 - [Android App Reverse Engineering](#android-app-reverse-engineering)
 - [iOS Bluetooth Packet Logging](#ios-bluetooth-packet-logging)
