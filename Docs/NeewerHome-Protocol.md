@@ -1,5 +1,29 @@
 # Neewer Home - NS02 Neon Rope Light — BLE Protocol Reference
 
+## Table of Contents
+
+- [Device Identification](#device-identification)
+  - [Related Models (Same Protocol Family)](#related-models-same-protocol-family)
+- [Packet Frame Format](#packet-frame-format)
+  - [Standard Packet (`Packet`)](#standard-packet-packet)
+  - [Long Size Packet (`LongSizePacket`)](#long-size-packet-longsizepacket)
+  - [Checksum](#checksum)
+- [Commands](#commands)
+  - [Power On/Off](#power-onoff)
+  - [CCT / Lighting Mode](#cct--lighting-mode)
+  - [Fixed Brightness (Brightness Only)](#fixed-brightness-brightness-only)
+  - [HSI / Color Mode](#hsi--color-mode)
+  - [Gradient Color Mode](#gradient-color-mode)
+  - [Choose Color (Per-Segment)](#choose-color-per-segment)
+  - [Music Reactive Mode](#music-reactive-mode)
+  - [Scene Effect](#scene-effect)
+  - [Mixed Mode (Per-Panel)](#mixed-mode-per-panel)
+  - [Query Device Parameters](#query-device-parameters)
+- [Response Mode IDs](#response-mode-ids)
+- [NS02 Capabilities](#ns02-capabilities)
+- [Comparison: Old Protocol (`0x78`) vs New Protocol (`0x7A`)](#comparison-old-protocol-0x78-vs-new-protocol-0x7a)
+- [Source Files (Decompiled)](#source-files-decompiled)
+
 ## Device Identification
 
 | Field | Value |
@@ -266,26 +290,120 @@ Used for segmented/rainbow effects where each LED zone gets a different color. T
 
 **Class:** `SendMusicDataBean` — Standard Packet
 
-| Byte | Value |
-|------|-------|
-| head | `0x7A` |
-| dataId | `0x0E` |
-| size | payload length |
-| data[0] | `0x01` |
-| data[1] | `0x00` |
-| data[2] | brightness / 10 |
-| data[3] | music mode ID |
-| data[4] | speed |
-| data[5] | sensitivity |
-| data[6] | color mode: `0x00` = custom colors, `0x01` = auto |
-| data[7] | color count |
-| | **Per color:** |
-| +0 | hue high byte |
-| +1 | hue low byte |
-| +2 | saturation |
-| data[N] | gradient: `0x01` = on, `0x00` = off |
-| data[N+1] | start point |
-| checksum | sum & 0xFF |
+The light's **onboard microphone** listens to ambient audio and drives the LED animation locally. The host app only sets the mode and parameters — the light does all audio processing on-device.
+
+> **Terminology:** This is the light's built-in "Music Mode" (onboard mic), **not** NeewerLite's Sound-to-Light engine (which uses the Mac's mic and sends standard HSI commands). They are completely independent features.
+
+#### Packet Layout
+
+```
+[0x7A] [0x0E] [size] [payload...] [checksum]
+```
+
+| Offset | Size | Field | Description |
+|--------|------|-------|-------------|
+| 0 | 1 | head | `0x7A` |
+| 1 | 1 | dataId | `0x0E` |
+| 2 | 1 | size | Payload byte count (= 8 + 3×colorCount + 1) |
+| 3.. | size | payload | See below |
+| N+1 | 1 | checksum | `(head + dataId + size + Σpayload) & 0xFF` |
+
+#### Payload Structure
+
+| Index | Field | Range | Description |
+|-------|-------|-------|-------------|
+| 0 | fixed | `0x01` | Always 1 |
+| 1 | fixed | `0x00` | Always 0 |
+| 2 | brightness | 0–100 | Always `0x64` (100%) in the official app — no brightness slider is exposed in music mode. The byte exists in the protocol but the app sends a fixed value. |
+| 3 | musicModeId | 0–5 | Animation style (see table below) |
+| 4 | speed | 0–100 | Animation speed, `0x01`–`0x64` |
+| 5 | sensitivity | 0–100 | Mic sensitivity, `0x01`–`0x64` |
+| 6 | colorMode | 0–1 | `0x00` = custom colors, `0x01` = auto (rainbow) |
+| 7 | colorCount | 1–8 | Number of color entries (6 in auto mode) |
+| 8.. | colors | 3×N bytes | Per color: `[hue_hi, hue_lo, saturation]` |
+| 8+3N | gradient | 0–1 | `0x00` = off, `0x01` = on |
+
+#### Music Mode IDs
+
+| ID | Name | Has Speed | Description |
+|----|------|-----------|-------------|
+| 0 | Energy | Yes | Reactive energy pulse |
+| 1 | Breathing | Yes | Slow fade in/out synced to audio |
+| 2 | Beat | Yes | Sharp flash on beat detection |
+| 3 | Meteor | Yes | Streak/trail animation reacting to audio |
+| 4 | Starry Sky | Yes | Twinkling points reacting to audio |
+| 5 | Neon | No* | Neon glow effect following audio |
+
+> \* Neon does not appear to have speed control in the NEEWER Home UI. The speed byte is still present in the packet but may be ignored by firmware.
+
+#### Default Auto Colors (colorMode = 0x01)
+
+When `colorMode` is `0x01` (auto), the NEEWER Home app sends 6 rainbow colors:
+
+| # | Hue | Hex (H_hi H_lo) | Sat | Color |
+|---|-----|-----------------|-----|-------|
+| 0 | 0 | `00 00` | 100 | Red |
+| 1 | 30 | `00 1E` | 100 | Orange |
+| 2 | 60 | `00 3C` | 100 | Yellow |
+| 3 | 130 | `00 82` | 100 | Green |
+| 4 | 210 | `00 D2` | 100 | Blue |
+| 5 | 300 | `01 2C` | 100 | Magenta |
+
+#### Decoded BLE Traces
+
+All traces captured from NS02 5M rope light, brightness 100%, auto color mode (6 rainbow colors).
+
+**Breathing — Speed 75, Sensitivity 70:**
+```
+7A 0E 1B  01 00 64  01 4B 46  01 06
+00 00 64  00 1E 64  00 3C 64  00 82 64  00 D2 64  01 2C 64
+00  D4
+```
+Breakdown: mode=`01`(Breathing), speed=`4B`(75), sens=`46`(70), colorMode=`01`(auto), colors=6, gradient=`00`(off), checksum=`D4` ✓
+
+**Energy — Speed 90, Sensitivity 27:**
+```
+7A 0E 1B  01 00 64  00 5A 1B  01 06
+00 00 64  00 1E 64  00 3C 64  00 82 64  00 D2 64  01 2C 64
+00  B7
+```
+Breakdown: mode=`00`(Energy), speed=`5A`(90), sens=`1B`(27), checksum=`B7` ✓
+
+**Beat — Speed 60, Sensitivity 49:**
+```
+7A 0E 1B  01 00 64  02 3C 31  01 06
+00 00 64  00 1E 64  00 3C 64  00 82 64  00 D2 64  01 2C 64
+00  B1
+```
+Breakdown: mode=`02`(Beat), speed=`3C`(60), sens=`31`(49), checksum=`B1` ✓
+
+**Meteor — Speed 21, Sensitivity 33:**
+```
+7A 0E 1B  01 00 64  03 15 21  01 06
+00 00 64  00 1E 64  00 3C 64  00 82 64  00 D2 64  01 2C 64
+00  7B
+```
+Breakdown: mode=`03`(Meteor), speed=`15`(21), sens=`21`(33), checksum=`7B` ✓
+
+**Starry Sky — Speed 83, Sensitivity 65:**
+```
+7A 0E 1B  01 00 64  04 53 41  01 06
+00 00 64  00 1E 64  00 3C 64  00 82 64  00 D2 64  01 2C 64
+00  DA
+```
+Breakdown: mode=`04`(Starry Sky), speed=`53`(83), sens=`41`(65), checksum=`DA` ✓
+
+**Neon — Sensitivity 21:**
+```
+7A 0E 1B  01 00 64  05 53 15  01 06
+00 00 64  00 1E 64  00 3C 64  00 82 64  00 D2 64  01 2C 64
+00  AF
+```
+Breakdown: mode=`05`(Neon), speed=`53`(carried over, possibly ignored), sens=`15`(21), checksum=`AF` ✓
+
+#### Device Support
+
+The `supportMusic` flag in `lights.json` indicates whether a device has an onboard microphone. 28 of 32 NH devices support music mode. Three devices (NF02, NF05, NW01) additionally have `twoDimensionalMusic: true`, which may indicate a 2D matrix-style music animation (unverified).
 
 ### Scene Effect
 

@@ -463,6 +463,7 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
             removeTabItem(TabId.hsi.rawValue)
             removeTabItem(TabId.gel.rawValue)
             removeTabItem(TabId.scene.rawValue)
+            removeTabItem(TabId.music.rawValue)
             
             if true {
                 let view = buildCCTView(device: dev)
@@ -513,6 +514,14 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
                     tab.label = "FX"
                     self.lightModeTabView.addTabViewItem(tab)
                 }
+            }
+
+            if !dev.supportedMusicFX.isEmpty {
+                let view = buildMusicView(device: dev)
+                let tab = NSTabViewItem(identifier: TabId.music.rawValue)
+                tab.view = view
+                tab.label = "Music"
+                self.lightModeTabView.addTabViewItem(tab)
             }
 
             buildingView = false
@@ -774,6 +783,153 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
             view.addSubview(createValueField(ControlTag.gmm, formatGMMValue("\(dev.gmmValue.value)", .center)))
         }
         return view
+    }
+
+    // MARK: - Music Mode
+
+    func buildMusicView(device dev: NeewerLight) -> NSView {
+        let viewWidth = self.lightModeTabView.bounds.width
+        let viewHeight = self.lightModeTabView.bounds.height - 46
+        let view = NSView(frame: NSRect(x: 0, y: 0, width: viewWidth, height: viewHeight))
+        view.autoresizingMask = [.width, .height]
+
+        let fxs = dev.supportedMusicFX
+        let popUpTopY = viewHeight - 28
+
+        let popUpButton = NSPopUpButton(frame: NSRect(x: 60, y: popUpTopY, width: viewWidth - 120, height: 20), pullsDown: false)
+        popUpButton.autoresizingMask = [.minYMargin, .width]
+        popUpButton.controlSize = .small
+        popUpButton.target = self
+        popUpButton.action = #selector(musicModeClicked(_:))
+
+        let menu = NSMenu()
+        for scene in fxs {
+            let menuItem = NSMenuItem(title: "\(scene.id) - \(scene.name)", action: nil, keyEquivalent: "")
+            if !scene.iconName.isEmpty {
+                menuItem.image = NSImage(systemSymbolName: scene.iconName, accessibilityDescription: "")
+            }
+            menuItem.tag = Int(scene.id)
+            menu.addItem(menuItem)
+        }
+        popUpButton.menu = menu
+        view.addSubview(popUpButton)
+
+        let savedTag = Int(dev.musicChannel)
+        if !popUpButton.selectItem(withTag: savedTag), let first = popUpButton.itemArray.first {
+            popUpButton.select(first)
+        }
+        musicModeClicked(popUpButton)
+        return view
+    }
+
+    @objc func musicModeClicked(_ sender: NSPopUpButton) {
+        guard let dev = device else { return }
+        guard let selectedItem = sender.selectedItem else { return }
+
+        let fxid = selectedItem.tag
+        let fxs = dev.supportedMusicFX
+        guard let safeFx = fxs.first(where: { $0.id == fxid }) else { return }
+        guard let theView = sender.superview else { return }
+
+        dev.musicChannel = UInt8(fxid)
+
+        for subview in theView.subviews {
+            if subview is FXView {
+                subview.removeFromSuperview()
+            }
+        }
+
+        let fxTop = sender.frame.minY - 6
+        let fxsubview = FXView(frame: NSRect(x: 0, y: 0, width: theView.bounds.width, height: fxTop))
+        fxsubview.autoresizingMask = [.width, .height]
+        theView.addSubview(fxsubview)
+
+        let offsetX = 55.0
+        var offsetY = fxsubview.bounds.height - 26
+        let slideW = fxsubview.bounds.width - 98
+
+        let createLabel: (CGFloat, String) -> NSTextField = { offsetY, stringValue in
+            let label = NSTextField(frame: NSRect(x: 15, y: offsetY, width: 35, height: 20))
+            label.autoresizingMask = [.minYMargin, .maxXMargin]
+            label.stringValue = stringValue
+            label.alignment = .right
+            label.isEditable = false
+            label.isSelectable = false
+            label.isBordered = false
+            label.drawsBackground = false
+            label.font = NSFont.labelFont(ofSize: 9)
+            return label
+        }
+
+        let createValueLabel: (CGFloat, String, Int) -> NSTextField = { offsetY, stringValue, tag in
+            let label = NSTextField(frame: NSRect(x: offsetX + slideW + 5, y: offsetY + 4, width: 50, height: 18))
+            label.autoresizingMask = [.maxYMargin, .minXMargin]
+            label.stringValue = stringValue
+            label.alignment = .left
+            label.isEditable = false
+            label.isSelectable = false
+            label.isBordered = false
+            label.drawsBackground = false
+            label.font = NSFont.monospacedSystemFont(ofSize: 9, weight: .medium)
+            label.tag = tag
+            return label
+        }
+
+        if safeFx.needSpeed {
+            fxsubview.addSubview(createLabel(offsetY - 4, "Speed"))
+            let slide = NLSlider(frame: NSRect(x: offsetX, y: offsetY, width: slideW, height: 20))
+            slide.autoresizingMask = [.width, .maxYMargin]
+            slide.tag = ControlTag.speed.rawValue
+            slide.type = .speed
+            slide.minValue = 1.0
+            slide.maxValue = 100.0
+            slide.currentValue = CGFloat(safeFx.speedValue)
+            if CGFloat(safeFx.speedValue) < slide.minValue { safeFx.speedValue = Int(slide.minValue) }
+            if CGFloat(safeFx.speedValue) > slide.maxValue { safeFx.speedValue = Int(slide.maxValue) }
+            slide.customBarDrawing = NLSlider.speedBar()
+            let valueField = createValueLabel(offsetY - 4, "", slide.tag)
+            slide.callback = { [weak self] val in
+                guard self != nil else { return }
+                if let safeDev = self?.device {
+                    valueField.stringValue = "\(Int(val))"
+                    safeFx.speedValue = Int(val)
+                    safeDev.sendMusicCommand(safeFx)
+                }
+            }
+            fxsubview.addSubview(slide)
+            fxsubview.addSubview(valueField)
+            offsetY -= 30
+        }
+
+        if safeFx.needSens {
+            fxsubview.addSubview(createLabel(offsetY - 4, "Sens"))
+            let slide = NLSlider(frame: NSRect(x: offsetX, y: offsetY, width: slideW, height: 20))
+            slide.autoresizingMask = [.width, .maxYMargin]
+            slide.tag = ControlTag.sens.rawValue
+            slide.type = .speed
+            slide.minValue = 1.0
+            slide.maxValue = 100.0
+            slide.currentValue = CGFloat(safeFx.sensValue)
+            if CGFloat(safeFx.sensValue) < slide.minValue { safeFx.sensValue = Int(slide.minValue) }
+            if CGFloat(safeFx.sensValue) > slide.maxValue { safeFx.sensValue = Int(slide.maxValue) }
+            slide.customBarDrawing = NLSlider.sensBar()
+            let valueField = createValueLabel(offsetY - 4, "", slide.tag)
+            slide.callback = { [weak self] val in
+                guard self != nil else { return }
+                if let safeDev = self?.device {
+                    valueField.stringValue = "\(Int(val))"
+                    safeFx.sensValue = Int(val)
+                    safeDev.sendMusicCommand(safeFx)
+                }
+            }
+            fxsubview.addSubview(slide)
+            fxsubview.addSubview(valueField)
+            offsetY -= 30
+        }
+
+        if !buildingView {
+            dev.sendMusicCommand(safeFx)
+        }
     }
 
     /// Tag used to find the category segmented control inside the FX view.

@@ -305,6 +305,17 @@ class NeewerLightConstant {
         return fxs
     }
 
+    class func getHomeLightMusicFX(productId: String) -> [NeewerLightFX] {
+        var fxs: [NeewerLightFX] = []
+        if let device = ContentManager.shared.fetchHomeDevice(productId: productId) {
+            let patterns = ContentManager.shared.resolvedMusicPatterns(for: device)
+            for pattern in patterns {
+                fxs.append(NeewerLightFX.parseNamedCmdToFX(item: pattern))
+            }
+        }
+        return fxs
+    }
+
     class func getLightSources(lightType: UInt8) -> [NeewerLightSource] {
         var fxs: [NeewerLightSource] = []
         if let item = ContentManager.shared.fetchLightProperty(lightType: lightType)

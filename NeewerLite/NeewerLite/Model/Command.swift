@@ -186,6 +186,7 @@ public enum ControlTag: Int {
     case spark = 18
     case gelCategory = 20
     case gelMode = 21
+    case sens = 22
 }
 
 public enum TabId: String {
@@ -194,4 +195,5 @@ public enum TabId: String {
     case gel = "gelTab"
     case source = "sourceTab"
     case scene = "sceTab"
+    case music = "musicTab"
 }

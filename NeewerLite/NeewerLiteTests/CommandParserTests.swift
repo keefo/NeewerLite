@@ -727,7 +727,7 @@ final class CommandPatternParserTests: XCTestCase {
         XCTAssertFalse(fx.needSpeed, "NH scenes have no speed control")
         XCTAssertFalse(fx.needColor, "Rainbow should not need color selector")
         XCTAssertFalse(fx.needCCT, "Rainbow should not need CCT")
-        XCTAssertEqual(fx.iconName, "rainbow")
+        XCTAssertEqual(fx.imageURL, "rainbow.png")
     }
 
     func testGetHomeLightFXReturnsNhScenes() {

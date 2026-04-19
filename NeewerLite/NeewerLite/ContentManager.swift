@@ -86,6 +86,7 @@ struct HomeDevice: Decodable {
     let commandPatterns: [String: String]?
     let fxPreset: String?
     let fxPatterns: [String]?
+    let musicPreset: String?
 }
 
 struct Database: Decodable {
@@ -522,6 +523,14 @@ class ContentManager {
             return refs.compactMap { resolveFxRef($0) }
         }
         if let presetName = device.fxPreset,
+           let patterns = databaseCache?.fxPresets[presetName] {
+            return patterns
+        }
+        return []
+    }
+
+    func resolvedMusicPatterns(for device: HomeDevice) -> [NamedPattern] {
+        if let presetName = device.musicPreset,
            let patterns = databaseCache?.fxPresets[presetName] {
             return patterns
         }

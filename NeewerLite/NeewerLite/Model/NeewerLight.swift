@@ -78,7 +78,9 @@ class NeewerLight: NSObject, ObservableNeewerLightProtocol {
     }
 
     var supportedFX: [NeewerLightFX] = []
+    var supportedMusicFX: [NeewerLightFX] = []
     var supportedSource: [NeewerLightSource] = []
+    var musicChannel: UInt8 = 0
 
     var connectionBreakCounter: Int = 0  // if connection break too many times which mean this light disappeared from bluetooth fabric.
 
@@ -138,6 +140,21 @@ class NeewerLight: NSObject, ObservableNeewerLightProtocol {
                     return newFx
                 }
                 Logger.debug("supportedSource: \(supportedSource)")
+            }
+
+            if let pid = productId {
+                let musicFxs = NeewerLightConstant.getHomeLightMusicFX(productId: pid)
+                if supportedMusicFX.isEmpty {
+                    supportedMusicFX = musicFxs
+                } else {
+                    supportedMusicFX = musicFxs.map { fx3 in
+                        let newFx = fx3
+                        if let matchingFx = supportedMusicFX.first(where: { $0.id == fx3.id }) {
+                            newFx.featureValues = matchingFx.featureValues
+                        }
+                        return newFx
+                    }
+                }
             }
         }
     }
@@ -356,7 +373,9 @@ class NeewerLight: NSObject, ObservableNeewerLightProtocol {
                 vals["nme"] = CodableValue.stringValue(userLightName.value)
             }
             vals["supportedFX"] = CodableValue.fxsValue(supportedFX)
+            vals["supportedMusicFX"] = CodableValue.fxsValue(supportedMusicFX)
             vals["supportedSource"] = CodableValue.sourcesValue(supportedSource)
+            vals["musicChn"] = CodableValue.uint8Value(musicChannel)
             vals["lastTab"] = CodableValue.stringValue(lastTab)
         } else {
             vals["type"] = CodableValue.uint8Value(_lightType)
@@ -398,6 +417,13 @@ class NeewerLight: NSObject, ObservableNeewerLightProtocol {
             supportedFX.removeAll()
             supportedFX.append(contentsOf: val)
         }
+
+        if let val = config["supportedMusicFX"]?.fxsValue {
+            supportedMusicFX.removeAll()
+            supportedMusicFX.append(contentsOf: val)
+        }
+
+        musicChannel = config["musicChn"]?.uint8Value ?? 0
 
         if let val = config["supportedSource"]?.sourcesValue {
             supportedSource.removeAll()
@@ -792,6 +818,33 @@ class NeewerLight: NSObject, ObservableNeewerLightProtocol {
             return
         }
         write(data: cmd as Data, to: characteristic)
+    }
+
+    // Send Music Mode Command
+    public func sendMusicCommand(_ fxx: NeewerLightFX) {
+        guard let matchingFx = supportedMusicFX.first(where: { $0.id == fxx.id }),
+              let cmdPattern = matchingFx.cmdPattern else {
+            return
+        }
+
+        var values: [String: Any] = [:]
+        let fields = NeewerLightFX.parseFields(cmdPattern)
+        for (key, _) in fields {
+            switch key {
+            case "speed":
+                values["speed"] = fxx.speedValue
+            case "sens":
+                values["sens"] = fxx.featureValues["sensValue"] ?? 50.0
+            default:
+                break
+            }
+        }
+
+        let data = CommandPatternParser.buildCommand(from: cmdPattern, values: values)
+        guard !data.isEmpty else { return }
+
+        guard let characteristic = deviceCtlCharacteristic else { return }
+        write(data: data, to: characteristic)
     }
 
     private func handleNotifyValueUpdate(_ data: Data) {

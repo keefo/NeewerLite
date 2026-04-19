@@ -42,6 +42,7 @@ class NeewerLightFX: NSObject, Codable {
     var sparkLevel: [UInt8] = []
     var needColor: Bool = false
     var colors: [ColorItem] = []
+    var needSens: Bool = false
 
     var featureValues: [String: CGFloat] = [:]
     
@@ -104,6 +105,11 @@ class NeewerLightFX: NSObject, Codable {
     var speedValue: Int {
         get { Int(featureValues["speedValue"] ?? 1) }
         set { featureValues["speedValue"] = CGFloat(newValue) }
+    }
+
+    var sensValue: Int {
+        get { Int(featureValues["sensValue"] ?? 50) }
+        set { featureValues["sensValue"] = CGFloat(newValue) }
     }
 
     var sparksValue: Int {
@@ -180,6 +186,9 @@ extension NeewerLightFX {
         if let speed = fields["speed"] {
             scene.needSpeed = true
             scene.speedLevel = UInt8(speed.max)
+        }
+        if fields["sens"] != nil {
+            scene.needSens = true
         }
         if let color = fields["color"] {
             scene.needColor = true
