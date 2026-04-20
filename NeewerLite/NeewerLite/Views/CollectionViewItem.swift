@@ -1132,7 +1132,7 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
         let offsetX = 50.0
         let topY = 98.0
         var offsetY = fxsubview.bounds.height - 26
-        let sliderWidth = self.sliderWidth()
+        let sliderWidth = fxsubview.bounds.width - 70
         
         let valueItemWidth = 98.0
         // Define the gap between subviews
@@ -1195,10 +1195,22 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
         }
         
         offsetY = 70
-        
+
+        // Reset CCT/GM to preset defaults on each source selection (BRR is user-adjustable)
+        if let defaultCCT = safeFx.defaultCCTValue {
+            safeFx.cctValue = defaultCCT
+        }
+        if let defaultGM = safeFx.defaultGMValue {
+            safeFx.gmValue = defaultGM
+        }
+
         if safeFx.needBRR {
+            // Use device's current brightness if no explicit preset
+            if safeFx.featureValues["brrValue"] == nil {
+                safeFx.brrValue = CGFloat(dev.brrValue.value)
+            }
             fxsubview.addSubview(createBigValueLabel("Brightness".localized))
-            fxsubview.addSubview(createBigValueField(ControlTag.brr, formatBrrValue("\(dev.brrValue.value)", .center)))
+            fxsubview.addSubview(createBigValueField(ControlTag.brr, formatBrrValue("\(Int(safeFx.brrValue))", .center)))
 
             fxsubview.addSubview(createLabel(offsetY-4, "BRR".localized))
             let slide = NLSlider(frame: NSRect(x: offsetX, y: offsetY, width: sliderWidth, height: 20))
@@ -1215,6 +1227,7 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
                 if let safeDev = safeSelf.device {
                     safeFx.brrValue = val
                     safeDev.setCCTLightValues(brr: CGFloat(safeFx.brrValue), cct: CGFloat(safeFx.cctValue), gmm: CGFloat(safeFx.gmValue))
+                    safeDev.lightMode = .SRCMode
                 }
             }
             fxsubview.addSubview(slide)
@@ -1240,6 +1253,7 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
                 if let safeDev = safeSelf.device {
                     safeFx.cctValue = val
                     safeDev.setCCTLightValues(brr: CGFloat(safeFx.brrValue), cct: CGFloat(safeFx.cctValue), gmm: CGFloat(safeFx.gmValue))
+                    safeDev.lightMode = .SRCMode
                 }
             }
             fxsubview.addSubview(slide)
@@ -1265,6 +1279,7 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
                 if let safeDev = safeSelf.device {
                     safeFx.gmValue = val
                     safeDev.setCCTLightValues(brr: CGFloat(safeFx.brrValue), cct: CGFloat(safeFx.cctValue), gmm: CGFloat(safeFx.gmValue))
+                    safeDev.lightMode = .SRCMode
                 }
             }
             fxsubview.addSubview(slide)
@@ -1280,6 +1295,8 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
             {
                 dev.setCCTLightValues(brr: CGFloat(safeFx.brrValue), cct: CGFloat(safeFx.cctValue), gmm: CGFloat(safeFx.gmValue))
             }
+            dev.lightMode = .SRCMode
+            dev.sourceChannel.value = safeFx.id
         }
     }
 

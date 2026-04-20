@@ -80,6 +80,7 @@ class NeewerLight: NSObject, ObservableNeewerLightProtocol {
     var supportedFX: [NeewerLightFX] = []
     var supportedMusicFX: [NeewerLightFX] = []
     var supportedSource: [NeewerLightSource] = []
+    var sourceChannel: Observable<UInt16> = Observable(0) // active light source id (0 = none)
     var musicChannel: UInt8 = 0
 
     var connectionBreakCounter: Int = 0  // if connection break too many times which mean this light disappeared from bluetooth fabric.
@@ -134,7 +135,8 @@ class NeewerLight: NSObject, ObservableNeewerLightProtocol {
                 // Assuming both `fxs` and `supportedFX` are of the same type and contain unique ids.
                 supportedSource = sources.map { fx2 in
                     let newFx = fx2
-                    if let matchingFx = supportedSource.first(where: { $0.id == fx2.id }) {
+                    if newFx.cmdPattern != nil,
+                       let matchingFx = supportedSource.first(where: { $0.id == fx2.id }) {
                         newFx.featureValues = matchingFx.featureValues
                     }
                     return newFx
@@ -376,6 +378,7 @@ class NeewerLight: NSObject, ObservableNeewerLightProtocol {
             vals["supportedMusicFX"] = CodableValue.fxsValue(supportedMusicFX)
             vals["supportedSource"] = CodableValue.sourcesValue(supportedSource)
             vals["musicChn"] = CodableValue.uint8Value(musicChannel)
+            vals["srcChn"] = CodableValue.intValue(Int(sourceChannel.value))
             vals["lastTab"] = CodableValue.stringValue(lastTab)
         } else {
             vals["type"] = CodableValue.uint8Value(_lightType)
@@ -403,6 +406,8 @@ class NeewerLight: NSObject, ObservableNeewerLightProtocol {
                 lightMode = .HSIMode
             } else if UInt8(val) == NeewerLight.Mode.SCEMode.rawValue {
                 lightMode = .SCEMode
+            } else if UInt8(val) == NeewerLight.Mode.SRCMode.rawValue {
+                lightMode = .SRCMode
             }
         }
 
@@ -424,6 +429,7 @@ class NeewerLight: NSObject, ObservableNeewerLightProtocol {
         }
 
         musicChannel = config["musicChn"]?.uint8Value ?? 0
+        sourceChannel.value = UInt16(config["srcChn"]?.intValue ?? 0)
 
         if let val = config["supportedSource"]?.sourcesValue {
             supportedSource.removeAll()

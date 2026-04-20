@@ -6,6 +6,7 @@
 //
 
 import Cocoa
+import ServiceManagement
 import Sparkle
 
 class SettingsView: NSView {
@@ -17,6 +18,9 @@ class SettingsView: NSView {
     private var deleteDBButton: NSButton!
     private var syncDBButton: NSButton!
     private var languagePopUp: NSPopUpButton!
+    private var launchAtLoginCheckbox: NSButton!
+    private var serverCheckbox: NSButton!
+    private var serverURLLabel: NSTextField!
     private var fileMonitorSource: DispatchSourceFileSystemObject?
     private var dirMonitorSource: DispatchSourceFileSystemObject?
 
@@ -157,6 +161,58 @@ class SettingsView: NSView {
         langNote.translatesAutoresizingMaskIntoConstraints = false
         addSubview(langNote)
 
+        // --- Launch at Login Section ---
+        let loginCheckbox = NSButton(checkboxWithTitle: "Launch at Login".localized, target: self, action: #selector(launchAtLoginChanged(_:)))
+        loginCheckbox.translatesAutoresizingMaskIntoConstraints = false
+        loginCheckbox.state = SMAppService.mainApp.status == .enabled ? .on : .off
+        addSubview(loginCheckbox)
+        launchAtLoginCheckbox = loginCheckbox
+
+        // --- HTTP Server Section ---
+        let serverEnabled = UserDefaults.standard.bool(forKey: "HTTPServerEnabled")
+        let srvCheckbox = NSButton(checkboxWithTitle: "HTTP Server".localized, target: self, action: #selector(serverToggled(_:)))
+        srvCheckbox.translatesAutoresizingMaskIntoConstraints = false
+        srvCheckbox.state = serverEnabled ? .on : .off
+        addSubview(srvCheckbox)
+        serverCheckbox = srvCheckbox
+
+        let srvURLLabel = NSTextField(labelWithString: "http://127.0.0.1:18486")
+        srvURLLabel.font = NSFont.monospacedSystemFont(ofSize: 11, weight: .regular)
+        srvURLLabel.textColor = .secondaryLabelColor
+        srvURLLabel.isSelectable = true
+        srvURLLabel.translatesAutoresizingMaskIntoConstraints = false
+        addSubview(srvURLLabel)
+        serverURLLabel = srvURLLabel
+
+        let srvNote = NSTextField(labelWithString: "Enables Stream Deck and MCP (AI agent) integration.".localized)
+        srvNote.font = NSFont.systemFont(ofSize: 11)
+        srvNote.textColor = .tertiaryLabelColor
+        srvNote.translatesAutoresizingMaskIntoConstraints = false
+        addSubview(srvNote)
+
+        updateServerUI(enabled: serverEnabled)
+
+        // --- Section Separators ---
+        let sep1 = NSBox()
+        sep1.boxType = .separator
+        sep1.translatesAutoresizingMaskIntoConstraints = false
+        addSubview(sep1)
+
+        let sep2 = NSBox()
+        sep2.boxType = .separator
+        sep2.translatesAutoresizingMaskIntoConstraints = false
+        addSubview(sep2)
+
+        let sep3 = NSBox()
+        sep3.boxType = .separator
+        sep3.translatesAutoresizingMaskIntoConstraints = false
+        addSubview(sep3)
+
+        let sep4 = NSBox()
+        sep4.boxType = .separator
+        sep4.translatesAutoresizingMaskIntoConstraints = false
+        addSubview(sep4)
+
         // Layout
         NSLayoutConstraint.activate([
             appInfoLabel.topAnchor.constraint(equalTo: topAnchor, constant: padding),
@@ -168,7 +224,11 @@ class SettingsView: NSView {
             githubButton.centerYAnchor.constraint(equalTo: updateButton.centerYAnchor),
             githubButton.leadingAnchor.constraint(equalTo: updateButton.trailingAnchor, constant: 8),
 
-            dbHeader.topAnchor.constraint(equalTo: updateButton.bottomAnchor, constant: 24),
+            sep1.topAnchor.constraint(equalTo: updateButton.bottomAnchor, constant: 16),
+            sep1.leadingAnchor.constraint(equalTo: leadingAnchor, constant: padding),
+            sep1.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -padding),
+
+            dbHeader.topAnchor.constraint(equalTo: sep1.bottomAnchor, constant: 16),
             dbHeader.leadingAnchor.constraint(equalTo: leadingAnchor, constant: padding),
 
             statusIcon.centerYAnchor.constraint(equalTo: dbHeader.centerYAnchor),
@@ -195,7 +255,11 @@ class SettingsView: NSView {
             finderButton.centerYAnchor.constraint(equalTo: syncButton.centerYAnchor),
             finderButton.leadingAnchor.constraint(equalTo: deleteButton.trailingAnchor, constant: 8),
 
-            langHeader.topAnchor.constraint(equalTo: syncButton.bottomAnchor, constant: 24),
+            sep2.topAnchor.constraint(equalTo: syncButton.bottomAnchor, constant: 16),
+            sep2.leadingAnchor.constraint(equalTo: leadingAnchor, constant: padding),
+            sep2.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -padding),
+
+            langHeader.topAnchor.constraint(equalTo: sep2.bottomAnchor, constant: 16),
             langHeader.leadingAnchor.constraint(equalTo: leadingAnchor, constant: padding),
 
             langPopUp.centerYAnchor.constraint(equalTo: langHeader.centerYAnchor),
@@ -204,6 +268,26 @@ class SettingsView: NSView {
 
             langNote.topAnchor.constraint(equalTo: langHeader.bottomAnchor, constant: 6),
             langNote.leadingAnchor.constraint(equalTo: leadingAnchor, constant: padding),
+
+            sep3.topAnchor.constraint(equalTo: langNote.bottomAnchor, constant: 16),
+            sep3.leadingAnchor.constraint(equalTo: leadingAnchor, constant: padding),
+            sep3.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -padding),
+
+            loginCheckbox.topAnchor.constraint(equalTo: sep3.bottomAnchor, constant: 16),
+            loginCheckbox.leadingAnchor.constraint(equalTo: leadingAnchor, constant: padding),
+
+            sep4.topAnchor.constraint(equalTo: loginCheckbox.bottomAnchor, constant: 16),
+            sep4.leadingAnchor.constraint(equalTo: leadingAnchor, constant: padding),
+            sep4.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -padding),
+
+            srvCheckbox.topAnchor.constraint(equalTo: sep4.bottomAnchor, constant: 16),
+            srvCheckbox.leadingAnchor.constraint(equalTo: leadingAnchor, constant: padding),
+
+            srvURLLabel.centerYAnchor.constraint(equalTo: srvCheckbox.centerYAnchor),
+            srvURLLabel.leadingAnchor.constraint(equalTo: srvCheckbox.trailingAnchor, constant: 8),
+
+            srvNote.topAnchor.constraint(equalTo: srvCheckbox.bottomAnchor, constant: 6),
+            srvNote.leadingAnchor.constraint(equalTo: leadingAnchor, constant: padding),
         ])
     }
 
@@ -280,9 +364,16 @@ class SettingsView: NSView {
                 name: ContentManager.databaseUpdatedNotification,
                 object: nil
             )
+            NotificationCenter.default.addObserver(
+                self,
+                selector: #selector(refreshLoginItemStatus),
+                name: NSApplication.didBecomeActiveNotification,
+                object: nil
+            )
         } else {
             stopFileMonitor()
             NotificationCenter.default.removeObserver(self, name: ContentManager.databaseUpdatedNotification, object: nil)
+            NotificationCenter.default.removeObserver(self, name: NSApplication.didBecomeActiveNotification, object: nil)
         }
     }
 
@@ -370,6 +461,43 @@ class SettingsView: NSView {
     @objc private func deleteLocalDB() {
         ContentManager.shared.deleteLocalDatabase()
         refresh()
+    }
+
+    @objc private func refreshLoginItemStatus() {
+        launchAtLoginCheckbox.state = SMAppService.mainApp.status == .enabled ? .on : .off
+    }
+
+    @objc private func launchAtLoginChanged(_ sender: NSButton) {
+        do {
+            if sender.state == .on {
+                try SMAppService.mainApp.register()
+            } else {
+                try SMAppService.mainApp.unregister()
+            }
+        } catch {
+            Logger.error("Launch at Login toggle failed: \(error)")
+            // Revert checkbox to actual state
+            sender.state = SMAppService.mainApp.status == .enabled ? .on : .off
+        }
+    }
+
+    @objc private func serverToggled(_ sender: NSButton) {
+        let enabled = sender.state == .on
+        UserDefaults.standard.set(enabled, forKey: "HTTPServerEnabled")
+        updateServerUI(enabled: enabled)
+        guard let appDelegate = NSApplication.shared.delegate as? AppDelegate else { return }
+        if enabled {
+            if appDelegate.server == nil {
+                appDelegate.server = NeewerLiteServer(appDelegate: appDelegate)
+            }
+            appDelegate.server?.start()
+        } else {
+            appDelegate.server?.stop()
+        }
+    }
+
+    private func updateServerUI(enabled: Bool) {
+        serverURLLabel.textColor = enabled ? .secondaryLabelColor : .tertiaryLabelColor
     }
 
     @objc private func viewInFinder() {

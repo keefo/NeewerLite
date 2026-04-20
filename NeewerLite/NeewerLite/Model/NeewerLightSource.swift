@@ -20,6 +20,14 @@ class NeewerLightSource: NSObject, Codable {
     var needGM: Bool = false
 
     var featureValues: [String: CGFloat] = [:]
+    /// Original preset CCT/GM — not persisted, always set from factory methods.
+    var defaultCCTValue: CGFloat?
+    var defaultGMValue: CGFloat?
+
+    private enum CodingKeys: String, CodingKey {
+        case id, name, cmdPattern, defaultCmdPattern, iconName
+        case needBRR, needCCT, needGM, featureValues
+    }
 
     init(id: UInt16, name: String) {
         self.id = id
@@ -87,6 +95,10 @@ extension NeewerLightSource {
         scene.needBRR = true
         scene.needCCT = true
         scene.needGM = true
+        scene.cctValue = 56  // 5600K
+        scene.gmValue = 4
+        scene.defaultCCTValue = 56
+        scene.defaultGMValue = 4
         return scene
     }
 
@@ -95,6 +107,10 @@ extension NeewerLightSource {
         scene.needBRR = true
         scene.needCCT = true
         scene.needGM = true
+        scene.cctValue = 32  // 3200K
+        scene.gmValue = 2
+        scene.defaultCCTValue = 32
+        scene.defaultGMValue = 2
         return scene
     }
 
@@ -103,6 +119,10 @@ extension NeewerLightSource {
         scene.needBRR = true
         scene.needCCT = true
         scene.needGM = true
+        scene.cctValue = 60  // 6000K
+        scene.gmValue = -8
+        scene.defaultCCTValue = 60
+        scene.defaultGMValue = -8
         return scene
     }
 
@@ -111,6 +131,10 @@ extension NeewerLightSource {
         scene.needBRR = true
         scene.needCCT = true
         scene.needGM = true
+        scene.cctValue = 25  // 2500K — golden hour
+        scene.gmValue = 8
+        scene.defaultCCTValue = 25
+        scene.defaultGMValue = 8
         return scene
     }
 
@@ -119,6 +143,10 @@ extension NeewerLightSource {
         scene.needBRR = true
         scene.needCCT = true
         scene.needGM = true
+        scene.cctValue = 55  // 5500K
+        scene.gmValue = 0
+        scene.defaultCCTValue = 55
+        scene.defaultGMValue = 0
         return scene
     }
 
@@ -127,6 +155,10 @@ extension NeewerLightSource {
         scene.needBRR = true
         scene.needCCT = true
         scene.needGM = true
+        scene.cctValue = 32  // 3200K
+        scene.gmValue = -4
+        scene.defaultCCTValue = 32
+        scene.defaultGMValue = -4
         return scene
     }
 
@@ -135,6 +167,10 @@ extension NeewerLightSource {
         scene.needBRR = true
         scene.needCCT = true
         scene.needGM = true
+        scene.cctValue = 34  // 3400K
+        scene.gmValue = -2
+        scene.defaultCCTValue = 34
+        scene.defaultGMValue = -2
         return scene
     }
 
@@ -143,6 +179,10 @@ extension NeewerLightSource {
         scene.needBRR = true
         scene.needCCT = true
         scene.needGM = true
+        scene.cctValue = 45  // 4500K
+        scene.gmValue = 0
+        scene.defaultCCTValue = 45
+        scene.defaultGMValue = 0
         return scene
     }
 
@@ -151,6 +191,10 @@ extension NeewerLightSource {
         scene.needBRR = true
         scene.needCCT = true
         scene.needGM = true
+        scene.cctValue = 58  // 5800K
+        scene.gmValue = -6
+        scene.defaultCCTValue = 58
+        scene.defaultGMValue = -6
         return scene
     }
 
@@ -159,6 +203,10 @@ extension NeewerLightSource {
         scene.needBRR = true
         scene.needCCT = true
         scene.needGM = true
+        scene.cctValue = 60  // 6000K
+        scene.gmValue = 2
+        scene.defaultCCTValue = 60
+        scene.defaultGMValue = 2
         return scene
     }
 }

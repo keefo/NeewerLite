@@ -187,7 +187,12 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuDele
         self.switchViewAction(self.viewsButton)
 
         server = NeewerLiteServer(appDelegate: self)
-        server!.start()
+        if UserDefaults.standard.object(forKey: "HTTPServerEnabled") == nil {
+            UserDefaults.standard.set(true, forKey: "HTTPServerEnabled")
+        }
+        if UserDefaults.standard.bool(forKey: "HTTPServerEnabled") {
+            server!.start()
+        }
         commonJobTimer = Timer.scheduledTimer(withTimeInterval: 3600, repeats: true) {
             [weak self] _ in
             self?.commonJob()
