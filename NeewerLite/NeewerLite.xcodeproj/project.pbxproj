@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		A708F58A2E33006E00564DCF /* CommandParserTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A708F5892E33006E00564DCF /* CommandParserTests.swift */; };
+		A7MCP0012F13A00000000001 /* MCPServerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7MCP0012F13A00000000002 /* MCPServerTests.swift */; };
 		A708F58C2E3300A300564DCF /* CommandPatternParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = A708F58B2E3300A300564DCF /* CommandPatternParser.swift */; };
 		A708F5902E333E8E00564DCF /* PatternEditorPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A708F58F2E333E8E00564DCF /* PatternEditorPanel.swift */; };
 		A76C38702E00000000000001 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A76C38712E00000000000001 /* SettingsView.swift */; };
@@ -36,11 +37,13 @@
 		A753109D2AFC996F009F533C /* StorageManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A753109C2AFC996F009F533C /* StorageManager.swift */; };
 		A753109F2AFCAA25009F533C /* NeewerLightSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = A753109E2AFCAA25009F533C /* NeewerLightSource.swift */; };
 		A75310A12AFF2A19009F533C /* ContentManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A75310A02AFF2A19009F533C /* ContentManager.swift */; };
-		A76C38632DFD4B64006B7C38 /* Swifter in Frameworks */ = {isa = PBXBuildFile; productRef = A76C38622DFD4B64006B7C38 /* Swifter */; };
+		A7F1A2B32F10000000000004 /* Vapor in Frameworks */ = {isa = PBXBuildFile; productRef = A7F1A2B32F10000000000002 /* Vapor */; };
+		A7F1A2B32F20000000000004 /* MCP in Frameworks */ = {isa = PBXBuildFile; productRef = A7F1A2B32F20000000000002 /* MCP */; };
 		A76C38692DFFFCFA006B7C38 /* Utils.swift in Sources */ = {isa = PBXBuildFile; fileRef = A76C38682DFFFCFA006B7C38 /* Utils.swift */; };
 		A76C386F2E002B95006B7C38 /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = A76C386E2E002B95006B7C38 /* Sparkle */; };
 		A76C38712E002B98006B7C38 /* Atomics in Frameworks */ = {isa = PBXBuildFile; productRef = A76C38702E002B98006B7C38 /* Atomics */; };
-		A76C38732E002B9A006B7C38 /* Swifter in Frameworks */ = {isa = PBXBuildFile; productRef = A76C38722E002B9A006B7C38 /* Swifter */; };
+		A7F1A2B32F10000000000005 /* Vapor in Frameworks */ = {isa = PBXBuildFile; productRef = A7F1A2B32F10000000000003 /* Vapor */; };
+		A7F1A2B32F20000000000005 /* MCP in Frameworks */ = {isa = PBXBuildFile; productRef = A7F1A2B32F20000000000003 /* MCP */; };
 		A76C4B6D275474FA00D2F145 /* AudioSpectrogram.swift in Sources */ = {isa = PBXBuildFile; fileRef = A76C4B6C275474FA00D2F145 /* AudioSpectrogram.swift */; };
 		A76E1F21266496FC00E5788B /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = A76E1F20266496FC00E5788B /* Sparkle */; };
 		A76E1F2326649F2A00E5788B /* Credits.rtf in Resources */ = {isa = PBXBuildFile; fileRef = A76E1F2226649F2A00E5788B /* Credits.rtf */; };
@@ -84,6 +87,7 @@
 
 /* Begin PBXFileReference section */
 		A708F5892E33006E00564DCF /* CommandParserTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommandParserTests.swift; sourceTree = "<group>"; };
+		A7MCP0012F13A00000000002 /* MCPServerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MCPServerTests.swift; sourceTree = "<group>"; };
 		A708F58B2E3300A300564DCF /* CommandPatternParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommandPatternParser.swift; sourceTree = "<group>"; };
 		A708F58F2E333E8E00564DCF /* PatternEditorPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PatternEditorPanel.swift; sourceTree = "<group>"; };
 		A76C38712E00000000000001 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
@@ -153,7 +157,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				A76C38632DFD4B64006B7C38 /* Swifter in Frameworks */,
+				A7F1A2B32F10000000000004 /* Vapor in Frameworks */,
+				A7F1A2B32F20000000000004 /* MCP in Frameworks */,
 				A76E1F21266496FC00E5788B /* Sparkle in Frameworks */,
 				A71B39BA275726800005E271 /* Atomics in Frameworks */,
 			);
@@ -163,7 +168,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				A76C38732E002B9A006B7C38 /* Swifter in Frameworks */,
 				A76C386F2E002B95006B7C38 /* Sparkle in Frameworks */,
 				A76C38712E002B98006B7C38 /* Atomics in Frameworks */,
 			);
@@ -226,6 +230,7 @@
 			isa = PBXGroup;
 			children = (
 				A708F5892E33006E00564DCF /* CommandParserTests.swift */,
+				A7MCP0012F13A00000000002 /* MCPServerTests.swift */,
 				B5D83B6A59A5B72CDFC3ED5E /* GelsTests.swift */,
 				B2C3D4E5F6A7B8C9D0E1F3A1 /* AudioAnalysisEngineTests.swift */,
 				D3E4F5A6B7C8D9E0F1A2B3C4 /* SoundToLightModeTests.swift */,
@@ -349,7 +354,8 @@
 			packageProductDependencies = (
 				A76E1F20266496FC00E5788B /* Sparkle */,
 				A71B39B9275726800005E271 /* Atomics */,
-				A76C38622DFD4B64006B7C38 /* Swifter */,
+				A7F1A2B32F10000000000002 /* Vapor */,
+				A7F1A2B32F20000000000002 /* MCP */,
 			);
 			productName = NeewerLite;
 			productReference = A731DD3025A57D0B00302E25 /* NeewerLite.app */;
@@ -369,6 +375,9 @@
 				A731DD4225A57D0B00302E25 /* PBXTargetDependency */,
 			);
 			name = NeewerLiteTests;
+			packageProductDependencies = (
+				A7F1A2B32F20000000000003 /* MCP */,
+			);
 			productName = NeewerLiteTests;
 			productReference = A731DD4025A57D0B00302E25 /* NeewerLiteTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
@@ -409,7 +418,8 @@
 			packageReferences = (
 				A76E1F1F266496FC00E5788B /* XCRemoteSwiftPackageReference "Sparkle" */,
 				A71B39B8275726800005E271 /* XCRemoteSwiftPackageReference "swift-atomics" */,
-				A7B4822A2DFD49C200EB4450 /* XCRemoteSwiftPackageReference "swifter" */,
+				A7F1A2B32F10000000000001 /* XCRemoteSwiftPackageReference "vapor" */,
+				A7F1A2B32F20000000000001 /* XCRemoteSwiftPackageReference "swift-sdk" */,
 			);
 			productRefGroup = A731DD3125A57D0B00302E25 /* Products */;
 			projectDirPath = "";
@@ -522,6 +532,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				A708F58A2E33006E00564DCF /* CommandParserTests.swift in Sources */,
+				A7MCP0012F13A00000000001 /* MCPServerTests.swift in Sources */,
 				CCF4C298B8A837A3ED2D4DDB /* GelsTests.swift in Sources */,
 				A1B2C3D4E5F6A7B8C9D0E1F3 /* AudioAnalysisEngineTests.swift in Sources */,
 				E2F3A4B5C6D7E8F9A0B1C2D3 /* SoundToLightModeTests.swift in Sources */,
@@ -816,12 +827,20 @@
 				minimumVersion = 1.26.0;
 			};
 		};
-		A7B4822A2DFD49C200EB4450 /* XCRemoteSwiftPackageReference "swifter" */ = {
+		A7F1A2B32F10000000000001 /* XCRemoteSwiftPackageReference "vapor" */ = {
 			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/httpswift/swifter";
+			repositoryURL = "https://github.com/vapor/vapor.git";
 			requirement = {
 				kind = upToNextMajorVersion;
-				minimumVersion = 1.5.0;
+				minimumVersion = 4.89.0;
+			};
+		};
+		A7F1A2B32F20000000000001 /* XCRemoteSwiftPackageReference "swift-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/modelcontextprotocol/swift-sdk.git";
+			requirement = {
+				kind = upToNextMinorVersion;
+				minimumVersion = 0.12.0;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */
@@ -832,10 +851,15 @@
 			package = A71B39B8275726800005E271 /* XCRemoteSwiftPackageReference "swift-atomics" */;
 			productName = Atomics;
 		};
-		A76C38622DFD4B64006B7C38 /* Swifter */ = {
+		A7F1A2B32F10000000000002 /* Vapor */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = A7B4822A2DFD49C200EB4450 /* XCRemoteSwiftPackageReference "swifter" */;
-			productName = Swifter;
+			package = A7F1A2B32F10000000000001 /* XCRemoteSwiftPackageReference "vapor" */;
+			productName = Vapor;
+		};
+		A7F1A2B32F20000000000002 /* MCP */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A7F1A2B32F20000000000001 /* XCRemoteSwiftPackageReference "swift-sdk" */;
+			productName = MCP;
 		};
 		A76C386E2E002B95006B7C38 /* Sparkle */ = {
 			isa = XCSwiftPackageProductDependency;
@@ -847,10 +871,15 @@
 			package = A71B39B8275726800005E271 /* XCRemoteSwiftPackageReference "swift-atomics" */;
 			productName = Atomics;
 		};
-		A76C38722E002B9A006B7C38 /* Swifter */ = {
+		A7F1A2B32F10000000000003 /* Vapor */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = A7B4822A2DFD49C200EB4450 /* XCRemoteSwiftPackageReference "swifter" */;
-			productName = Swifter;
+			package = A7F1A2B32F10000000000001 /* XCRemoteSwiftPackageReference "vapor" */;
+			productName = Vapor;
+		};
+		A7F1A2B32F20000000000003 /* MCP */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A7F1A2B32F20000000000001 /* XCRemoteSwiftPackageReference "swift-sdk" */;
+			productName = MCP;
 		};
 		A76E1F20266496FC00E5788B /* Sparkle */ = {
 			isa = XCSwiftPackageProductDependency;

@@ -1132,7 +1132,7 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
         let offsetX = 50.0
         let topY = 98.0
         var offsetY = fxsubview.bounds.height - 26
-        let sliderWidth = self.sliderWidth()
+        let sliderWidth = fxsubview.bounds.width - 70
         
         let valueItemWidth = 98.0
         // Define the gap between subviews
@@ -1195,10 +1195,22 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
         }
         
         offsetY = 70
-        
+
+        // Reset CCT/GM to preset defaults on each source selection (BRR is user-adjustable)
+        if let defaultCCT = safeFx.defaultCCTValue {
+            safeFx.cctValue = defaultCCT
+        }
+        if let defaultGM = safeFx.defaultGMValue {
+            safeFx.gmValue = defaultGM
+        }
+
         if safeFx.needBRR {
+            // Use device's current brightness if no explicit preset
+            if safeFx.featureValues["brrValue"] == nil {
+                safeFx.brrValue = CGFloat(dev.brrValue.value)
+            }
             fxsubview.addSubview(createBigValueLabel("Brightness".localized))
-            fxsubview.addSubview(createBigValueField(ControlTag.brr, formatBrrValue("\(dev.brrValue.value)", .center)))
+            fxsubview.addSubview(createBigValueField(ControlTag.brr, formatBrrValue("\(Int(safeFx.brrValue))", .center)))
 
             fxsubview.addSubview(createLabel(offsetY-4, "BRR".localized))
             let slide = NLSlider(frame: NSRect(x: offsetX, y: offsetY, width: sliderWidth, height: 20))
@@ -1215,6 +1227,7 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
                 if let safeDev = safeSelf.device {
                     safeFx.brrValue = val
                     safeDev.setCCTLightValues(brr: CGFloat(safeFx.brrValue), cct: CGFloat(safeFx.cctValue), gmm: CGFloat(safeFx.gmValue))
+                    safeDev.lightMode = .SRCMode
                 }
             }
             fxsubview.addSubview(slide)
@@ -1240,6 +1253,7 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
                 if let safeDev = safeSelf.device {
                     safeFx.cctValue = val
                     safeDev.setCCTLightValues(brr: CGFloat(safeFx.brrValue), cct: CGFloat(safeFx.cctValue), gmm: CGFloat(safeFx.gmValue))
+                    safeDev.lightMode = .SRCMode
                 }
             }
             fxsubview.addSubview(slide)
@@ -1265,6 +1279,7 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
                 if let safeDev = safeSelf.device {
                     safeFx.gmValue = val
                     safeDev.setCCTLightValues(brr: CGFloat(safeFx.brrValue), cct: CGFloat(safeFx.cctValue), gmm: CGFloat(safeFx.gmValue))
+                    safeDev.lightMode = .SRCMode
                 }
             }
             fxsubview.addSubview(slide)
@@ -1280,6 +1295,8 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
             {
                 dev.setCCTLightValues(brr: CGFloat(safeFx.brrValue), cct: CGFloat(safeFx.cctValue), gmm: CGFloat(safeFx.gmValue))
             }
+            dev.lightMode = .SRCMode
+            dev.sourceChannel.value = safeFx.id
         }
     }
 
@@ -1914,10 +1931,20 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
             if dev.supportRGB {
                 Logger.debug("brr: \(brr) hue: \(hue) sat: \(sat)")
                 let val = getHSIValuesFromView()
-                let brrValue = brr != nil ? brr! : val.brr
-                let hueVal = Double(hue) / 360.0
+                let normalized = normalizeHSIInput(
+                    hueDegrees: hue,
+                    saturation: sat,
+                    brightness: brr ?? Double(val.brr)
+                )
+                let brrValue = normalized.brightnessUnit ?? 1.0
+                let hueVal = Double(normalized.hueDegrees) / 360.0
                 if let wheel = getHSIWheelFromView() {
-                    let color = NSColor(calibratedHue: hueVal, saturation: sat, brightness: brrValue, alpha: 1)
+                    let color = NSColor(
+                        calibratedHue: hueVal,
+                        saturation: normalized.saturationUnit,
+                        brightness: brrValue,
+                        alpha: 1
+                    )
                     wheel.setViewColor(color)
                 }
                 if let brrSlide = getHSIBrrSlideFromView() {
@@ -1925,7 +1952,12 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
                     brrSlide.currentValue = brrValue * brrSlide.maxValue
                     brrSlide.pauseNotify = false
                 }
-                dev.setHSILightValues(brr100: brrValue * 100.0, hue: hueVal, hue360: hue, sat: sat)
+                dev.setHSILightValues(
+                    brr100: brrValue * 100.0,
+                    hue: hueVal,
+                    hue360: normalized.hueDegrees,
+                    sat: normalized.saturationUnit
+                )
             }
         }
     }

@@ -17,16 +17,6 @@ line_length:
 type_name:
   allowed_symbols: "_"
 
-excluded: 
-  - Package.swift
-  - .build
-  - .swiftpm
-  - DerivedData
-  - Carthage
-  - Pods
-  - .build/**
-  - "**/Package.swift"
-  - "**/.build/**"
-  - "**/checkouts/**"
-  - "**/SourcePackages/**"
-  - "**/DerivedData/**"
+included:
+  - NeewerLite
+  - NeewerLiteTests

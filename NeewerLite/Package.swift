@@ -13,7 +13,8 @@ let package = Package(
         .library(name: "NeewerLite", targets: ["NeewerLite"]),
     ],
     dependencies: [
-        .package(url: "https://github.com/httpswift/swifter.git", from: "1.5.0"),
+        .package(url: "https://github.com/vapor/vapor.git", from: "4.89.0"),
+        .package(url: "https://github.com/modelcontextprotocol/swift-sdk.git", from: "0.12.0"),
         .package(url: "https://github.com/sparkle-project/Sparkle.git", from: "1.27.3"),
         .package(url: "https://github.com/apple/swift-atomics.git", from: "1.3.0")
     ],
@@ -21,7 +22,8 @@ let package = Package(
         .target(
             name: "NeewerLite",
             dependencies: [
-                .product(name: "Swifter", package: "swifter"),
+                .product(name: "Vapor", package: "vapor"),
+                .product(name: "MCP", package: "swift-sdk"),
                 .product(name: "Sparkle", package: "Sparkle"),
                 .product(name: "Atomics", package: "swift-atomics")
             ],

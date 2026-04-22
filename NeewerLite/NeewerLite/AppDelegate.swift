@@ -65,6 +65,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuDele
     private let musicLightListId = NSUserInterfaceItemIdentifier("MusicLightCell")
     /// Original light modes saved before Music View forces HSI.
     private var musicModeOverrides: [String: NeewerLight.Mode] = [:]
+    private var pendingLaunchPowerOffIDs: Set<String> = []
 
     var cbCentralManager: CBCentralManager?
     /*
@@ -178,6 +179,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuDele
         ContentManager.shared.downloadDatabase(force: false)
 
         loadLightsFromDisk()
+        pendingLaunchPowerOffIDs = Set(viewObjects.map(\ .deviceIdentifier))
         restoreFollowMusicSelections()
         self.updateUI()
 
@@ -187,7 +189,12 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuDele
         self.switchViewAction(self.viewsButton)
 
         server = NeewerLiteServer(appDelegate: self)
-        server!.start()
+        if UserDefaults.standard.object(forKey: "HTTPServerEnabled") == nil {
+            UserDefaults.standard.set(true, forKey: "HTTPServerEnabled")
+        }
+        if UserDefaults.standard.bool(forKey: "HTTPServerEnabled") {
+            server!.start()
+        }
         commonJobTimer = Timer.scheduledTimer(withTimeInterval: 3600, repeats: true) {
             [weak self] _ in
             self?.commonJob()
@@ -373,6 +380,15 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuDele
                 Logger.error("Load Lights Error encoding JSON: \(error)")
             }
         }
+    }
+
+    private func forcePowerOffAfterLaunchIfNeeded(_ viewObject: DeviceViewObject) {
+        guard pendingLaunchPowerOffIDs.contains(viewObject.deviceIdentifier) else {
+            return
+        }
+        pendingLaunchPowerOffIDs.remove(viewObject.deviceIdentifier)
+        Logger.info(LogTag.app, "Force power off restored light after app launch: \(viewObject.deviceIdentifier)")
+        viewObject.turnOffLight()
     }
 
     func saveLightsToDisk() {
@@ -695,6 +711,43 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuDele
                     }
                     self.statusItemIcon = .on
                 }))
+    }
+
+    private func setHTTPServerEnabled(_ enabled: Bool) {
+        let current = UserDefaults.standard.bool(forKey: "HTTPServerEnabled")
+        if current == enabled {
+            Logger.info(LogTag.server, "HTTP server already \(enabled ? "enabled" : "disabled")")
+            return
+        }
+
+        UserDefaults.standard.set(enabled, forKey: "HTTPServerEnabled")
+
+        if enabled {
+            if server == nil {
+                server = NeewerLiteServer(appDelegate: self)
+            }
+            server?.start()
+            Logger.info(LogTag.server, "HTTP server enabled via URL command")
+        } else {
+            server?.stop()
+            Logger.info(LogTag.server, "HTTP server disabled via URL command")
+        }
+    }
+
+    private func handleSwitchHTTPServerURL(rawHost: String) -> Bool {
+        guard rawHost.lowercased().hasPrefix("switch_http_server=") else { return false }
+        let value = String(rawHost.dropFirst("switch_http_server=".count)).lowercased()
+        switch value {
+        case "on", "true", "1":
+            setHTTPServerEnabled(true)
+            return true
+        case "off", "false", "0":
+            setHTTPServerEnabled(false)
+            return true
+        default:
+            Logger.error("Invalid switch_http_server value: \(value). Use on/off.")
+            return true
+        }
     }
 
     private var stlDebugFrameCount: UInt64 = 0
@@ -1559,6 +1612,12 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuDele
             return
         }
         let cmd = components.host ?? ""
+
+        // Supports deep links like: neewerlite://switch_http_server=on
+        if handleSwitchHTTPServerURL(rawHost: cmd) {
+            return
+        }
+
         commandHandler.execute(commandName: cmd, components: components)
     }
 
@@ -1669,6 +1728,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuDele
                         peripheral, characteristic1, characteristic2)
                 }
                 targetViewObject.device.startLightOnNotify()
+                forcePowerOffAfterLaunchIfNeeded(targetViewObject)
             }
 
             if !found {
