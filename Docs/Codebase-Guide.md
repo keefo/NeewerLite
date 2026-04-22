@@ -38,7 +38,8 @@ NeewerLite is a **native macOS app** (Swift, AppKit) that controls Neewer Blueto
 **Minimum deployment target:** macOS 13 (Ventura)
 
 **Dependencies** (via SPM):
-- [Swifter](https://github.com/httpswift/swifter) — Lightweight HTTP server
+- [Vapor](https://github.com/vapor/vapor) — HTTP server framework
+- [MCP Swift SDK](https://github.com/modelcontextprotocol/swift-sdk) — Model Context Protocol server (0.12.0)
 - [Sparkle](https://github.com/sparkle-project/Sparkle) — Auto-update framework
 - [swift-atomics](https://github.com/apple/swift-atomics) — Lock-free atomic operations
 
@@ -76,13 +77,13 @@ NeewerLite/                         ← Root
 │   │   ├── AppDelegate.swift       ← App lifecycle, BLE scanning, UI orchestration
 │   │   ├── ContentManager.swift    ← Light database loading & caching
 │   │   ├── NeewerLiteApplication.swift  ← Custom NSApplication (suppress activation)
-│   │   ├── Server.swift            ← HTTP API (localhost:18486)
+│   │   ├── Server.swift            ← HTTP + MCP server (localhost:18486)
 │   │   │
 │   │   ├── Model/                  ← Data model
 │   │   │   ├── NeewerLight.swift           ← Core light model + BLE comms
 │   │   │   ├── NeewerLightConstant.swift   ← BLE constants, type mapping
 │   │   │   ├── NeewerLightFX.swift         ← Scene effect definitions
-│   │   │   ├── NeewerLightSource.swift     ← Light source presets
+│   │   │   ├── NeewerLightSource.swift     ← Light source presets (with default CCT/GM)
 │   │   │   ├── Command.swift               ← URL scheme command routing
 │   │   │   ├── CommandPatternParser.swift   ← BLE command template engine
 │   │   │   ├── NeewerGel.swift             ← Gel presets + stacking math
@@ -98,6 +99,10 @@ NeewerLite/                         ← Root
 │   │   │   ├── CodableValue.swift          ← Type-erased Codable wrapper
 │   │   │   ├── NSBezierPathExtensions.swift
 │   │   │   └── Utils.swift
+│   │   │
+│   │   ├── Views/
+│   │   │   ├── SettingsView.swift           ← Settings: launch at login, server toggle
+│   │   │   └── ...                         ← (see View Layer section)
 │   │   │
 │   │   ├── Spectrogram/            ← Sound-to-Light engine
 │   │   │   ├── AudioSpectrogram.swift      ← Audio capture + mel-spectrogram
@@ -135,7 +140,9 @@ NeewerLite/                         ← Root
 │       ├── CommandParserTests.swift        ← BLE command generation
 │       ├── AudioAnalysisEngineTests.swift  ← Audio feature extraction
 │       ├── SoundToLightModeTests.swift     ← Mapping modes + reactivity
-│       └── GelsTests.swift                 ← Gel stacking math
+│       ├── GelsTests.swift                 ← Gel stacking math
+│       ├── MCPServerTests.swift            ← MCP tool discovery & Value coercion
+│       └── StringLocalizedTests.swift      ← Localization string tests
 │
 ├── NeewerLiteStreamDeck/           ← Elgato Stream Deck plugin
 │   ├── build.sh                    ← Build & package plugin
@@ -218,7 +225,7 @@ cd Tools
 │          │          │          │          │                     │
 │  ┌───────┴───────┐  │  ┌───────┴──────┐  │  ┌─────────────────┐│
 │  │ CBCentralMgr  │  │  │   Server     │  │  │ ContentManager  ││
-│  │ (BLE scan &   │  │  │ (HTTP API    │  │  │ (Light DB,      ││
+│  │ (BLE scan &   │  │  │ (HTTP+MCP    │  │  │ (Light DB,      ││
 │  │  connection)  │  │  │  port 18486) │  │  │  remote fetch)  ││
 │  └───────┬───────┘  │  └──────────────┘  │  └─────────────────┘│
 │          │          │                    │                     │
@@ -322,7 +329,7 @@ A timer fires every **10 seconds** per connected light, sending a read request o
 The core model representing a single physical LED light. Holds:
 
 - **BLE state**: `peripheral: CBPeripheral`, `deviceCtlCharacteristic`, `gattCharacteristic`
-- **Light state** (all `Observable<T>`): `isOn`, `brrValue`, `cctValue`, `hueValue`, `satValue`, `gmmValue`, `channel`
+- **Light state** (all `Observable<T>`): `isOn`, `brrValue`, `cctValue`, `hueValue`, `satValue`, `gmmValue`, `channel`, `sourceChannel`
 - **Identity**: `userLightName`, `projectName`, `nickName`, `lightType: UInt8`
 - **Capabilities**: `supportRGB`, `supportCCTGM`, `supportMusic`, `support9FX`, `support17FX`, `cctRange`
 - **Sound-to-Light**: `followMusic: Bool` — whether this light follows the audio engine
@@ -354,6 +361,17 @@ Static utilities for:
 - **Name parsing**: Raw BLE name → (nickName, projectName) (`getLightNames(rawName:identifier:)`)
 - **CCT range**: Per-type min/max Kelvin (default 32–56, extended to 85 for SL80/SL140)
 - **FX/Source lookup**: `getLightFX(lightType:)`, `getLightSources(lightType:)` → arrays from database
+
+### NeewerLightSource (`Model/NeewerLightSource.swift`)
+
+Light source presets (Sunlight, Halogen, Tungsten, etc.) loaded from the database. Each source has:
+- `id`, `name` (localized), `iconName`
+- `cmdPattern` / `defaultCmdPattern` — BLE command templates
+- `needBRR`, `needCCT`, `needGM` — which sliders to show
+- `featureValues` — per-source parameter dictionary
+- `defaultCCTValue`, `defaultGMValue` — factory-set defaults (not persisted via Codable), reset on each source selection so slider changes don't permanently mutate the preset
+
+10 factory presets with calibrated CCT/GM defaults: Sunlight (56K/+4), White Halogen (32K/+2), Xenon short-arc (60K/−8), Horizon daylight (25K/+8), Daylight (55K/0), Tungsten (32K/−4), Studio Bulb (34K/−2), Modeling Lights (45K/0), Dysprosic (58K/−6), HMI6000 (60K/+2).
 
 ### Command (`Model/Command.swift`)
 
@@ -542,16 +560,34 @@ If `light` is omitted, the command targets all connected lights.
 
 ### HTTP Server (port 18486)
 
-For Stream Deck plugin and programmatic control:
+The server (built on Vapor) hosts both the Stream Deck HTTP API and a Model Context Protocol (MCP) endpoint.
+
+**Stream Deck HTTP routes** (require `User-Agent: neewerlite.sdPlugin/*`):
 
 | Endpoint | Method | Purpose |
 |----------|--------|---------|
-| `/listLights` | GET | JSON array of connected lights with state |
-| `/ping` | GET | Health check (`{"status": "pong"}`) |
-| `/switch` | POST | Toggle lights by ID/name |
-| `/setLight` | POST | Set light parameters (CCT/HSI/Scene) |
+| `/sd/listLights` | GET | JSON array of connected lights with state |
+| `/sd/ping` | GET | Health check (`{"status": "pong"}`) |
+| `/sd/switch` | POST | Toggle lights by ID/name |
+| `/sd/setLight` | POST | Set light parameters (CCT/HSI/Scene) |
 
-**Authentication:** All requests must include `User-Agent: neewerlite.sdPlugin/*` header.
+**MCP endpoint** (`POST /mcp`):
+
+Exposes light control to AI assistants and automation tools via the [Model Context Protocol](https://modelcontextprotocol.io). Uses `StatefulHTTPServerTransport` from the MCP Swift SDK.
+
+| Tool | Description |
+|------|-------------|
+| `list_lights` | List all lights with state, mode, and capabilities |
+| `turn_on` | Turn on lights by name/index |
+| `turn_off` | Turn off lights by name/index |
+| `set_light_cct` | Set CCT mode (brightness, color temperature, GM) |
+| `set_light_hsi` | Set HSI mode (hue, saturation, brightness) |
+| `set_light_scene` | Set scene effect by name |
+| `get_light_image` | Get product image for a light |
+| `scan` | Trigger BLE scan for new lights |
+| `get_logs` | Retrieve recent app logs |
+
+The server can be enabled/disabled from Settings (persisted as `HTTPServerEnabled` in UserDefaults, defaults to on).
 
 ### Custom NSApplication
 
@@ -640,20 +676,22 @@ Two top-level arrays: `lights` (60+ entries) and `gels` (39 entries).
 
 ## Testing
 
-**103 tests**, all under `NeewerLiteTests/`:
+**222 tests**, all under `NeewerLiteTests/`:
 
 | File | Tests | Coverage |
-|------|-------|----------|
-| `NeewerLiteTests.swift` | ~18 | Light name parsing, type mapping from BLE names |
-| `CommandParserTests.swift` | ~25 | BLE command generation: power, CCT, HSI, range validation, checksum |
-| `AudioAnalysisEngineTests.swift` | ~24 | Silence, per-band isolation, AGC, beat detection, spectral flux |
-| `SoundToLightModeTests.swift` | ~33 | PulseMode, ColorFlowMode, BassCannon, reactivity scaling, palette, presets |
-| `GelsTests.swift` | ~3 | Subtractive mixing, mired addition, transmission compounding |
+|------|-------|---------|
+| `NeewerLiteTests.swift` | 3 | Light name parsing, type mapping from BLE names |
+| `CommandParserTests.swift` | 57 | BLE command generation: power, CCT, HSI, range validation, checksum |
+| `AudioAnalysisEngineTests.swift` | 45 | Silence, per-band isolation, AGC, beat detection, spectral flux |
+| `SoundToLightModeTests.swift` | 47 | PulseMode, ColorFlowMode, BassCannon, reactivity scaling, palette, presets |
+| `GelsTests.swift` | 24 | Subtractive mixing, mired addition, transmission compounding |
+| `MCPServerTests.swift` | 34 | MCP tool discovery, Value numeric coercion, tool metadata |
+| `StringLocalizedTests.swift` | 12 | Localization string lookups and fallbacks |
 
 **Run:**
 ```bash
 cd NeewerLite/NeewerLite
-xcodebuild test -project NeewerLite.xcodeproj -scheme NeewerLiteTests -destination 'platform=macOS'
+xcodebuild test -project NeewerLite.xcodeproj -scheme NeewerLite -destination 'platform=macOS'
 ```
 
 ---
@@ -771,8 +809,8 @@ Zero code changes needed:
 ### "I want to add a new HTTP endpoint"
 
 1. Open `Server.swift`
-2. Add route handler (follow existing `/listLights` pattern)
-3. Remember to respect the User-Agent authentication middleware
+2. For Stream Deck routes: add handler in the `/sd` group (auth middleware applies)
+3. For MCP tools: add a `Tool` entry in `registerMCPTools()` and a handler in the tool dispatch switch
 4. Update Stream Deck plugin `ipc.ts` if the SD plugin should use it
 
 ### "I want to add a new URL scheme command"

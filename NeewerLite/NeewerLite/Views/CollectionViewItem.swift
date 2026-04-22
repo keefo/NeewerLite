@@ -1931,10 +1931,20 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
             if dev.supportRGB {
                 Logger.debug("brr: \(brr) hue: \(hue) sat: \(sat)")
                 let val = getHSIValuesFromView()
-                let brrValue = brr != nil ? brr! : val.brr
-                let hueVal = Double(hue) / 360.0
+                let normalized = normalizeHSIInput(
+                    hueDegrees: hue,
+                    saturation: sat,
+                    brightness: brr ?? Double(val.brr)
+                )
+                let brrValue = normalized.brightnessUnit ?? 1.0
+                let hueVal = Double(normalized.hueDegrees) / 360.0
                 if let wheel = getHSIWheelFromView() {
-                    let color = NSColor(calibratedHue: hueVal, saturation: sat, brightness: brrValue, alpha: 1)
+                    let color = NSColor(
+                        calibratedHue: hueVal,
+                        saturation: normalized.saturationUnit,
+                        brightness: brrValue,
+                        alpha: 1
+                    )
                     wheel.setViewColor(color)
                 }
                 if let brrSlide = getHSIBrrSlideFromView() {
@@ -1942,7 +1952,12 @@ class CollectionViewItem: NSCollectionViewItem, NSTextFieldDelegate, NSTabViewDe
                     brrSlide.currentValue = brrValue * brrSlide.maxValue
                     brrSlide.pauseNotify = false
                 }
-                dev.setHSILightValues(brr100: brrValue * 100.0, hue: hueVal, hue360: hue, sat: sat)
+                dev.setHSILightValues(
+                    brr100: brrValue * 100.0,
+                    hue: hueVal,
+                    hue360: normalized.hueDegrees,
+                    sat: normalized.saturationUnit
+                )
             }
         }
     }

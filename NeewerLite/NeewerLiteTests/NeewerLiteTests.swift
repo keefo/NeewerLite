@@ -164,6 +164,21 @@ class NeewerLiteTests: XCTestCase {
         XCTAssertEqual(cmd[0], 0x78)
         XCTAssertEqual(cmd[1], 0x91)
     }
+
+    func testNormalizeHSIInput_convertsPercentInputsToUnitRange() {
+        let normalized = normalizeHSIInput(hueDegrees: 120, saturation: 100, brightness: 100)
+        XCTAssertEqual(normalized.hueDegrees, 120)
+        XCTAssertEqual(normalized.saturationUnit, 1.0, accuracy: 0.0001)
+        XCTAssertEqual(normalized.brightnessUnit ?? -1, 1.0, accuracy: 0.0001)
+    }
+
+    func testNormalizeHSIInput_preservesUnitInputs() {
+        let normalized = normalizeHSIInput(hueDegrees: 120, saturation: 0.75, brightness: 0.5)
+        XCTAssertEqual(normalized.hueDegrees, 120)
+        XCTAssertEqual(normalized.saturationUnit, 0.75, accuracy: 0.0001)
+        XCTAssertEqual(normalized.brightnessUnit ?? -1, 0.5, accuracy: 0.0001)
+    }
+
     func testPerformanceExample() throws {
         // This is an example of a performance test case.
         self.measure {

@@ -24,6 +24,23 @@ struct HSB {
     var alpha: CGFloat
 }
 
+struct NormalizedHSIInput {
+    var hueDegrees: CGFloat
+    var saturationUnit: CGFloat
+    var brightnessUnit: Double?
+}
+
+func normalizeHSIInput(hueDegrees: CGFloat, saturation: CGFloat, brightness: Double?) -> NormalizedHSIInput {
+    let normalizedHue = min(max(hueDegrees, 0.0), 360.0)
+    let normalizedSaturation = min(max(saturation > 1.0 ? saturation / 100.0 : saturation, 0.0), 1.0)
+    let normalizedBrightness = brightness.map { min(max($0 > 1.0 ? $0 / 100.0 : $0, 0.0), 1.0) }
+    return NormalizedHSIInput(
+        hueDegrees: normalizedHue,
+        saturationUnit: normalizedSaturation,
+        brightnessUnit: normalizedBrightness
+    )
+}
+
 func hsv2rgb(_ hsv: HSB) -> RGB {
     // Converts HSV to a RGB color
     var rgb: RGB = RGB(red: 0.0, green: 0.0, blue: 0.0, alpha: 0.0)
