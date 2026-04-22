@@ -24,7 +24,7 @@ NeewerLite fixes that. Open the app, and it finds your Neewer lights over Blueto
   </a>
 </p>
 
-## Three Things That Make It Great
+## What Makes It Great
 
 **1. Full Light Control** — Power, brightness, CCT (3200K–8500K), full RGB color, 9 built-in scene effects, music sync, and 39 professional lighting gel presets. Everything your phone app can do, now on your Mac.
 
@@ -47,6 +47,8 @@ The engine includes automatic gain control (loud or quiet, it adapts), a dual no
 This isn't "volume goes up, brightness goes up." This is real-time audio analysis driving real-time light design. And it's built into a free, open-source menu bar app.
 
 **3. Automation Built In** — Every command has a URL scheme. Script it, shortcut it, voice-control it. Say "Meow" and your lights turn on. Press a Stream Deck button and your key light shifts from warm to cool. This isn't just an app — it's a control node for your entire lighting rig.
+
+**4. Your AI Can Now Control Your Lights** — NeewerLite runs an MCP server. Connect Claude, OpenClaw, or any compatible AI assistant to it — then just describe what you want. No scripts. No commands to memorize. The AI figures out the rest.
 
 ## Install
 
@@ -106,6 +108,22 @@ Integrate light commands directly into Shortcuts workflows. See the [Shortcuts G
 Open **System Settings → Accessibility → Voice Control → Commands**. Create a new command, set it to open a URL like `neewerlite://toggleLight`, and give it any trigger word you want.
 
 Say "Meow" → lights toggle. Pretty cool, huh?
+
+## AI Integration
+
+NeewerLite runs an MCP (Model Context Protocol) server. Connect your AI assistant to `http://localhost:18486/mcp` and it can control every light on your desk — just tell it what you want.
+
+One connection. Eleven tools. Every capability the app has, available to any MCP-compatible AI client.
+
+```
+"Set my key light to 3200K for a warm interview look."
+"Turn off everything except the fill light."
+"Pulse the lights with the music."
+```
+
+Claude, OpenClaw, or any MCP client. Works over standard HTTP — no plugins, no middleware, no cloud.
+
+See the [AI Integration Guide](Docs/AI-Integration.md) to connect your first AI client.
 
 ## Lighting Gels
 
