@@ -21,6 +21,78 @@ protocol ObservableNeewerLightProtocol {
     var gmmValue: Observable<Int> { get set }
 }
 
+struct ConnectionHealthSnapshot: Equatable {
+    var lastSuccessfulContactAt: Date?
+    var pendingProbeStartedAt: Date?
+    var consecutiveProbeTimeouts: Int = 0
+}
+
+struct ConnectionHealthPolicy {
+    enum Action: Equatable {
+        case none
+        case probeRSSI
+        case reconnect
+    }
+
+    let probeInterval: TimeInterval
+    let probeTimeout: TimeInterval
+    let maxConsecutiveProbeTimeouts: Int
+
+    init(
+        probeInterval: TimeInterval = 20.0,
+        probeTimeout: TimeInterval = 12.0,
+        maxConsecutiveProbeTimeouts: Int = 3
+    ) {
+        self.probeInterval = probeInterval
+        self.probeTimeout = probeTimeout
+        self.maxConsecutiveProbeTimeouts = maxConsecutiveProbeTimeouts
+    }
+
+    func evaluate(
+        peripheralState: CBPeripheralState,
+        snapshot: ConnectionHealthSnapshot,
+        now: Date
+    ) -> (snapshot: ConnectionHealthSnapshot, action: Action) {
+        var nextSnapshot = snapshot
+
+        switch peripheralState {
+        case .connected:
+            if let pendingProbeStartedAt = nextSnapshot.pendingProbeStartedAt {
+                if now.timeIntervalSince(pendingProbeStartedAt) < probeTimeout {
+                    return (nextSnapshot, .none)
+                }
+
+                nextSnapshot.pendingProbeStartedAt = nil
+                nextSnapshot.consecutiveProbeTimeouts += 1
+                if nextSnapshot.consecutiveProbeTimeouts >= maxConsecutiveProbeTimeouts {
+                    return (nextSnapshot, .reconnect)
+                }
+            }
+
+            let lastSuccessfulContactAt = nextSnapshot.lastSuccessfulContactAt ?? .distantPast
+            if now.timeIntervalSince(lastSuccessfulContactAt) < probeInterval {
+                return (nextSnapshot, .none)
+            }
+
+            nextSnapshot.pendingProbeStartedAt = now
+            return (nextSnapshot, .probeRSSI)
+
+        case .disconnected:
+            nextSnapshot.pendingProbeStartedAt = nil
+            nextSnapshot.consecutiveProbeTimeouts += 1
+            return (nextSnapshot, .reconnect)
+
+        case .connecting, .disconnecting:
+            nextSnapshot.pendingProbeStartedAt = nil
+            return (nextSnapshot, .none)
+
+        @unknown default:
+            nextSnapshot.pendingProbeStartedAt = nil
+            return (nextSnapshot, .none)
+        }
+    }
+}
+
 class NeewerLight: NSObject, ObservableNeewerLightProtocol {
 
     enum Mode: UInt8 {
@@ -85,6 +157,8 @@ class NeewerLight: NSObject, ObservableNeewerLightProtocol {
 
     var connectionBreakCounter: Int = 0  // if connection break too many times which mean this light disappeared from bluetooth fabric.
 
+    private let connectionHealthPolicy = ConnectionHealthPolicy()
+    private var connectionHealthSnapshot = ConnectionHealthSnapshot()
     private var _writeDispatcher: DispatchWorkItem?
     private var _rawName: String?
     private var _identifier: String?
@@ -461,9 +535,16 @@ class NeewerLight: NSObject, ObservableNeewerLightProtocol {
         self.peripheral = peripheral
         self.deviceCtlCharacteristic = deviceCtlCharacteristic
         self.gattCharacteristic = gattCharacteristic
-        self.peripheral?.delegate = self
+
+        guard let peripheral else {
+            resetConnectionHealth()
+            return
+        }
+
+        peripheral.delegate = self
+        markCommunicationHealthy(reason: "setPeripheral")
         if _macAddress == nil || _macAddress == "" {
-            discoverMAC(self.peripheral!)
+            discoverMAC(peripheral)
         }
     }
 
@@ -484,35 +565,48 @@ class NeewerLight: NSObject, ObservableNeewerLightProtocol {
     }
 
     func sendKeepAlive(_ cbm: CBCentralManager?) {
-        return
         guard let peripheral = self.peripheral else {
             return
         }
-        if peripheral.state == .connected {
-            Logger.debug("sendKeepAlive self.peripheral.state: connected")
-        } else if peripheral.state == .disconnected {
-            Logger.debug("sendKeepAlive self.peripheral.state: disconnected")
-        } else if peripheral.state == .connecting {
-            Logger.debug("sendKeepAlive self.peripheral.state: connecting")
-        } else if peripheral.state == .disconnecting {
-            Logger.debug("sendKeepAlive self.peripheral.state: disconnecting")
-        } else {
-            Logger.debug("sendKeepAlive self.peripheral.state: unknow")
-        }
 
-        if peripheral.state == .connected {
-            connectionBreakCounter = 0
-        }
-        if peripheral.state != .connected {
-            cbm?.connect(peripheral, options: nil)
-            connectionBreakCounter += 1
-        } else {
-            if isOn.value {
-                sendPowerOnRequest()
-            } else {
-                sendPowerOffRequest()
+        let evaluation = connectionHealthPolicy.evaluate(
+            peripheralState: peripheral.state,
+            snapshot: connectionHealthSnapshot,
+            now: Date())
+        connectionHealthSnapshot = evaluation.snapshot
+        connectionBreakCounter = evaluation.snapshot.consecutiveProbeTimeouts
+
+        switch evaluation.action {
+        case .none:
+            break
+
+        case .probeRSSI:
+            Logger.debug(LogTag.bluetooth, "Probing BLE health for \(nickName)")
+            peripheral.readRSSI()
+
+        case .reconnect:
+            Logger.warn(
+                LogTag.bluetooth,
+                "BLE session looks stale for \(nickName); state=\(peripheral.state.rawValue), failures=\(connectionBreakCounter)")
+            if peripheral.state == .disconnected {
+                cbm?.connect(peripheral, options: nil)
+            } else if peripheral.state == .connected {
+                cbm?.cancelPeripheralConnection(peripheral)
             }
         }
+    }
+
+    private func resetConnectionHealth() {
+        connectionHealthSnapshot = ConnectionHealthSnapshot()
+        connectionBreakCounter = 0
+    }
+
+    private func markCommunicationHealthy(reason: String, at date: Date = Date()) {
+        connectionHealthSnapshot.lastSuccessfulContactAt = date
+        connectionHealthSnapshot.pendingProbeStartedAt = nil
+        connectionHealthSnapshot.consecutiveProbeTimeouts = 0
+        connectionBreakCounter = 0
+        Logger.debug(LogTag.bluetooth, "BLE health restored for \(nickName) via \(reason)")
     }
 
     func sendPowerOnRequest(_ altCommand: Bool = false) {
@@ -1285,6 +1379,7 @@ extension NeewerLight: CBPeripheralDelegate {
             Logger.error("peripheralDidUpdateRSSI err: \(err)")
             return
         }
+        markCommunicationHealthy(reason: "readRSSI")
         Logger.debug("peripheralDidUpdateRSSI")
     }
 
@@ -1294,6 +1389,7 @@ extension NeewerLight: CBPeripheralDelegate {
             Logger.error("peripheral didUpdateValueFor err: \(err)")
             return
         }
+        markCommunicationHealthy(reason: "didUpdateValueFor")
         if let data: Data = characteristic.value as Data? {
             handleNotifyValueUpdate(data)
         }
@@ -1305,6 +1401,7 @@ extension NeewerLight: CBPeripheralDelegate {
             Logger.error("peripheral didWriteValueFor err: \(err)")
             return
         }
+        markCommunicationHealthy(reason: "didWriteValueFor")
     }
 
     func peripheral(_ peripheral: CBPeripheral, didUpdateNotificationStateFor characteristic: CBCharacteristic, error: Error?) {
@@ -1312,6 +1409,7 @@ extension NeewerLight: CBPeripheralDelegate {
             Logger.error("peripheral didUpdateNotificationStateFor err: \(err)")
             return
         }
+        markCommunicationHealthy(reason: "didUpdateNotificationStateFor")
         Logger.debug("didUpdateNotificationStateFor characteristic: \(characteristic)")
         let properties: CBCharacteristicProperties = characteristic.properties
         Logger.debug("properties: \(properties)")

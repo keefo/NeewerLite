@@ -187,6 +187,8 @@ Found a bug? Want to add your light model? PRs are welcome.
 
 The simplest contribution: add your light to `Database/lights.json`. It's a JSON file — no Swift required.
 
+For BLE reliability work, see [BLE Connection Staleness Analysis](Docs/BLE-Connection-Staleness.md).
+
 ## License
 
 [MIT](LICENSE)

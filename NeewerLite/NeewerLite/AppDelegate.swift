@@ -1723,10 +1723,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuDele
             if let targetViewObject = viewObjects.first(where: { $0.deviceIdentifier == identifier }
             ) {
                 found = true
-                if targetViewObject.device.peripheral == nil {
-                    targetViewObject.device.setPeripheral(
-                        peripheral, characteristic1, characteristic2)
-                }
+                targetViewObject.device.setPeripheral(
+                    peripheral, characteristic1, characteristic2)
                 targetViewObject.device.startLightOnNotify()
                 forcePowerOffAfterLaunchIfNeeded(targetViewObject)
             }

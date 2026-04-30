@@ -179,6 +179,45 @@ class NeewerLiteTests: XCTestCase {
         XCTAssertEqual(normalized.brightnessUnit ?? -1, 0.5, accuracy: 0.0001)
     }
 
+    func testConnectionHealthPolicy_startsProbeWhenConnectionGoesIdle() {
+        let policy = ConnectionHealthPolicy(probeInterval: 20, probeTimeout: 12, maxConsecutiveProbeTimeouts: 3)
+        let now = Date(timeIntervalSinceReferenceDate: 1_000)
+        let snapshot = ConnectionHealthSnapshot(lastSuccessfulContactAt: now.addingTimeInterval(-25))
+
+        let result = policy.evaluate(peripheralState: .connected, snapshot: snapshot, now: now)
+
+        XCTAssertEqual(result.action, .probeRSSI)
+        XCTAssertEqual(result.snapshot.pendingProbeStartedAt, now)
+        XCTAssertEqual(result.snapshot.consecutiveProbeTimeouts, 0)
+    }
+
+    func testConnectionHealthPolicy_reconnectsAfterThreeTimedOutProbes() {
+        let policy = ConnectionHealthPolicy(probeInterval: 20, probeTimeout: 12, maxConsecutiveProbeTimeouts: 3)
+        let now = Date(timeIntervalSinceReferenceDate: 1_000)
+        let snapshot = ConnectionHealthSnapshot(
+            lastSuccessfulContactAt: now.addingTimeInterval(-120),
+            pendingProbeStartedAt: now.addingTimeInterval(-20),
+            consecutiveProbeTimeouts: 2)
+
+        let result = policy.evaluate(peripheralState: .connected, snapshot: snapshot, now: now)
+
+        XCTAssertEqual(result.action, .reconnect)
+        XCTAssertNil(result.snapshot.pendingProbeStartedAt)
+        XCTAssertEqual(result.snapshot.consecutiveProbeTimeouts, 3)
+    }
+
+    func testConnectionHealthPolicy_ignoresHealthyConnectedLight() {
+        let policy = ConnectionHealthPolicy(probeInterval: 20, probeTimeout: 12, maxConsecutiveProbeTimeouts: 3)
+        let now = Date(timeIntervalSinceReferenceDate: 1_000)
+        let snapshot = ConnectionHealthSnapshot(lastSuccessfulContactAt: now.addingTimeInterval(-5))
+
+        let result = policy.evaluate(peripheralState: .connected, snapshot: snapshot, now: now)
+
+        XCTAssertEqual(result.action, .none)
+        XCTAssertNil(result.snapshot.pendingProbeStartedAt)
+        XCTAssertEqual(result.snapshot.consecutiveProbeTimeouts, 0)
+    }
+
     func testPerformanceExample() throws {
         // This is an example of a performance test case.
         self.measure {

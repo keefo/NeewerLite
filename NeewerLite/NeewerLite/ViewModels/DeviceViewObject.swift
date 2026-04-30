@@ -157,7 +157,12 @@ class DeviceViewObject: NSObject {
     }
 
     public var deviceConnected: Bool {
-        return device.peripheral != nil
+        guard let peripheral = device.peripheral else {
+            return false
+        }
+        return peripheral.state == .connected
+            && device.deviceCtlCharacteristic != nil
+            && device.gattCharacteristic != nil
     }
 
     public var hasMAC: Bool {
