@@ -3,10 +3,10 @@
     <channel>
         <title>NeewerLite</title>
         <item>
-            <title>1.9.2</title>
-            <pubDate>Tue, 21 Apr 2026 23:27:45 -0700</pubDate>
+            <title>1.9.3</title>
+            <pubDate>Wed, 29 Apr 2026 22:14:27 -0700</pubDate>
             <sparkle:minimumSystemVersion>13.0</sparkle:minimumSystemVersion>
-            <enclosure url="https://github.com/keefo/NeewerLite/releases/download/v1.9.2/NeewerLite.zip" sparkle:version="32" sparkle:shortVersionString="1.9.2" length="20474657" type="application/octet-stream" sparkle:edSignature="LX4+cvVyyXIOdMJO8ktBNAed6T9+vfZO/EqJT1sIhjeFX/M9ewjQzyhBH5vBAZEiAbPgnUdLDQbRQftq7lslBw=="/>
+            <enclosure url="https://github.com/keefo/NeewerLite/releases/download/v1.9.3/NeewerLite.zip" sparkle:version="33" sparkle:shortVersionString="1.9.3" length="20490512" type="application/octet-stream" sparkle:edSignature="iCXrPrlcv79JKnejAXuEs2ipfhqaJBqtppWKHpGbaNXcqJbu4VEiNXXq3BZeZzPNrntArkN6GuHXTl/ysto7AA=="/>
         </item>
     </channel>
 </rss>
