@@ -144,6 +144,10 @@ class NeewerLightConstant {
                 return "TL21C"
             case 71:
                 return "SL90"
+            case 87:
+                return "HS60C"
+            case 88:
+                return "HS60C Pro"
             case 73:
                 return "MS150C"
             case 74:
@@ -216,6 +220,9 @@ class NeewerLightConstant {
                 return "RGB1200"
             case "20230031":
                 return "TL120C"
+            case "20230042":
+                // BLE `NW-20230042&…`; Neewer branding: HS60C (RGB COB, non‑Pro).
+                return "HS60C"
             case "20230050":
                 return "FS230 5600K"
             case "20230051":
@@ -275,6 +282,10 @@ class NeewerLightConstant {
             } else {
                 projectName = substring
             }
+        }
+
+        if nameIndicatesLegacyHS60ProLite(projectName) {
+            projectName = "HS60C"
         }
 
         nickName = "\(projectName)\(suffix)"
@@ -341,12 +352,41 @@ class NeewerLightConstant {
         return fxs
     }
 
+    /// HS60C Pro distinguishes from HS60C in BLE names (`HS60C Pro`, `HS60C-PRO`, `HS60CPRO`).
+    private static func nameIndicatesHS60CPro(_ s: String) -> Bool {
+        let u = s.uppercased()
+        return u.contains("HS60C PRO") || u.contains("HS60C-PRO") || u.contains("HS60CPRO")
+    }
+
+    /// Earlier NeewerLite builds called the HS60C (SKU `NW-20230042…`) “HS60 Pro Lite”; Neewer’s retail name is HS60C.
+    private static func nameIndicatesLegacyHS60ProLite(_ s: String) -> Bool {
+        let u = s.uppercased()
+        return u.contains("HS60 PRO LITE") || u.contains("HS60-PRO-LITE") || u.contains("HS60PROLITE")
+    }
+
     // classes4/sources/neewer/clj/fastble/data/BleDevice.java
     class func getLightType(nickName: String, rawname: String, projectName: String) -> UInt8 {
         // decoded from Android app,
         // what does these light types means?
         // Not sure.
         var lightType: UInt8 = 8
+
+        // HS60C Pro vs HS60C: "HS60C PRO" contains substring "HS60C", so Pro must win first.
+        if nameIndicatesHS60CPro(rawname) || nameIndicatesHS60CPro(nickName) || nameIndicatesHS60CPro(projectName) {
+            return 88
+        }
+
+        if nameIndicatesLegacyHS60ProLite(rawname) || nameIndicatesLegacyHS60ProLite(nickName)
+            || nameIndicatesLegacyHS60ProLite(projectName) {
+            return 87
+        }
+
+        // Firmware often puts the SKU in the raw BLE advertised name before nickname resolution.
+        let rawUpper = rawname.uppercased()
+        // HS60C (incl. NW-20230042 SKU) and HS60C Pro textual names; Pro already returned above.
+        if rawUpper.contains("HS60C") || rawUpper.hasPrefix("NW-20230042") {
+            return 87
+        }
 
         // Some newer SL90 variants ("Infinity" protocol) are renamed by the app to "SL90-...",
         // which can cause nickname-based matching to fail. Detect via the raw BLE name instead.
@@ -520,6 +560,15 @@ class NeewerLightConstant {
             }
             if nickName.contains("TL97C") {
                 lightType = 64
+                return lightType
+            }
+            // Base HS60C — type 87. HS60C Pro (88) is resolved at the start of getLightType.
+            if nameIndicatesLegacyHS60ProLite(nickName) {
+                lightType = 87
+                return lightType
+            }
+            if nickName.contains("HS60C") {
+                lightType = 87
                 return lightType
             }
             if nickName.contains("HS60B") {

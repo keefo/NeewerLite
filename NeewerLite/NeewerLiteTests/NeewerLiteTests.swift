@@ -150,6 +150,37 @@ class NeewerLiteTests: XCTestCase {
         XCTAssertEqual(name.nickName, "SL90-3686F0")
         XCTAssertEqual(name.projectName, "SL90")
         XCTAssertEqual(NeewerLightConstant.getLightType(nickName: name.nickName, rawname: "NW-20240073&00000000", projectName: name.projectName), 71, "")
+
+        name = NeewerLightConstant.getLightNames(rawName: "NEEWER-HS60C", identifier: "DEE0BA8C-D9B4-B7DB-0FD2-2531C7E4B053")
+        XCTAssertEqual(name.nickName, "HS60C-E4B053")
+        XCTAssertEqual(name.projectName, "HS60C")
+        XCTAssertEqual(NeewerLightConstant.getLightType(nickName: name.nickName, rawname: "", projectName: name.projectName), 87, "")
+
+        name = NeewerLightConstant.getLightNames(rawName: "NEEWER-HS60 Pro Lite", identifier: "DEE0BA8C-D9B4-B7DB-0FD2-2531C7E4B053")
+        XCTAssertEqual(name.projectName, "HS60C")
+        XCTAssertEqual(name.nickName, "HS60C-E4B053")
+        XCTAssertEqual(NeewerLightConstant.getLightType(nickName: name.nickName, rawname: "NEEWER-HS60 Pro Lite", projectName: name.projectName), 87)
+
+        name = NeewerLightConstant.getLightNames(rawName: "NEEWER-HS60C PRO", identifier: "DEE0BA8C-D9B4-B7DB-0FD2-2531C7E4B053")
+        XCTAssertEqual(name.nickName, "HS60C PRO-E4B053")
+        XCTAssertEqual(name.projectName, "HS60C PRO")
+        XCTAssertEqual(NeewerLightConstant.getLightType(nickName: name.nickName, rawname: "", projectName: name.projectName), 88, "")
+
+        XCTAssertEqual(
+            NeewerLightConstant.getLightType(nickName: "WEIRD", rawname: "NW-FOO&HS60C-BAR-BAZ", projectName: ""),
+            87)
+        XCTAssertEqual(
+            NeewerLightConstant.getLightType(nickName: "WEIRD", rawname: "NW-FOO&HS60C PRO-BAR", projectName: ""),
+            88)
+
+        name = NeewerLightConstant.getLightNames(rawName: "NW-20230042&30F20500", identifier: "4EFF701E-D042-C210-BFD5-510B7F847EB7")
+        XCTAssertEqual(name.projectName, "HS60C")
+        XCTAssertEqual(name.nickName, "HS60C-847EB7")
+        XCTAssertEqual(NeewerLightConstant.getLightType(nickName: name.nickName, rawname: "NW-20230042&30F20500", projectName: name.projectName), 87)
+
+        XCTAssertEqual(
+            NeewerLightConstant.getLightType(nickName: "WEIRD", rawname: "NW-20230042&30F20500", projectName: "HS60C"),
+            87)
     }
 
     func test_fxCommand() throws {
