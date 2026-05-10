@@ -157,8 +157,8 @@ class NeewerLiteTests: XCTestCase {
         XCTAssertEqual(NeewerLightConstant.getLightType(nickName: name.nickName, rawname: "", projectName: name.projectName), 87, "")
 
         name = NeewerLightConstant.getLightNames(rawName: "NEEWER-HS60 Pro Lite", identifier: "DEE0BA8C-D9B4-B7DB-0FD2-2531C7E4B053")
-        XCTAssertEqual(name.projectName, "HS60C")
-        XCTAssertEqual(name.nickName, "HS60C-E4B053")
+        XCTAssertEqual(name.projectName, "HS60 Pro Lite")
+        XCTAssertEqual(name.nickName, "HS60 Pro Lite-E4B053")
         XCTAssertEqual(NeewerLightConstant.getLightType(nickName: name.nickName, rawname: "NEEWER-HS60 Pro Lite", projectName: name.projectName), 87)
 
         name = NeewerLightConstant.getLightNames(rawName: "NEEWER-HS60C PRO", identifier: "DEE0BA8C-D9B4-B7DB-0FD2-2531C7E4B053")
