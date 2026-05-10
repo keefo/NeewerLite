@@ -1864,6 +1864,21 @@
             }
         },
         {
+            "type": 66,
+            "name": "Neewer HS60B",
+            "image": "hs60b.png",
+            "link": "https://neewer.com/products/neewer-hs60b-60w-bi-color-mini-cob-led-video-light-66605117",
+            "supportRGB": false,
+            "supportCCTGM": false,
+            "supportMusic": true,
+            "support17FX": false,
+            "support9FX": false,
+            "cctRange": {
+                "min": 27,
+                "max": 65
+            }
+        },
+        {
             "type": 67,
             "image": "tl40.png",
             "link": "https://neewer.com/products/neewer-tl40-led-streaming-light-bar-light-66605046",
