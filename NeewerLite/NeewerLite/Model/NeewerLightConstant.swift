@@ -144,6 +144,10 @@ class NeewerLightConstant {
                 return "TL21C"
             case 71:
                 return "SL90"
+            case 87:
+                return "HS60C"
+            case 88:
+                return "HS60C Pro"
             case 73:
                 return "MS150C"
             case 74:
@@ -216,6 +220,8 @@ class NeewerLightConstant {
                 return "RGB1200"
             case "20230031":
                 return "TL120C"
+            case "20230042":
+                return "HS60C"
             case "20230050":
                 return "FS230 5600K"
             case "20230051":
@@ -347,6 +353,20 @@ class NeewerLightConstant {
         // what does these light types means?
         // Not sure.
         var lightType: UInt8 = 8
+
+        let ru = rawname.uppercased(), nu = nickName.uppercased(), pu = projectName.uppercased()
+        // HS60C Pro vs HS60C (“HS60C PRO” contains “HS60C”); legacy “HS60 Pro Lite”; raw SKU / name.
+        let hs60Haystack = [ru, nu, pu].joined(separator: "\n")
+        if hs60Haystack.contains("HS60C PRO") || hs60Haystack.contains("HS60C-PRO") || hs60Haystack.contains("HS60CPRO") {
+            return 88
+        }
+        if hs60Haystack.contains("HS60 PRO LITE") || hs60Haystack.contains("HS60-PRO-LITE")
+            || hs60Haystack.contains("HS60PROLITE") {
+            return 87
+        }
+        if ru.contains("HS60C") || ru.hasPrefix("NW-20230042") {
+            return 87
+        }
 
         // Some newer SL90 variants ("Infinity" protocol) are renamed by the app to "SL90-...",
         // which can cause nickname-based matching to fail. Detect via the raw BLE name instead.
@@ -520,6 +540,10 @@ class NeewerLightConstant {
             }
             if nickName.contains("TL97C") {
                 lightType = 64
+                return lightType
+            }
+            if nickName.contains("HS60C") {
+                lightType = 87
                 return lightType
             }
             if nickName.contains("HS60B") {

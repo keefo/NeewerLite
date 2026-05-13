@@ -1946,6 +1946,42 @@
             "newPowerLightCommand": true,
             "newRGBLightCommand": true,
             "fxPreset": "fx17_mac"
+        },
+        {
+            "type": 87,
+            "name": "Neewer HS60C",
+            "image": "hs60c.png",
+            "link": "https://neewer.com/products/neewer-hs60c-60w-portable-rgb-led-video-light-66606314",
+            "supportRGB": true,
+            "supportCCTGM": true,
+            "supportMusic": true,
+            "support17FX": true,
+            "support9FX": false,
+            "cctRange": {
+                "min": 27,
+                "max": 65
+            },
+            "newPowerLightCommand": true,
+            "newRGBLightCommand": true,
+            "fxPreset": "fx17_mac"
+        },
+        {
+            "type": 88,
+            "name": "Neewer HS60C Pro",
+            "image": "hs60c-pro.png",
+            "link": "https://neewer.com/products/neewer-hs60c-pro-60w-portable-rgb-led-video-light-66607068",
+            "supportRGB": true,
+            "supportCCTGM": true,
+            "supportMusic": true,
+            "support17FX": true,
+            "support9FX": false,
+            "cctRange": {
+                "min": 27,
+                "max": 65
+            },
+            "newPowerLightCommand": true,
+            "newRGBLightCommand": true,
+            "fxPreset": "fx17_mac"
         }
     ],
     "gels": [
