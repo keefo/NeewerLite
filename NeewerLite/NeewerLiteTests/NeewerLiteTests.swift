@@ -26,6 +26,12 @@ class NeewerLiteTests: XCTestCase {
         XCTAssertEqual(name.projectName, "RGB660 PRO")
         XCTAssertEqual(NeewerLightConstant.getLightType(nickName: name.nickName, rawname: "", projectName: name.projectName), 3, "")
         
+        // CB120B advertises as NW-20230112&<serial>; must resolve to database profile type 70.
+        name = NeewerLightConstant.getLightNames(rawName: "NW-20230112&03440600", identifier: "09418809-75CF-237B-661C-622A217457D1")
+        XCTAssertEqual(name.nickName, "CB120B-7457D1")
+        XCTAssertEqual(name.projectName, "CB120B")
+        XCTAssertEqual(NeewerLightConstant.getLightType(nickName: name.nickName, rawname: "NW-20230112&03440600", projectName: name.projectName), 70, "")
+
         name = NeewerLightConstant.getLightNames(rawName: "GR18C-953999", identifier: "DEE0BA8C-D9B4-B7DB-0FD2-2531C7E4B053")
         XCTAssertEqual(name.nickName, "GR18C-953999-E4B053")
         XCTAssertEqual(name.projectName, "GR18C-953999")
