@@ -1982,6 +1982,24 @@
             "newPowerLightCommand": true,
             "newRGBLightCommand": true,
             "fxPreset": "fx17_mac"
+        },
+        {
+            "type": 89,
+            "name": "Neewer BH20C",
+            "image": "bh20c.png",
+            "link": "https://neewer.com/products/neewer-2-pack-bh20c-rgb-light-stick-studio-lighting-kit-66606261",
+            "supportRGB": true,
+            "supportCCTGM": true,
+            "supportMusic": true,
+            "support17FX": true,
+            "support9FX": false,
+            "cctRange": {
+                "min": 25,
+                "max": 100
+            },
+            "newPowerLightCommand": true,
+            "newRGBLightCommand": true,
+            "fxPreset": "fx17_mac"
         }
     ],
     "gels": [

@@ -148,6 +148,8 @@ class NeewerLightConstant {
                 return "HS60C"
             case 88:
                 return "HS60C Pro"
+            case 89:
+                return "BH20C"
             case 73:
                 return "MS150C"
             case 74:
@@ -230,6 +232,8 @@ class NeewerLightConstant {
                 return "FS150 5600K"
             case "20230064":
                 return "TL60 RGB"
+            case "20240063":
+                return "BH20C"
             default:
                 return ""
         }
@@ -373,6 +377,12 @@ class NeewerLightConstant {
         // Ref: https://github.com/keefo/NeewerLite/issues/94
         if rawname.hasPrefix("NW-20240073") || rawname.hasPrefix("NW-20200037") {
             return 71
+        }
+
+        // BH20C RGB light stick: raw BLE name NW-20240063&... Uses the MAC-addressed
+        // "new" power/HSI commands (verified against hardware).
+        if ru.contains("BH20C") || ru.hasPrefix("NW-20240063") {
+            return 89
         }
 
         if nickName.contains("SRP") || nickName.contains("RP18-P") {
