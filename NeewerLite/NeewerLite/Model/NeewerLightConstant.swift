@@ -73,7 +73,57 @@ class NeewerLightConstant {
                 return (minCCT: 25, maxCCT: 85)
             }
         }
+        if ligthType == 75 {
+            // FS150C: NEEWER FS150C 130W RGB LED Video Light, 2500K–7500K per product listing.
+            return (minCCT: 25, maxCCT: 75)
+        }
         return (minCCT: 32, maxCCT: 56)
+    }
+
+    /// Built-in fallback commandPatterns for lights whose crowd-sourced
+    /// database entry (synced from GitHub at runtime) has no commandPatterns
+    /// for a given command. NeewerLight.findCommandPatternFromDB() consults
+    /// this only after checking temporaryCommandPatterns and the live
+    /// database, so it never overrides either of those, but it does survive
+    /// a database.json re-sync that would otherwise wipe out a manually
+    /// entered temporaryCommandPatterns override.
+    ///
+    /// These exact pattern strings were confirmed by physical testing to
+    /// correctly control brightness and CCT (device responded as expected,
+    /// not just ack'd) on real hardware:
+    ///   - type 53: FS230 5600K (bi-color only; the crowd-sourced DB entry
+    ///     for this type explicitly has "supportRGB": false, so no "hsi"
+    ///     pattern is provided here)
+    ///   - type 75: FS150C (true RGB light per its product listing)
+    /// Both were previously falling back to the legacy setLongCCTLightBrightness/
+    /// setLongCCTLightCCT (0x82/0x83) command family, which the firmware
+    /// acknowledges but does not apply to the LED driver on these models.
+    ///
+    /// The "hsi" pattern for type 75 is not yet physically confirmed on this
+    /// exact model; it's copied verbatim from every other RGB-capable light
+    /// in the crowd-sourced DB that shares this same tag family (identical
+    /// "cct" pattern shape), all of which use this exact "hsi" pattern with
+    /// no per-model variation: types 3, 5, 8, 9, 11, 12, 15, 16, 18, 19, 20,
+    /// 21, 59, 62. {hsitag} resolves to the existing setRGBLightTag (0x86),
+    /// the RGB sibling of the 0x87 cct tag already confirmed working here.
+    class func builtInCommandPatterns(lightType: UInt8) -> [String: String]? {
+        switch lightType {
+        case 53:
+            let range = CCTRange(ligthType: lightType, projectName: "")
+            return [
+                "power": "{cmdtag} {powertag} {size} {state:uint8:enum(1=on,2=off)} {checksum}",
+                "cct": "{cmdtag} {ccttag} {size} {brr:uint8:range(0,100)} {cct:uint8:range(\(range.minCCT),\(range.maxCCT))} 0x32 0x00 0x00 {checksum}"
+            ]
+        case 75:
+            let range = CCTRange(ligthType: lightType, projectName: "")
+            return [
+                "power": "{cmdtag} {powertag} {size} {state:uint8:enum(1=on,2=off)} {checksum}",
+                "cct": "{cmdtag} {ccttag} {size} {brr:uint8:range(0,100)} {cct:uint8:range(\(range.minCCT),\(range.maxCCT))} 0x32 0x00 0x00 {checksum}",
+                "hsi": "{cmdtag} {hsitag} {size} {hue:uint16_le:range(0,360)} {sat:uint8:range(0,100)} {brr:uint8:range(0,100)} {checksum}"
+            ]
+        default:
+            return nil
+        }
     }
 
     class func getProjectName(_ idx: Int) -> String {
@@ -220,6 +270,9 @@ class NeewerLightConstant {
                 return "BH-30S RGB"
             case "20230025":
                 return "RGB1200"
+            case "20230029":
+                // https://www.amazon.com/... NEEWER FS150C 130W RGB LED Video Light, 2500-7500K
+                return "FS150C"
             case "20230031":
                 return "TL120C"
             case "20230042":
