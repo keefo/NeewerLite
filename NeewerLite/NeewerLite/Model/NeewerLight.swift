@@ -635,6 +635,13 @@ class NeewerLight: NSObject, ObservableNeewerLightProtocol {
             let pattern = patterns[command] {
             return pattern
         }
+        // Fall back to built-in patterns for lights whose crowd-sourced DB
+        // entry doesn't (yet) carry commandPatterns for this command.
+        // See NeewerLightConstant.builtInCommandPatterns for details.
+        if let patterns = NeewerLightConstant.builtInCommandPatterns(lightType: _lightType),
+            let pattern = patterns[command] {
+            return pattern
+        }
         return nil
     }
     
@@ -1133,16 +1140,26 @@ class NeewerLight: NSObject, ObservableNeewerLightProtocol {
             let data = NSData(bytes: bArr1, length: bArr1.count)
             return data as Data
         }
-
         cctValue.value = newCctValue
         brrValue.value = newBrrValue
 
         let bArr1 = composeSingleCommand(NeewerLightConstant.BleCommand.setLongCCTLightBrightnessTag, brrValue.value)
         let bArr2 = composeSingleCommand(NeewerLightConstant.BleCommand.setLongCCTLightCCTTag, cctValue.value)
-        let bArr = bArr1 + bArr2
 
-        let data = NSData(bytes: bArr, length: bArr.count)
-        return data as Data
+        // Send as two separate BLE writes instead of one concatenated packet.
+        // write() debounces/cancels a pending write after 15ms, so the second
+        // send is scheduled after that window closes rather than immediately,
+        // to avoid it canceling the first.
+        if let characteristic = deviceCtlCharacteristic {
+            let data1 = NSData(bytes: bArr1, length: bArr1.count) as Data
+            write(data: data1, to: characteristic)
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) { [weak self] in
+                guard let self = self, let characteristic = self.deviceCtlCharacteristic else { return }
+                let data2 = NSData(bytes: bArr2, length: bArr2.count) as Data
+                self.write(data: data2, to: characteristic)
+            }
+        }
+        return Data()
     }
 
     public func setBRR100LightValues(_ brr: CGFloat) {
