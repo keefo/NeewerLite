@@ -162,7 +162,7 @@ class NeewerLightConstant {
                 return "MS150"
             case 82:
                 return "CB300C"
-            case 84:
+            case 70:
                 return "CB120B"
             case 83:
                 return "AP150C-2"
@@ -232,6 +232,8 @@ class NeewerLightConstant {
                 return "FS150 5600K"
             case "20230064":
                 return "TL60 RGB"
+            case "20230112":
+                return "CB120B"
             case "20240063":
                 return "BH20C"
             default:
@@ -597,7 +599,8 @@ class NeewerLightConstant {
                 return lightType
             } 
             if nickName.contains("CB120B") {
-                lightType = 84
+                // Database profile is type 70 (Database/lights.json); 84 has no profile.
+                lightType = 70
                 return lightType
             } 
             if nickName.contains("AP150C-2") {
