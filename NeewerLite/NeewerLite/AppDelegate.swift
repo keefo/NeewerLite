@@ -140,6 +140,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuDele
         self.viewsButton.selectSegment(withTag: idx ?? 0)
 
         localizeXIBStrings()
+        addRescanMenuItem()
 
         appMenu.delegate = self
         self.statusItem.menu = appMenu
@@ -952,6 +953,25 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuDele
                 alert.runModal()
             }
         }
+    }
+
+    /// Adds "Rescan for Lights" to the status-bar menu, just above Quit.
+    /// Background scanning is time-boxed, so this lets the user force a fresh scan
+    /// when a saved light isn't reconnecting.
+    private func addRescanMenuItem() {
+        let item = NSMenuItem(
+            title: "Rescan for Lights".localized,
+            action: #selector(rescanLightsAction(_:)),
+            keyEquivalent: "")
+        item.target = self
+        let quitIndex = appMenu.items.firstIndex { $0.action == #selector(NSApplication.terminate(_:)) }
+        appMenu.insertItem(item, at: quitIndex ?? appMenu.items.count)
+    }
+
+    @objc func rescanLightsAction(_ sender: Any) {
+        Logger.info(LogTag.click, "Rescan for Lights")
+        // Not new-light mode, so scanAction runs a time-boxed scan for saved lights.
+        scanAction(self)
     }
 
     @IBAction func syncDatabaseAction(_ sender: NSMenuItem) {
