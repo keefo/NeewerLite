@@ -96,6 +96,12 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuDele
         }
     }
     var scanningTimer: Timer?
+    /// How long a scan for saved lights runs before it stops by itself.
+    private let backgroundScanDuration: TimeInterval = 60
+    /// Minimum gap between background scans while a saved light is still missing.
+    private let backgroundScanRetryInterval: TimeInterval = 300
+    private var scanStopWorkItem: DispatchWorkItem?
+    private var lastScanStartedAt: Date?
     var server: NeewerLiteServer?
     var launching: Bool = true
     var commonJobTimer: Timer?
@@ -431,7 +437,70 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuDele
                     viewObject.view?.grayOut()
                 }
             }
+            self.scanForMissingLightsIfNeeded()
         }
+    }
+
+    // MARK: - Scan Lifecycle
+
+    /// Starts a BLE scan. With a `duration` the scan stops by itself (or earlier, once
+    /// every saved light is connected); without one it runs until `stopScanning()`.
+    /// Scanning never runs indefinitely in the background: an endless scan makes
+    /// CoreBluetooth accumulate every nearby device, and memory grows for as long
+    /// as the app stays open.
+    func startScanning(duration: TimeInterval?) {
+        guard let central = cbCentralManager, central.state == .poweredOn else { return }
+        central.stopScan()
+        central.scanForPeripherals(withServices: nil, options: nil)
+        scanning = true
+        lastScanStartedAt = Date()
+        Logger.debug(LogTag.bluetooth, "scanForPeripherals, duration: \(String(describing: duration))")
+
+        scanStopWorkItem?.cancel()
+        scanStopWorkItem = nil
+        if let duration {
+            let item = DispatchWorkItem { [weak self] in
+                guard let self, !self.scanningNewLightMode else { return }
+                self.stopScanning()
+            }
+            scanStopWorkItem = item
+            DispatchQueue.main.asyncAfter(deadline: .now() + duration, execute: item)
+        }
+    }
+
+    func stopScanning() {
+        scanStopWorkItem?.cancel()
+        scanStopWorkItem = nil
+        if cbCentralManager?.state == .poweredOn {
+            cbCentralManager?.stopScan()
+        }
+        scanning = false
+        // Non-Neewer devices only need to be remembered while a scan is running.
+        peripheralInvalidCache.removeAll()
+        Logger.debug(LogTag.bluetooth, "scan stopped")
+    }
+
+    private var hasMissingSavedLights: Bool {
+        if debugFakeLights {
+            return false
+        }
+        return viewObjects.contains { $0.device.peripheral == nil }
+    }
+
+    private func stopScanningIfAllLightsFound() {
+        if scanning && !scanningNewLightMode && !hasMissingSavedLights {
+            stopScanning()
+        }
+    }
+
+    /// Saved lights that are already known reconnect through `connect()` without a scan.
+    /// A scan is only needed for a saved light the app has not found since launch.
+    private func scanForMissingLightsIfNeeded() {
+        guard !scanning, hasMissingSavedLights else { return }
+        if let last = lastScanStartedAt, Date().timeIntervalSince(last) < backgroundScanRetryInterval {
+            return
+        }
+        startScanning(duration: backgroundScanDuration)
     }
 
     // MARK: - XIB String Localization
@@ -1535,6 +1604,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuDele
             Logger.info(LogTag.click, "Scan")
         } else {
             scanningNewLightMode = false
+            stopScanning()
             scanningStatus?.stringValue = ""
             sender.title = "Scan".localized
             Logger.info(LogTag.click, "Stop")
@@ -1542,18 +1612,6 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuDele
     }
 
     @IBAction func scanAction(_ sender: AnyObject) {
-
-        if scanning {
-            // stop scanning
-            cbCentralManager?.stopScan()
-            scanning = false
-        } else {
-            // start scanning
-            cbCentralManager?.scanForPeripherals(withServices: nil, options: nil)
-            // scanAction(self)
-            scanning = true
-            Logger.debug("scanForPeripherals...")
-        }
 
         Logger.debug("\(peripheralCache)")
         peripheralCache.removeAll()
@@ -1582,8 +1640,9 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuDele
 
         self.statusItemIcon = .off
         updateUI()
-        cbCentralManager?.scanForPeripherals(
-            withServices: nil, options: [CBCentralManagerScanOptionAllowDuplicatesKey: true])
+        // A new-light scan runs until the user presses Stop; any other scan is time-boxed.
+        // No AllowDuplicates: it delivers every advertisement packet of every nearby device.
+        startScanning(duration: scanningNewLightMode ? nil : backgroundScanDuration)
     }
 
     @objc func scanningTimerFired() {
@@ -1727,6 +1786,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuDele
                     peripheral, characteristic1, characteristic2)
                 targetViewObject.device.startLightOnNotify()
                 forcePowerOffAfterLaunchIfNeeded(targetViewObject)
+                stopScanningIfAllLightsFound()
             }
 
             if !found {
@@ -1826,13 +1886,10 @@ extension AppDelegate: CBCentralManagerDelegate {
         case .unsupported: break
         case .poweredOn:
             Logger.debug(LogTag.bluetooth, "powered on")
-            central.scanForPeripherals(withServices: nil, options: nil)
-            // scanAction(self)
-            self.scanning = true
+            startScanning(duration: scanningNewLightMode ? nil : backgroundScanDuration)
         case .poweredOff:
-            central.stopScan()
+            stopScanning()
             Logger.debug(LogTag.bluetooth, "powered off")
-            self.scanning = false
         case .resetting:
             Logger.debug(LogTag.bluetooth, "resetting")
         @unknown default: break

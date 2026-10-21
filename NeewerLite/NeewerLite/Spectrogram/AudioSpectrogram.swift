@@ -221,6 +221,9 @@ public class AudioSpectrogram: NSObject {
 
     deinit {
         removeVolumeListener()
+        // Manually allocated buffers are not freed by ARC.
+        filterBank.deallocate()
+        sgemmResult.deallocate()
     }
 
     // A reusable array that contains the current frame of time domain audio data as single-precision
@@ -515,6 +518,10 @@ extension AudioSpectrogram: AVCaptureAudioDataOutputSampleBufferDelegate {
     }
 
     private func startVolumeListener() {
+        // startRunning() is called every time the Music view is shown; drop the
+        // previous listener so repeated starts don't stack listeners.
+        removeVolumeListener()
+
         var defaultOutputDeviceID = AudioDeviceID(0)
         var defaultOutputDeviceIDSize = UInt32(MemoryLayout.size(ofValue: defaultOutputDeviceID))
 

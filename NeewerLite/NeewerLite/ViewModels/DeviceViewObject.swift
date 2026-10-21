@@ -8,7 +8,6 @@
 import Cocoa
 
 class DeviceViewObject: NSObject {
-    private var syncLifetime: Timer?
 
     var device: NeewerLight
     var view: CollectionViewItem?
@@ -20,12 +19,8 @@ class DeviceViewObject: NSObject {
         super.init()
         initing = true
 
-        self.syncLifetime = Timer.scheduledTimer(withTimeInterval: 10.0, repeats: true) { _ in
-            //device.sendReadRequest()
-        }
-
-        self.device.isOn.bind { (_) in
-            guard !self.initing else {
+        self.device.isOn.bind { [weak self] (_) in
+            guard let self, !self.initing else {
                 return
             }
             DispatchQueue.main.async {
@@ -34,8 +29,8 @@ class DeviceViewObject: NSObject {
                 }
             }
         }
-        self.device.channel.bind { (channel) in
-            guard !self.initing else {
+        self.device.channel.bind { [weak self] (channel) in
+            guard let self, !self.initing else {
                 return
             }
             Logger.debug("Device channel update: \(channel)")
@@ -45,8 +40,8 @@ class DeviceViewObject: NSObject {
                 }
             }
         }
-        self.device.userLightName.bind { (name) in
-            guard !self.initing else {
+        self.device.userLightName.bind { [weak self] (name) in
+            guard let self, !self.initing else {
                 return
             }
             Logger.debug("Device name update: \(name)")
@@ -57,8 +52,8 @@ class DeviceViewObject: NSObject {
             }
         }
 
-        self.device.brrValue.bind { (val) in
-            guard !self.initing else {
+        self.device.brrValue.bind { [weak self] (val) in
+            guard let self, !self.initing else {
                 return
             }
             Logger.debug("Device brightness update: \(val)")
@@ -69,8 +64,8 @@ class DeviceViewObject: NSObject {
             }
         }
 
-        self.device.cctValue.bind { (val) in
-            guard !self.initing else {
+        self.device.cctValue.bind { [weak self] (val) in
+            guard let self, !self.initing else {
                 return
             }
             Logger.debug("Device CCT update: \(val)")
@@ -81,8 +76,8 @@ class DeviceViewObject: NSObject {
             }
         }
 
-        self.device.gmmValue.bind { (val) in
-            guard !self.initing else {
+        self.device.gmmValue.bind { [weak self] (val) in
+            guard let self, !self.initing else {
                 return
             }
             Logger.debug("Device GM update: \(val)")
@@ -93,8 +88,8 @@ class DeviceViewObject: NSObject {
             }
         }
 
-        self.device.hueValue.bind { (val) in
-            guard !self.initing else {
+        self.device.hueValue.bind { [weak self] (val) in
+            guard let self, !self.initing else {
                 return
             }
             Logger.debug("Device HUE update: \(val)")
@@ -105,8 +100,8 @@ class DeviceViewObject: NSObject {
             }
         }
 
-        self.device.satValue.bind { (val) in
-            guard !self.initing else {
+        self.device.satValue.bind { [weak self] (val) in
+            guard let self, !self.initing else {
                 return
             }
             Logger.debug("Device HUE update: \(val)")
@@ -117,8 +112,8 @@ class DeviceViewObject: NSObject {
             }
         }
 
-        self.device.supportGMRange.bind { support in
-            guard !self.initing else {
+        self.device.supportGMRange.bind { [weak self] support in
+            guard let self, !self.initing else {
                 return
             }
             Logger.debug("Device supportGMRange update: \(support)")
@@ -135,13 +130,6 @@ class DeviceViewObject: NSObject {
 
     deinit {
         Logger.debug("DeviceViewObject deinit")
-        clear()
-    }
-
-    public func clear() {
-        if let safeTimer = self.syncLifetime {
-            safeTimer.invalidate()
-        }
     }
 
     public lazy var deviceName: String = {

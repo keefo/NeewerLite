@@ -102,6 +102,10 @@ private actor SessionManager {
     }
 
     func bindSessionID(_ sessionID: String, to context: MCPSessionContext) {
+        // A re-initialized context gets a new session ID; forget the old one.
+        if let previous = context.sessionID, previous != sessionID {
+            clientKeyBySessionID.removeValue(forKey: previous)
+        }
         context.sessionID = sessionID
         context.lastSeen = Date()
         clientKeyBySessionID[sessionID] = context.clientKey
@@ -306,10 +310,25 @@ final class NeewerLiteServer {
                 let endpointEvent = "event: endpoint\ndata: /messages?sessionId=\(sessionId)\n\n"
                 try? await writer.writeBuffer(ByteBuffer(string: endpointEvent))
 
-                // Stream outbound SSE events until the session ends
-                for await chunk in session.outbound {
-                    try? await writer.writeBuffer(ByteBuffer(string: chunk))
+                // A periodic SSE comment makes a dropped client show up as a write error
+                // even when no MCP traffic is flowing; otherwise the session lives forever.
+                let heartbeat = Task {
+                    while !Task.isCancelled {
+                        try? await Task.sleep(nanoseconds: 30_000_000_000)
+                        session.pushSSE(": keepalive\n\n")
+                    }
                 }
+
+                // Stream outbound SSE events until the session ends or the client goes away
+                for await chunk in session.outbound {
+                    do {
+                        try await writer.writeBuffer(ByteBuffer(string: chunk))
+                    } catch {
+                        break
+                    }
+                }
+                heartbeat.cancel()
+                session.finish()
                 try? await writer.write(.end)
 
                 // Clean up after client disconnects
@@ -395,6 +414,11 @@ final class NeewerLiteServer {
                     session.pushSSE(event)
                 }
             }
+        }
+
+        // The SSE connection is gone; release its MCP session context.
+        if let context = await sessionManager.context(forClientKey: clientKey) {
+            await sessionManager.removeContext(context)
         }
     }
 
