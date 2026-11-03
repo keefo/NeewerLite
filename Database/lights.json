@@ -1710,6 +1710,10 @@
             "cctRange": {
                 "min": 32,
                 "max": 56
+            },
+            "commandPatterns": {
+                "power": "{cmdtag} {powertag} {size} {state:uint8:enum(1=on,2=off)} {checksum}",
+                "cct": "{cmdtag} {ccttag} {size} {brr:uint8:range(0,100)} {cct:uint8:range(32,56)} 0x32 0x00 0x00 {checksum}"
             }
         },
         {
@@ -1946,6 +1950,26 @@
             "newPowerLightCommand": true,
             "newRGBLightCommand": true,
             "fxPreset": "fx17_mac"
+        },
+        {
+            "type": 75,
+            "name": "Neewer FS150C",
+            "image": "",
+            "link": "",
+            "supportRGB": true,
+            "supportCCTGM": false,
+            "supportMusic": true,
+            "support17FX": false,
+            "support9FX": false,
+            "cctRange": {
+                "min": 25,
+                "max": 75
+            },
+            "commandPatterns": {
+                "power": "{cmdtag} {powertag} {size} {state:uint8:enum(1=on,2=off)} {checksum}",
+                "cct": "{cmdtag} {ccttag} {size} {brr:uint8:range(0,100)} {cct:uint8:range(25,75)} 0x32 0x00 0x00 {checksum}",
+                "hsi": "{cmdtag} {hsitag} {size} {hue:uint16_le:range(0,360)} {sat:uint8:range(0,100)} {brr:uint8:range(0,100)} {checksum}"
+            }
         },
         {
             "type": 87,

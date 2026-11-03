@@ -220,6 +220,8 @@ class NeewerLightConstant {
                 return "BH-30S RGB"
             case "20230025":
                 return "RGB1200"
+            case "20230029":
+                return "FS150C"
             case "20230031":
                 return "TL120C"
             case "20230042":
