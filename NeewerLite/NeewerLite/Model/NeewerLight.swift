@@ -1165,6 +1165,18 @@ class NeewerLight: NSObject, ObservableNeewerLightProtocol {
     public func setBRR100LightValues(_ brr: CGFloat) {
         var cmd: Data = Data()
         if lightMode == .CCTMode {
+            // Prefer a pattern-based command if one is available, same as
+            // setCCTLightValues() and the .HSIMode branch just below. Without
+            // this check, a brightness-only change (e.g. from a Stream Deck
+            // dial or the MCP server's set_brightness, which call this
+            // function directly rather than setCCTLightValues) always fell
+            // back to the legacy command below even on lights whose working
+            // command is pattern-based — updating the in-memory value (and
+            // so the GUI slider) while the light itself ignored the packet.
+            if findCommandPatternFromDB("cct") != nil {
+                setCCTLightValues(brr: brr, cct: CGFloat(cctValue.value), gmm: CGFloat(gmmValue.value))
+                return
+            }
             if supportRGB {
                 cmd = getCCTLightCommand(brightness: brr, correlatedColorTemperature: CGFloat(cctValue.value))
             } else {
